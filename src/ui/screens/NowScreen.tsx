@@ -43,40 +43,38 @@ export function NowScreen(props: {
             aria-hidden="true"
             style={{
               width: "100%",
-              maxWidth: 361,
               aspectRatio: "1 / 1",
               borderRadius: 4,
               background: "#2a2a2a",
-              margin: "4px 0 16px",
+              margin: "4px 0 14px",
               display: "grid",
               placeItems: "center",
               color: "#B3B3B3",
-              boxShadow: "0 8px 24px rgba(0, 0, 0, 0.50)",
             }}
           >
             Album Art
           </div>
 
-          <div style={{ textAlign: "center" }}>
-            <div style={{ fontSize: 24, fontWeight: 700, lineHeight: "28px" }} role="heading" aria-level={1} tabIndex={-1}>
+          <div style={{ textAlign: "left" }}>
+            <div style={{ fontSize: 22, fontWeight: 700, lineHeight: "28px" }} role="heading" aria-level={1} tabIndex={-1}>
               {props.track.title}
             </div>
             <button
               type="button"
               className="textBtn"
-              style={{ marginTop: 2, minHeight: 28 }}
+              style={{ marginTop: 4, minHeight: 28, padding: 0 }}
               aria-label={`Go to artist: ${props.track.artist}`}
             >
-              <span style={{ fontSize: 18, fontWeight: 500 }}>{props.track.artist}</span>
+              <span style={{ fontSize: 16, fontWeight: 400, color: "#B3B3B3" }}>{props.track.artist}</span>
             </button>
             {props.track.album ? (
               <button
                 type="button"
                 className="textBtn textBtnMuted"
-                style={{ display: "block", width: "100%", minHeight: 24 }}
+                style={{ display: "block", width: "100%", minHeight: 24, padding: 0 }}
                 aria-label={`Go to album: ${props.track.album}`}
               >
-                <span className="muted" style={{ fontSize: 14 }}>
+                <span className="muted" style={{ fontSize: 13, fontWeight: 400 }}>
                   {props.track.album}
                 </span>
               </button>
@@ -142,7 +140,7 @@ export function NowScreen(props: {
         <section aria-label="Queue preview">
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
           <div>
-            <div style={{ fontWeight: 700 }}>Queue Preview</div>
+            <div className="sectionHeader" style={{ marginTop: 0 }}>Queue</div>
             <div className="muted" style={{ fontSize: 14, marginTop: 4 }}>
               Up next: “{queueNext?.title ?? "—"}” — {queueNext?.artist ?? ""}
             </div>

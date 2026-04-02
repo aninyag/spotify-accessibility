@@ -35,8 +35,8 @@ export function CommandPalette(props: {
   React.useEffect(() => {
     if (props.open) return;
     // Return focus to the header pill that opened it (stable focus target).
-    const pill = document.querySelector<HTMLElement>('[data-command-palette-pill="true"]');
-    pill?.focus?.();
+    const trigger = document.querySelector<HTMLElement>('[data-command-palette-trigger="true"]');
+    trigger?.focus?.();
   }, [props.open]);
 
   React.useEffect(() => {

@@ -67,23 +67,6 @@ input:focus-visible {
   outline-offset: 2px;
 }
 
-.commandPill {
-  width: 36px;
-  height: 36px;
-  border: none;
-  background: transparent;
-  border-radius: 999px;
-  display: grid;
-  place-items: center;
-  justify-self: end;
-  color: white;
-}
-
-.commandPill:active {
-  transform: scale(0.96);
-  opacity: 0.9;
-}
-
 .ghostBtn {
   min-height: 44px;
   padding: 0 10px;
@@ -194,11 +177,11 @@ input:focus-visible {
 .screenInner {
   padding: 0 16px 12px;
   display: grid;
-  gap: 24px;
+  gap: 16px;
 }
 
 .headerGradient {
-  height: 140px;
+  height: 124px;
   padding: 10px 16px 12px;
   background: radial-gradient(ellipse 89.12% 89.12% at 17.33% -4.18%, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%), var(--bg-elevated);
   backdrop-filter: blur(100px);
@@ -305,11 +288,12 @@ input:focus-visible {
 }
 
 .row {
+  height: 56px;
   display: grid;
   grid-template-columns: 48px 1fr 46px;
   align-items: center;
   gap: 8px;
-  padding: 16px;
+  padding: 0 16px;
   margin: 0 -16px;
   background: var(--bg-elevated);
 }
@@ -512,12 +496,13 @@ input:focus-visible {
 }
 
 .bottomSheetBackdrop {
-  position: fixed;
+  position: absolute;
   inset: 0;
   display: grid;
   align-items: end;
   justify-items: stretch;
   background: rgba(0, 0, 0, 0.45);
+  z-index: 50;
 }
 
 .bottomSheet {

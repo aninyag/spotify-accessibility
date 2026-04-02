@@ -4,10 +4,9 @@ import { Icon, type IconName } from "./Icon";
 export function HeaderBar(props: {
   title: string;
   left?: { kind: "icon"; label: string; onPress: () => void; icon?: IconName } | { kind: "avatar"; label: string };
+  rightIcons?: Array<{ icon: IconName; label: string; onPress: () => void }>;
   onCommandPalette: () => void;
 }) {
-  const pillRef = React.useRef<HTMLButtonElement | null>(null);
-
   return (
     <div className="header">
       {props.left ? (
@@ -24,16 +23,22 @@ export function HeaderBar(props: {
       <div className="headerTitle" role="heading" aria-level={1}>
         {props.title}
       </div>
-      <button
-        ref={pillRef}
-        type="button"
-        className="commandPill"
-        aria-label="Open command palette"
-        onClick={props.onCommandPalette}
-        data-command-palette-pill="true"
-      >
-        <Icon name="mic" size={20} />
-      </button>
+      <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: 8, width: 48 }}>
+        {props.rightIcons?.map((it) => (
+          <button key={it.label} type="button" className="iconBtn" aria-label={it.label} onClick={it.onPress}>
+            <Icon name={it.icon} size={22} />
+          </button>
+        )) ?? null}
+        <button
+          type="button"
+          className="iconBtn"
+          aria-label="Open command palette"
+          onClick={props.onCommandPalette}
+          data-command-palette-trigger="true"
+        >
+          <Icon name="mic" size={22} />
+        </button>
+      </div>
     </div>
   );
 }

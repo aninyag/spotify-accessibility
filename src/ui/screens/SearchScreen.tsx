@@ -56,14 +56,6 @@ export function SearchScreen(props: {
             }}
             style={{ border: "none", outline: "none", background: "transparent" }}
           />
-          <button
-            type="button"
-            aria-label="Voice search. Tap to speak."
-            onClick={() => {}}
-            style={{ border: "none", background: "transparent", color: "black", minHeight: 19, padding: 0 }}
-          >
-            <Icon name="mic" size={18} />
-          </button>
         </div>
         <div className="pillRow" role="tablist" aria-label="Filter chips" style={{ marginTop: 12 }}>
           {["Songs", "Albums", "Artists", "Playlist"].map((opt, idx) => (
@@ -88,15 +80,6 @@ export function SearchScreen(props: {
         </div>
       </div>
       <div className="screenInner">
-        <button
-          type="button"
-          className="cta"
-          aria-label="Voice search. Tap to speak."
-          onClick={() => {}}
-        >
-          <Icon name="mic" size={18} /> Tap to speak
-        </button>
-
         {!showResults ? (
           <section aria-label="Category cards">
             <div className="sectionHeader">Top songs</div>
