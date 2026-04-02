@@ -1,4 +1,4 @@
-# chat-git-repo
+# spotify accessibility
 
 Git repository for this Cursor chat/session.
 
