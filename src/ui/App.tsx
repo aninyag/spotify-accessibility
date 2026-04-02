@@ -44,7 +44,6 @@ export function App() {
   });
 
   const [landmarks, setLandmarks] = useLocalStorageState<Landmark[]>("sa.landmarks", defaultLandmarks);
-  const [paletteHintSeen, setPaletteHintSeen] = useLocalStorageState<boolean>("sa.paletteHintSeen", false);
 
   const [track, setTrack] = React.useState<Track>(mockNowPlaying);
   const [isPlaying, setIsPlaying] = React.useState(false);
@@ -385,8 +384,6 @@ export function App() {
           landmarks={landmarks}
           recentActions={recentActions}
           pinnedFlashId={pinnedFlashId}
-          paletteHintSeen={paletteHintSeen}
-          onPaletteHintDismiss={() => setPaletteHintSeen(true)}
           onPinnedLongPress={(lm) => {
             openContext({ landmark: lm });
           }}

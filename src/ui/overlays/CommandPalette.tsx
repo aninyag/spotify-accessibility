@@ -109,19 +109,20 @@ export function CommandPalette(props: {
   onPinnedLongPress: (lm: Landmark) => void;
   onOpenContext: (target: ContextTarget) => void;
   pinnedFlashId: string | null;
-  paletteHintSeen: boolean;
-  onPaletteHintDismiss: () => void;
   tts: { enabled: boolean; rate: number };
 }) {
   const searchRef = React.useRef<HTMLInputElement | null>(null);
   const [listening, setListening] = React.useState(false);
   const [searchQuery, setSearchQuery] = React.useState("");
+  /** Resets whenever the sheet opens so user testers always see the intro (not persisted). */
+  const [hintDismissedThisOpen, setHintDismissedThisOpen] = React.useState(false);
   const sheetRef = React.useRef<HTMLDivElement | null>(null);
 
   React.useEffect(() => {
     if (!props.open) return;
     setListening(false);
     setSearchQuery("");
+    setHintDismissedThisOpen(false);
     const id = window.setTimeout(() => searchRef.current?.focus(), 0);
     return () => window.clearTimeout(id);
   }, [props.open]);
@@ -173,9 +174,9 @@ export function CommandPalette(props: {
 
   const likeLabel = props.context.trackLiked ? "Remove like" : "Like this song";
   const searchHits = filterPaletteSearch(searchQuery);
-  const showFirstHint = !props.paletteHintSeen;
+  const showFirstHint = !hintDismissedThisOpen;
 
-  const dismissHint = () => props.onPaletteHintDismiss();
+  const dismissHint = () => setHintDismissedThisOpen(true);
 
   const onVoiceTap = () => {
     if (showFirstHint) dismissHint();
