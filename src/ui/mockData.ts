@@ -4,14 +4,53 @@ import type { Landmark, Track } from "./types";
 /** Two shortcuts shown on the Axis home screen (session state). */
 export const defaultAxisHomeLandmarks: Landmark[] = [
   { id: "pin-library", label: "Your Library", type: "screen", payload: { kind: "screen", tab: "library" } },
-  { id: "pin-jazz", label: "Jazz search", type: "search", payload: { kind: "search", query: "jazz" } },
+  {
+    id: "pin-chill",
+    label: "Chill Hits",
+    type: "search",
+    payload: { kind: "search", query: "chill" },
+  },
 ];
 
 /** Songs shown on Search; stub refs s1–s3 resolve here. */
 export const browseStubTracks: Track[] = [
-  { id: "s1", title: "Song title one", artist: "Artist A", durationSec: 210 },
-  { id: "s2", title: "Song title two", artist: "Artist B", durationSec: 198 },
-  { id: "s3", title: "Song title three", artist: "Artist C", durationSec: 225 },
+  { id: "s1", title: "Don't Start Now", artist: "Dua Lipa", album: "Future Nostalgia", durationSec: 183 },
+  { id: "s2", title: "Blinding Lights", artist: "The Weeknd", album: "After Hours", durationSec: 200 },
+  { id: "s3", title: "Take Five", artist: "Dave Brubeck", album: "Time Out", durationSec: 324 },
+];
+
+/** Axis home “Top songs” list — lines up with All / Pop / Hip-hop chips. */
+export const axisHomeTopSongRows: { track: Track; genre: "Pop" | "Hip-hop" }[] = [
+  {
+    track: {
+      id: "axis-row-1",
+      title: "Don't Start Now",
+      artist: "Dua Lipa",
+      album: "Future Nostalgia",
+      durationSec: 183,
+    },
+    genre: "Pop",
+  },
+  {
+    track: {
+      id: "axis-row-2",
+      title: "Blinding Lights",
+      artist: "The Weeknd",
+      album: "After Hours",
+      durationSec: 200,
+    },
+    genre: "Pop",
+  },
+  {
+    track: {
+      id: "axis-row-3",
+      title: "HUMBLE.",
+      artist: "Kendrick Lamar",
+      album: "DAMN.",
+      durationSec: 177,
+    },
+    genre: "Hip-hop",
+  },
 ];
 
 export const mockNowPlaying: Track = {

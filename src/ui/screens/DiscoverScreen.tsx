@@ -5,7 +5,7 @@ import { Icon } from "../components/Icon";
 import { LongPressable } from "../components/LongPressable";
 import { useLongPress } from "../useLongPress";
 import { axisLocalPng, axisTileFallback, homeLocalPng } from "../axisMedia";
-import { mockNowPlaying } from "../mockData";
+import { axisHomeTopSongRows } from "../mockData";
 import { ResilientImg } from "../components/ResilientImg";
 import { useAxisSearchSpeech } from "../useAxisSearchSpeech";
 import { ListRow, trackAriaLabel } from "../components/ListRow";
@@ -13,21 +13,21 @@ import { isContextPinned } from "../pinnedUtils";
 
 const chips = ["All", "Music", "Podcasts", "Audiobooks"] as const;
 
-/** Fictional labels only — thumbnails from `public/home/tile-NN.png` or picsum fallback. */
+/** Spotify-style home shortcuts (demo) — thumbnails from `public/home/tile-NN.png` or picsum fallback. */
 const homeDummyTiles = [
-  { id: "dummy-1", title: "Lumen mix radio", thumbFile: "tile-01", fallbackSeed: "homeDummyTile01" },
-  { id: "dummy-2", title: "Velocity repeat", thumbFile: "tile-02", fallbackSeed: "homeDummyTile02" },
-  { id: "dummy-3", title: "Harbor slow focus", thumbFile: "tile-03", fallbackSeed: "homeDummyTile03" },
-  { id: "dummy-4", title: "Northstar dance mix", thumbFile: "tile-04", fallbackSeed: "homeDummyTile04" },
-  { id: "dummy-5", title: "Quartz indie hour", thumbFile: "tile-05", fallbackSeed: "homeDummyTile05" },
-  { id: "dummy-6", title: "Canvas live session", thumbFile: "tile-06", fallbackSeed: "homeDummyTile06" },
-  { id: "dummy-7", title: "Aurora commute", thumbFile: "tile-07", fallbackSeed: "homeDummyTile07" },
-  { id: "dummy-8", title: "Driftwork study", thumbFile: "tile-08", fallbackSeed: "homeDummyTile08" },
+  { id: "dummy-1", title: "Daily Mix 1", thumbFile: "tile-01", fallbackSeed: "homeMixDaily1" },
+  { id: "dummy-2", title: "On Repeat", thumbFile: "tile-02", fallbackSeed: "homeOnRepeat" },
+  { id: "dummy-3", title: "Discover Weekly", thumbFile: "tile-03", fallbackSeed: "homeDiscoverWeekly" },
+  { id: "dummy-4", title: "Release Radar", thumbFile: "tile-04", fallbackSeed: "homeReleaseRadar" },
+  { id: "dummy-5", title: "Liked Songs", thumbFile: "tile-05", fallbackSeed: "homeLikedSongs" },
+  { id: "dummy-6", title: "Chill Hits", thumbFile: "tile-06", fallbackSeed: "homeChillHits" },
+  { id: "dummy-7", title: "Deep Focus", thumbFile: "tile-07", fallbackSeed: "homeDeepFocus" },
+  { id: "dummy-8", title: "Party Starters", thumbFile: "tile-08", fallbackSeed: "homePartyStarters" },
 ] as const;
 
 const axisMainTabs = ["Songs", "Artists", "Albums", "Playlists"] as const;
 
-const axisTopSongChips = ["All", "Pop", "HipHop"] as const;
+const axisTopSongChips = ["All", "Pop", "Hip-hop"] as const;
 
 const axisCategoryTiles: {
   tab: (typeof axisMainTabs)[number];
@@ -40,12 +40,6 @@ const axisCategoryTiles: {
   { tab: "Artists", label: "Artists", color: "#C23B3B", art: "axis-recent-artists", seed: "axisRecentArtists" },
   { tab: "Albums", label: "Albums", color: "#A8D5BA", art: "axis-recent-albums", seed: "axisRecentAlbums" },
   { tab: "Playlists", label: "Playlist", color: "#C9A227", art: "axis-recent-playlist", seed: "axisRecentPlaylist" },
-];
-
-const axisTopSongRows: { track: Track; genre: "Pop" | "HipHop" }[] = [
-  { track: mockNowPlaying, genre: "Pop" },
-  { track: { ...mockNowPlaying, id: "axis-home-ts-2" }, genre: "Pop" },
-  { track: { ...mockNowPlaying, id: "axis-home-ts-3" }, genre: "HipHop" },
 ];
 
 function DiscoverTopChrome<T extends string>(props: {
@@ -316,7 +310,7 @@ export function DiscoverScreen(props: {
               ))}
             </div>
             <div style={{ display: "grid", gap: 2, marginTop: 12 }}>
-              {axisTopSongRows
+              {axisHomeTopSongRows
                 .filter((row) => axisTopSongChip === "All" || row.genre === axisTopSongChip)
                 .map((row) => {
                   const ctx: ContextTarget = {
