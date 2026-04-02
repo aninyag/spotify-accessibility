@@ -1,7 +1,7 @@
 import * as React from "react";
 import { BottomNavBar } from "./components/BottomNavBar";
-import type { ContextTarget, Landmark, RepeatMode, TabId, Track } from "./types";
-import { mockNowPlaying, mockQueue, defaultLandmarks } from "./mockData";
+import type { AppAction, ContextTarget, Landmark, RepeatMode, TabId, Track } from "./types";
+import { mockNowPlaying, mockQueue } from "./mockData";
 import { NowScreen } from "./screens/NowScreen";
 import { SearchScreen } from "./screens/SearchScreen";
 import { LibraryScreen } from "./screens/LibraryScreen";
@@ -37,13 +37,13 @@ export function App() {
   const [likedTrackIds, setLikedTrackIds] = React.useState<string[]>([]);
   const [pinnedFlashId, setPinnedFlashId] = React.useState<string | null>(null);
 
-  const [settings, setSettings] = useLocalStorageState<Settings>("sa.settings", {
+  const [settings] = useLocalStorageState<Settings>("sa.settings", {
     voiceFeedback: true,
     voiceRate: "normal",
     announceSongChanges: true,
   });
 
-  const [landmarks, setLandmarks] = useLocalStorageState<Landmark[]>("sa.landmarks", defaultLandmarks);
+  const [landmarks, setLandmarks] = useLocalStorageState<Landmark[]>("sa.landmarks", []);
 
   const [track, setTrack] = React.useState<Track>(mockNowPlaying);
   const [isPlaying, setIsPlaying] = React.useState(false);
@@ -64,40 +64,71 @@ export function App() {
     setContextTarget(null);
   }, []);
 
-  const addToQueue = React.useCallback((t: Track) => {
-    const instance: Track = { ...t, id: `${t.id}-q-${Date.now()}` };
-    setQueue((q) => [...q, instance]);
-    setRecentActions((a) => [`Added to queue: ${t.title}`, ...a].slice(0, 3));
-  }, []);
+  // ── Central dispatch ──────────────────────────────────────────────────
 
-  const addLandmark = React.useCallback((lm: Landmark) => {
-    setLandmarks((prev) => {
-      setPinError(false);
-      if (prev.some((x) => x.id === lm.id)) return prev;
-      if (prev.length >= 6) {
-        setPinError(true);
-        return prev;
+  const dispatch = React.useCallback(
+    (action: AppAction) => {
+      console.log("ACTION:", action);
+
+      switch (action.type) {
+        case "PLAY": {
+          setTrack(action.payload);
+          setIsPlaying(true);
+          setCurrentTime(0);
+          setRecentActions((a) => [`Now playing: ${action.payload.title}`, ...a].slice(0, 3));
+          break;
+        }
+        case "ADD_TO_QUEUE": {
+          const instance: Track = { ...action.payload, id: `${action.payload.id}-q-${Date.now()}` };
+          setQueue((q) => [...q, instance]);
+          setRecentActions((a) => [`Added to queue: ${action.payload.title}`, ...a].slice(0, 3));
+          break;
+        }
+        case "PIN": {
+          setLandmarks((prev) => {
+            setPinError(false);
+            if (prev.some((x) => x.id === action.payload.id)) return prev;
+            if (prev.length >= 6) {
+              setPinError(true);
+              return prev;
+            }
+            const lm = action.payload;
+            window.setTimeout(() => {
+              setPinnedFlashId(lm.id);
+              window.setTimeout(() => setPinnedFlashId(null), 1800);
+            }, 0);
+            setRecentActions((a) => [`Pinned: ${lm.label}`, ...a].slice(0, 3));
+            return [...prev, lm];
+          });
+          break;
+        }
+        case "UNPIN": {
+          setLandmarks((prev) => {
+            const removed = prev.find((x) => x.id === action.payload.id);
+            if (removed) setRecentActions((a) => [`Unpinned: ${removed.label}`, ...a].slice(0, 3));
+            return prev.filter((x) => x.id !== action.payload.id);
+          });
+          break;
+        }
+        case "RENAME_PINNED": {
+          setLandmarks((prev) =>
+            prev.map((p) => (p.id === action.payload.id ? { ...p, label: action.payload.label } : p)),
+          );
+          setRecentActions((a) => [`Renamed to: ${action.payload.label}`, ...a].slice(0, 3));
+          break;
+        }
       }
-      window.setTimeout(() => {
-        setPinnedFlashId(lm.id);
-        window.setTimeout(() => setPinnedFlashId(null), 1800);
-      }, 0);
-      const next = [...prev, lm];
-      setRecentActions((a) => [`Pinned: ${lm.label}`, ...a].slice(0, 3));
-      return next;
-    });
-  }, [setLandmarks]);
-
-  const removeLandmark = React.useCallback(
-    (id: string) => {
-      setLandmarks((prev) => {
-        const removed = prev.find((x) => x.id === id);
-        const next = prev.filter((x) => x.id !== id);
-        if (removed) setRecentActions((a) => [`Unpinned: ${removed.label}`, ...a].slice(0, 3));
-        return next;
-      });
     },
     [setLandmarks],
+  );
+
+  console.log("STATE:", { track: track.title, isPlaying, queue: queue.length, pinned: landmarks.length });
+
+  // ── Helpers that call dispatch ────────────────────────────────────────
+
+  const playTrack = React.useCallback(
+    (t: Track) => dispatch({ type: "PLAY", payload: t }),
+    [dispatch],
   );
 
   const toggleLike = React.useCallback((trackId: string, title: string) => {
@@ -170,17 +201,28 @@ export function App() {
     setNowPlayingOpen(false);
   };
 
-  const navigateToLandmark = (lm: Landmark) => {
-    if (lm.payload.kind === "screen") {
-      onTabChange(lm.payload.tab);
-      return;
-    }
-    if (lm.payload.kind === "search") {
-      setTab("search");
+  const executePinned = React.useCallback(
+    (lm: Landmark) => {
+      console.log("EXECUTE PINNED:", lm);
+      if (lm.payload.kind === "action") {
+        dispatch({ type: lm.payload.action, payload: lm.payload.target });
+        return;
+      }
+      if (lm.payload.kind === "screen") {
+        onTabChange(lm.payload.tab);
+        return;
+      }
+      if (lm.payload.kind === "search") {
+        setTab("search");
+        setNowPlayingOpen(false);
+        return;
+      }
+      // stub payloads — navigate to library as a fallback
+      setTab("library");
       setNowPlayingOpen(false);
-      return;
-    }
-  };
+    },
+    [dispatch],
+  );
 
   const whereAmIText = React.useMemo(() => {
     if (nowPlayingOpen) {
@@ -206,64 +248,137 @@ export function App() {
     [],
   );
 
+  // ── Context menu items ────────────────────────────────────────────────
+
   const contextMenuItems = React.useMemo(() => {
     if (!contextTarget) return [];
     const lm = contextTarget.landmark;
     const isPinned = landmarks.some((x) => x.id === lm.id);
 
-    return [
-      {
-        key: "pin",
-        label: isPinned ? "Unpin" : "Pin",
+    const items: Array<{ key: string; label: string; icon: React.ReactNode; onSelect: () => void }> = [];
+
+    if (isPinned) {
+      items.push({
+        key: "unpin",
+        label: "Unpin",
         icon: <Icon name="pin" size={18} />,
-        onSelect: () => {
-          if (isPinned) removeLandmark(lm.id);
-          else addLandmark(lm);
-        },
-      },
-      {
-        key: "queue",
-        label: "Add to queue",
+        onSelect: () => dispatch({ type: "UNPIN", payload: { id: lm.id } }),
+      });
+      items.push({
+        key: "rename",
+        label: "Rename",
         icon: <Icon name="plus" size={18} />,
         onSelect: () => {
-          const t =
-            contextTarget.queueTrack ??
-            ({
-              id: `row-${lm.id}`,
-              title: lm.label,
-              artist: contextTarget.artistName ?? "Spotify",
-              durationSec: 200,
-            } satisfies Track);
-          addToQueue(t);
+          const newLabel = window.prompt("Rename shortcut", lm.label);
+          if (newLabel && newLabel.trim()) {
+            dispatch({ type: "RENAME_PINNED", payload: { id: lm.id, label: newLabel.trim() } });
+          }
         },
+      });
+    } else {
+      const pinLandmark: Landmark =
+        contextTarget.queueTrack
+          ? {
+              id: `pin-${Date.now()}`,
+              label: contextTarget.queueTrack.title,
+              type: "action",
+              payload: { kind: "action", action: "PLAY", target: contextTarget.queueTrack },
+            }
+          : { ...lm, id: `pin-${Date.now()}` };
+
+      items.push({
+        key: "save-shortcut",
+        label: "Save as shortcut",
+        icon: <Icon name="pin" size={18} />,
+        onSelect: () => dispatch({ type: "PIN", payload: pinLandmark }),
+      });
+    }
+
+    items.push({
+      key: "queue",
+      label: "Add to queue",
+      icon: <Icon name="plus" size={18} />,
+      onSelect: () => {
+        const t: Track =
+          contextTarget.queueTrack ?? {
+            id: `row-${lm.id}`,
+            title: lm.label,
+            artist: contextTarget.artistName ?? "Spotify",
+            durationSec: 200,
+          };
+        dispatch({ type: "ADD_TO_QUEUE", payload: t });
       },
-      {
-        key: "playlist",
-        label: "Add to playlist",
-        icon: <Icon name="plusCircle" size={18} />,
-        onSelect: () => {
-          setRecentActions((a) => [`Added to playlist: ${lm.label}`, ...a].slice(0, 3));
-        },
+    });
+
+    items.push({
+      key: "artist",
+      label: "Go to artist",
+      icon: <Icon name="search" size={18} />,
+      onSelect: () => {
+        const name = contextTarget.artistName ?? lm.label;
+        goToArtistFromContext(name);
       },
-      {
-        key: "artist",
-        label: "Go to artist",
-        icon: <Icon name="search" size={18} />,
-        onSelect: () => {
-          const name = contextTarget.artistName ?? lm.label;
-          goToArtistFromContext(name);
-        },
+    });
+
+    items.push({
+      key: "share",
+      label: "Share",
+      icon: <Icon name="share" size={18} />,
+      onSelect: () => {
+        setRecentActions((a) => [`Shared: ${lm.label}`, ...a].slice(0, 3));
       },
-      {
-        key: "share",
-        label: "Share",
-        icon: <Icon name="share" size={18} />,
-        onSelect: () => {
-          setRecentActions((a) => [`Shared: ${lm.label}`, ...a].slice(0, 3));
-        },
-      },
-    ];
-  }, [contextTarget, landmarks, addLandmark, removeLandmark, addToQueue, goToArtistFromContext]);
+    });
+
+    return items;
+  }, [contextTarget, landmarks, dispatch, goToArtistFromContext]);
+
+  // ── Command handler (called from CommandPalette) ──────────────────────
+
+  const handleCommand = React.useCallback(
+    (cmd: Command) => {
+      if (cmd.kind === "nav") onTabChange(cmd.tab);
+      if (cmd.kind === "playPause") {
+        setIsPlaying((p) => !p);
+        setRecentActions((a) => [`${isPlaying ? "Paused" : "Played"}: ${track.title}`, ...a].slice(0, 3));
+      }
+      if (cmd.kind === "skip") {
+        const idx = queue.findIndex((t) => t.id === track.id);
+        const next = queue[Math.min(queue.length - 1, Math.max(0, idx + 1))] ?? track;
+        setTrack(next);
+        setCurrentTime(0);
+        setRecentActions((a) => [`Skipped: ${next.title}`, ...a].slice(0, 3));
+      }
+      if (cmd.kind === "addToQueue") {
+        dispatch({ type: "ADD_TO_QUEUE", payload: track });
+      }
+      if (cmd.kind === "like") {
+        toggleLike(track.id, track.title);
+      }
+      if (cmd.kind === "landmark") executePinned(cmd.landmark);
+      if (cmd.kind === "playPaletteResult") {
+        dispatch({ type: "PLAY", payload: cmd.hit.playTrack });
+      }
+      if (cmd.kind === "playLikedSongs") {
+        const liked = queue.find((t) => likedTrackIds.includes(t.id));
+        if (liked) {
+          dispatch({ type: "PLAY", payload: liked });
+        } else {
+          setTab("library");
+          setNowPlayingOpen(false);
+          if (queue[0]) dispatch({ type: "PLAY", payload: queue[0] });
+        }
+        setRecentActions((a) => ["Playing liked songs", ...a].slice(0, 3));
+      }
+      if (cmd.kind === "resumeLast") {
+        setIsPlaying(true);
+        setRecentActions((a) => [`Resumed: ${track.title}`, ...a].slice(0, 3));
+      }
+      if (cmd.kind === "goToArtist") {
+        goToArtistFromContext(track.artist);
+      }
+    },
+    [queue, track, isPlaying, likedTrackIds, dispatch, executePinned, toggleLike, goToArtistFromContext],
+  );
 
   return (
     <div className="appShell">
@@ -286,9 +401,7 @@ export function App() {
               trackLiked={likedTrackIds.includes(track.id)}
               onToggleLike={() => toggleLike(track.id, track.title)}
               onBack={() => setNowPlayingOpen(false)}
-              onTogglePlay={() => {
-                setIsPlaying((p) => !p);
-              }}
+              onTogglePlay={() => setIsPlaying((p) => !p)}
               onNext={() => {
                 const idx = queue.findIndex((t) => t.id === track.id);
                 const next = queue[Math.min(queue.length - 1, Math.max(0, idx + 1))] ?? track;
@@ -301,28 +414,29 @@ export function App() {
                 setTrack(prev);
                 setCurrentTime(0);
               }}
-              onShuffleToggle={() => {
-                setShuffle((s) => !s);
-              }}
+              onShuffleToggle={() => setShuffle((s) => !s)}
               onRepeatToggle={() => {
                 const next: RepeatMode = repeat === "off" ? "all" : repeat === "all" ? "one" : "off";
                 setRepeat(next);
               }}
-              onSeek={(t) => {
-                setCurrentTime(t);
-              }}
+              onSeek={(t) => setCurrentTime(t)}
               onCommandPalette={() => setCommandOpen(true)}
-              onLandmarkPress={navigateToLandmark}
+              onPlayTrack={playTrack}
+              onExecutePinned={executePinned}
               onOpenContext={openContext}
             />
           ) : tab === "search" ? (
-            <SearchScreen onCommandPalette={() => setCommandOpen(true)} onOpenContext={openContext} />
+            <SearchScreen
+              onCommandPalette={() => setCommandOpen(true)}
+              onOpenContext={openContext}
+              onPlayTrack={playTrack}
+            />
           ) : tab === "library" ? (
             <LibraryScreen
               onCommandPalette={() => setCommandOpen(true)}
               landmarks={landmarks}
               onOpenContext={openContext}
-              onLandmarkPress={navigateToLandmark}
+              onExecutePinned={executePinned}
               pinnedFlashId={pinnedFlashId}
             />
           ) : (
@@ -375,61 +489,10 @@ export function App() {
           landmarks={landmarks}
           recentActions={recentActions}
           pinnedFlashId={pinnedFlashId}
-          onPinnedLongPress={(lm) => {
-            openContext({ landmark: lm });
-          }}
+          onPinnedLongPress={(lm) => openContext({ landmark: lm })}
           onOpenContext={openContext}
-          onCommand={(cmd: Command) => {
-            if (cmd.kind === "nav") onTabChange(cmd.tab);
-            if (cmd.kind === "playPause") {
-              setIsPlaying((p) => !p);
-              setRecentActions((a) => [`${isPlaying ? "Paused" : "Played"}: ${track.title}`, ...a].slice(0, 3));
-            }
-            if (cmd.kind === "skip") {
-              const idx = queue.findIndex((t) => t.id === track.id);
-              const next = queue[Math.min(queue.length - 1, Math.max(0, idx + 1))] ?? track;
-              setTrack(next);
-              setCurrentTime(0);
-              setRecentActions((a) => [`Skipped: ${next.title}`, ...a].slice(0, 3));
-            }
-            if (cmd.kind === "addToQueue") {
-              addToQueue(track);
-            }
-            if (cmd.kind === "like") {
-              toggleLike(track.id, track.title);
-            }
-            if (cmd.kind === "landmark") navigateToLandmark(cmd.landmark);
-            if (cmd.kind === "playPaletteResult") {
-              setTrack(cmd.hit.playTrack);
-              setIsPlaying(true);
-              setCurrentTime(0);
-              setRecentActions((a) => [`Now playing: ${cmd.hit.title}`, ...a].slice(0, 3));
-            }
-            if (cmd.kind === "playLikedSongs") {
-              const liked = queue.find((t) => likedTrackIds.includes(t.id));
-              if (liked) {
-                setTrack(liked);
-                setIsPlaying(true);
-                setCurrentTime(0);
-              } else {
-                setTab("library");
-                setNowPlayingOpen(false);
-                if (queue[0]) {
-                  setTrack(queue[0]);
-                  setIsPlaying(true);
-                  setCurrentTime(0);
-                }
-              }
-              setRecentActions((a) => [`Playing liked songs`, ...a].slice(0, 3));
-            }
-            if (cmd.kind === "resumeLast") {
-              setIsPlaying(true);
-              setRecentActions((a) => [`Resumed: ${track.title}`, ...a].slice(0, 3));
-            }
-            if (cmd.kind === "goToArtist") {
-              goToArtistFromContext(track.artist);
-            }
-          }}
+          onCommand={handleCommand}
+          onExecutePinned={executePinned}
           tts={{ enabled: ttsEnabled, rate: ttsRate }}
         />
 

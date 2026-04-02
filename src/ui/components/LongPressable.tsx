@@ -16,7 +16,7 @@ export function LongPressable(props: {
       role={props.role}
       tabIndex={props.onClick || props.onLongPress ? 0 : undefined}
       className={props.className}
-      style={{ touchAction: "manipulation", WebkitTapHighlightColor: "transparent", ...props.style }}
+      style={{ touchAction: "manipulation", WebkitTapHighlightColor: "transparent", WebkitUserSelect: "none", userSelect: "none", WebkitTouchCallout: "none", ...props.style } as React.CSSProperties}
       aria-label={props.ariaLabel}
       onClick={(e) => {
         if (lp.consumeLongPressClick()) {

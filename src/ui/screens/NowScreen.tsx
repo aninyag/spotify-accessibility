@@ -24,7 +24,8 @@ export function NowScreen(props: {
   onRepeatToggle: () => void;
   onSeek: (timeSec: number) => void;
   onCommandPalette: () => void;
-  onLandmarkPress: (lm: Landmark) => void;
+  onPlayTrack: (t: Track) => void;
+  onExecutePinned: (lm: Landmark) => void;
   onOpenContext: (target: ContextTarget) => void;
 }) {
   const total = props.track.durationSec;
@@ -93,20 +94,36 @@ export function NowScreen(props: {
                     <span style={{ fontSize: 16, fontWeight: 400, color: "#B3B3B3" }}>{props.track.artist}</span>
                   </button>
                 </div>
-                <button
-                  type="button"
-                  className="iconBtn"
-                  aria-label={props.trackLiked ? "Remove like" : "Like"}
-                  onTouchStart={(e) => e.stopPropagation()}
-                  onMouseDown={(e) => e.stopPropagation()}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    props.onToggleLike();
-                  }}
-                  style={{ color: props.trackLiked ? "#1DB954" : "#B3B3B3", flexShrink: 0 }}
-                >
-                  <Icon name="heart" size={26} />
-                </button>
+                <div style={{ display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
+                  <button
+                    type="button"
+                    className="iconBtn"
+                    aria-label={props.trackLiked ? "Remove like" : "Like"}
+                    onTouchStart={(e) => e.stopPropagation()}
+                    onMouseDown={(e) => e.stopPropagation()}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      props.onToggleLike();
+                    }}
+                    style={{ color: props.trackLiked ? "#1DB954" : "#B3B3B3" }}
+                  >
+                    <Icon name="heart" size={26} />
+                  </button>
+                  <button
+                    type="button"
+                    className="iconBtn"
+                    aria-label={`More options for ${props.track.title}`}
+                    onTouchStart={(e) => e.stopPropagation()}
+                    onMouseDown={(e) => e.stopPropagation()}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      props.onOpenContext(nowPlayingContext());
+                    }}
+                    style={{ color: "#B3B3B3" }}
+                  >
+                    <Icon name="overflow" size={22} />
+                  </button>
+                </div>
               </div>
               {props.track.album ? (
                 <button
@@ -196,8 +213,7 @@ export function NowScreen(props: {
                   title={t.title}
                   subtitle={t.artist}
                   ariaLabel={trackAriaLabel(t)}
-                  onPress={() => {}}
-                  onPlayPress={() => {}}
+                  onPress={() => props.onPlayTrack(t)}
                   onLongPress={() =>
                     props.onOpenContext({
                       landmark: {
@@ -220,7 +236,7 @@ export function NowScreen(props: {
           <div style={{ fontWeight: 700, marginBottom: 8 }}>Pinned</div>
 
           {props.landmarks.length === 0 ? (
-            <div className="muted" style={{ marginTop: 10 }}>Long-press any song, playlist, or shortcut to pin it.</div>
+            <div className="muted" style={{ marginTop: 10 }}>Tap ··· on any row to pin it here.</div>
           ) : (
             <div style={{ display: "grid", gap: 2, marginTop: 10 }}>
               {props.landmarks.map((lm, idx) => (
@@ -229,7 +245,7 @@ export function NowScreen(props: {
                   title={lm.label}
                   subtitle={lm.type}
                   ariaLabel={`Pinned item ${idx + 1}: ${lm.label}. ${lm.type}. Tap to open.`}
-                  onPress={() => props.onLandmarkPress(lm)}
+                  onPress={() => props.onExecutePinned(lm)}
                   onLongPress={() => props.onOpenContext({ landmark: lm })}
                 />
               ))}

@@ -16,9 +16,5 @@ export const mockQueue: Track[] = [
   { id: "t5", title: "Get Lucky", artist: "Daft Punk", album: "Random Access Memories", durationSec: 248 },
 ];
 
-export const defaultLandmarks: Landmark[] = [
-  { id: "lm1", label: "Home", type: "screen", payload: { kind: "screen", tab: "home" } },
-  { id: "lm2", label: "Search: chill", type: "search", payload: { kind: "search", query: "chill" } },
-  { id: "lm3", label: "Liked Songs", type: "playlist", payload: { kind: "stub", ref: "liked-songs" } }
-];
+export const defaultLandmarks: Landmark[] = [];
 

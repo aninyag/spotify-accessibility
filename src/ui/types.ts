@@ -17,21 +17,32 @@ export type LandmarkType =
   | "podcast"
   | "episode"
   | "search"
-  | "screen";
+  | "screen"
+  | "action";
 
 export type Landmark = {
   id: string;
   label: string;
   type: LandmarkType;
-  payload: { kind: "screen"; tab: TabId } | { kind: "search"; query: string } | { kind: "stub"; ref: string };
+  payload:
+    | { kind: "screen"; tab: TabId }
+    | { kind: "search"; query: string }
+    | { kind: "stub"; ref: string }
+    | { kind: "action"; action: "PLAY" | "ADD_TO_QUEUE"; target: Track };
 };
 
 /** Row a context menu is opened from (pin/unpin + playback targets share one model). */
 export type ContextTarget = {
   landmark: Landmark;
-  /** When set, “Add to queue” inserts this track; otherwise a stub row is queued from the landmark label. */
+  /** When set, "Add to queue" inserts this track; otherwise a stub row is queued from the landmark label. */
   queueTrack?: Track;
-  /** Shown / used for “Go to artist”. */
+  /** Shown / used for "Go to artist". */
   artistName?: string;
 };
 
+export type AppAction =
+  | { type: "PLAY"; payload: Track }
+  | { type: "ADD_TO_QUEUE"; payload: Track }
+  | { type: "PIN"; payload: Landmark }
+  | { type: "UNPIN"; payload: { id: string } }
+  | { type: "RENAME_PINNED"; payload: { id: string; label: string } };

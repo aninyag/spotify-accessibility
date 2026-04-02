@@ -20,7 +20,7 @@ export function LibraryScreen(props: {
   onCommandPalette: () => void;
   landmarks: Landmark[];
   onOpenContext: (target: ContextTarget) => void;
-  onLandmarkPress: (lm: Landmark) => void;
+  onExecutePinned: (lm: Landmark) => void;
   pinnedFlashId: string | null;
 }) {
   const [filter, setFilter] = React.useState<Filter>("Playlists");
@@ -51,10 +51,9 @@ export function LibraryScreen(props: {
                 <ListRow
                   key={lm.id}
                   title={lm.label}
-                  subtitle={lm.type}
-                  ariaLabel={`Pinned ${idx + 1}: ${lm.label}. Long-press for options.`}
-                  onPress={() => props.onLandmarkPress(lm)}
-                  onPlayPress={() => {}}
+                  subtitle={lm.type === "action" ? "Shortcut" : lm.type}
+                  ariaLabel={`Pinned ${idx + 1}: ${lm.label}. Tap to execute.`}
+                  onPress={() => props.onExecutePinned(lm)}
                   onLongPress={() => props.onOpenContext({ landmark: lm })}
                   highlight={props.pinnedFlashId === lm.id}
                 />
@@ -109,7 +108,6 @@ export function LibraryScreen(props: {
                 subtitle={it.subtitle}
                 ariaLabel={`${it.title}. ${it.subtitle}. Tap to open.`}
                 onPress={() => {}}
-                onPlayPress={() => {}}
                 onLongPress={() =>
                   props.onOpenContext({
                     landmark: {

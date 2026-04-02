@@ -11,7 +11,6 @@ export function ListRow(props: {
   onLongPress?: () => void;
   ariaLabel: string;
   thumbText?: string;
-  /** Brief highlight when an item was just pinned (instant feedback). */
   highlight?: boolean;
 }) {
   const lp = useLongPress(props.onLongPress);
@@ -49,7 +48,7 @@ export function ListRow(props: {
       <div className="thumb" aria-hidden="true">
         {props.thumbText ?? "♪"}
       </div>
-      <div>
+      <div style={{ overflow: "hidden" }}>
         <div className="rowPrimary">{props.title}</div>
         {props.subtitle ? (
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 3 }}>
@@ -75,7 +74,21 @@ export function ListRow(props: {
           </div>
         ) : null}
       </div>
-      {props.onPlayPress ? (
+      {props.onLongPress ? (
+        <button
+          className="moreBtn"
+          type="button"
+          aria-label={`More options for ${props.title}`}
+          onTouchStart={(e) => e.stopPropagation()}
+          onMouseDown={(e) => e.stopPropagation()}
+          onClick={(e) => {
+            e.stopPropagation();
+            props.onLongPress?.();
+          }}
+        >
+          <Icon name="overflow" size={20} />
+        </button>
+      ) : props.onPlayPress ? (
         <button
           className="playBtn"
           type="button"
@@ -98,4 +111,3 @@ export function trackAriaLabel(t: Track) {
   const sec = String(t.durationSec % 60).padStart(2, "0");
   return `${t.title} by ${t.artist}. ${min} minutes ${sec} seconds. Tap to play.`;
 }
-

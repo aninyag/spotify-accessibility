@@ -57,41 +57,50 @@ export function DiscoverScreen(props: { onCommandPalette: () => void; onOpenCont
       <div className="screenInner">
         <section aria-label="Shortcuts">
           <div style={{ display: "grid", gap: 8 }}>
-            {shortcuts.map((s, idx) => (
-              <LongPressable
-                key={s.id}
-                role="button"
-                className="homeShortcutRow"
-                ariaLabel={`${s.title}. Long-press for options.`}
-                onLongPress={() =>
-                  props.onOpenContext({
-                    landmark: {
-                      id: `lm-home-${s.id}`,
-                      label: s.title,
-                      type: "playlist",
-                      payload: { kind: "stub", ref: s.id },
-                    },
-                    artistName: "Spotify",
-                  })
-                }
-              >
-                <div
-                  className="homeShortcutArt"
-                  aria-hidden="true"
-                  style={{
-                    background: s.artKind === "gradient" ? "linear-gradient(135deg, #6B2AE8, #111)" : "#262626",
-                  }}
-                />
-                <div className="homeShortcutTitle">{s.title}</div>
-                {idx === 0 ? (
-                  <div className="homeShortcutOverflow" aria-hidden="true">
+            {shortcuts.map((s) => {
+              const openCtx = () =>
+                props.onOpenContext({
+                  landmark: {
+                    id: `lm-home-${s.id}`,
+                    label: s.title,
+                    type: "playlist",
+                    payload: { kind: "stub", ref: s.id },
+                  },
+                  artistName: "Spotify",
+                });
+              return (
+                <LongPressable
+                  key={s.id}
+                  role="button"
+                  className="homeShortcutRow"
+                  ariaLabel={`${s.title}. Tap for options.`}
+                  onLongPress={openCtx}
+                >
+                  <div
+                    className="homeShortcutArt"
+                    aria-hidden="true"
+                    style={{
+                      background: s.artKind === "gradient" ? "linear-gradient(135deg, #6B2AE8, #111)" : "#262626",
+                    }}
+                  />
+                  <div className="homeShortcutTitle">{s.title}</div>
+                  <button
+                    type="button"
+                    className="homeShortcutOverflow"
+                    aria-label={`More options for ${s.title}`}
+                    onTouchStart={(e) => e.stopPropagation()}
+                    onMouseDown={(e) => e.stopPropagation()}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      openCtx();
+                    }}
+                    style={{ border: "none", background: "transparent", padding: 0 }}
+                  >
                     <Icon name="overflow" size={18} />
-                  </div>
-                ) : (
-                  <div aria-hidden="true" style={{ width: 24, height: 24 }} />
-                )}
-              </LongPressable>
-            ))}
+                  </button>
+                </LongPressable>
+              );
+            })}
           </div>
         </section>
 

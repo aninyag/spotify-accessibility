@@ -22,7 +22,7 @@ const topSongs: Track[] = [
   { id: "s3", title: "Song title three", artist: "Artist C", durationSec: 225 },
 ];
 
-export function SearchScreen(props: { onCommandPalette: () => void; onOpenContext: (target: ContextTarget) => void }) {
+export function SearchScreen(props: { onCommandPalette: () => void; onOpenContext: (target: ContextTarget) => void; onPlayTrack: (t: Track) => void }) {
   const [query, setQuery] = React.useState("");
 
   return (
@@ -88,8 +88,7 @@ export function SearchScreen(props: { onCommandPalette: () => void; onOpenContex
                 title={t.title}
                 subtitle={t.artist}
                 ariaLabel={trackAriaLabel(t)}
-                onPress={() => {}}
-                onPlayPress={() => {}}
+                onPress={() => props.onPlayTrack(t)}
                 onLongPress={() =>
                   props.onOpenContext({
                     landmark: {

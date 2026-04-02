@@ -224,6 +224,10 @@ input:focus-visible {
   align-items: flex-start;
   overflow: hidden;
   position: relative;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  touch-action: manipulation;
 }
 
 .browseTileArt {
@@ -319,6 +323,9 @@ input:focus-visible {
   background: var(--bg-elevated);
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
 }
 
 .thumb {
@@ -753,6 +760,9 @@ input:focus-visible {
   text-align: left;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
   color: white;
 }
 
@@ -782,6 +792,11 @@ input:focus-visible {
   padding-right: 10px;
   text-align: left;
   overflow: hidden;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .homeShortcutArt {
@@ -807,6 +822,24 @@ input:focus-visible {
   display: grid;
   place-items: center;
   color: #1db954;
+}
+
+.moreBtn {
+  width: 46px;
+  height: 46px;
+  border: none;
+  background: transparent;
+  color: #b3b3b3;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.moreBtn:active {
+  color: #fff;
 }
 
 .hint {

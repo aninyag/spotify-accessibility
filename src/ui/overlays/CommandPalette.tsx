@@ -52,14 +52,26 @@ function PinnedPaletteRow(props: {
         props.onLongPress();
       }}
     >
-      <div className="thumb" aria-hidden="true" />
+      <div className="thumb" aria-hidden="true">
+        <Icon name="pin" size={16} />
+      </div>
       <div>
         <div className="rowPrimary">{props.lm.label}</div>
         <div className="rowSecondary">{props.lm.type}</div>
       </div>
-      <div aria-hidden="true" style={{ width: 48, display: "grid", placeItems: "center", color: "#b3b3b3" }}>
-        <Icon name="pin" size={18} />
-      </div>
+      <button
+        type="button"
+        className="moreBtn"
+        aria-label={`More options for ${props.lm.label}`}
+        onTouchStart={(e) => e.stopPropagation()}
+        onMouseDown={(e) => e.stopPropagation()}
+        onClick={(e) => {
+          e.stopPropagation();
+          props.onLongPress();
+        }}
+      >
+        <Icon name="overflow" size={20} />
+      </button>
     </button>
   );
 }
@@ -102,9 +114,19 @@ function SearchHitRow(props: {
         <div className="rowPrimary">{props.hit.title}</div>
         <div className="rowSecondary">{props.hit.subtitle}</div>
       </div>
-      <div aria-hidden="true" style={{ width: 48, display: "grid", placeItems: "center", color: "#b3b3b3" }}>
-        <Icon name="play" size={18} />
-      </div>
+      <button
+        type="button"
+        className="moreBtn"
+        aria-label={`More options for ${props.hit.title}`}
+        onTouchStart={(e) => e.stopPropagation()}
+        onMouseDown={(e) => e.stopPropagation()}
+        onClick={(e) => {
+          e.stopPropagation();
+          props.onLongPress();
+        }}
+      >
+        <Icon name="overflow" size={20} />
+      </button>
     </button>
   );
 }
@@ -118,6 +140,7 @@ export function CommandPalette(props: {
   recentActions: string[];
   onPinnedLongPress: (lm: Landmark) => void;
   onOpenContext: (target: ContextTarget) => void;
+  onExecutePinned: (lm: Landmark) => void;
   pinnedFlashId: string | null;
   tts: { enabled: boolean; rate: number };
 }) {
@@ -180,7 +203,10 @@ export function CommandPalette(props: {
     props.onClose();
   };
 
-  const runPinned = (lm: Landmark) => run({ kind: "landmark", landmark: lm, label: `Go to ${lm.label}` });
+  const runPinned = (lm: Landmark) => {
+    props.onExecutePinned(lm);
+    props.onClose();
+  };
 
   const likeLabel = props.context.trackLiked ? "Remove like" : "Like this song";
   const searchHits = filterPaletteSearch(searchQuery);
