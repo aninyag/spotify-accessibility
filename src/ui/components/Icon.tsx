@@ -9,6 +9,8 @@ export type IconName =
   | "repeat"
   | "repeatOne"
   | "pin"
+  | "camera"
+  | "plusCircle"
   | "home"
   | "search"
   | "library"
@@ -17,6 +19,7 @@ export type IconName =
   | "mic"
   | "ring"
   | "chevronRight"
+  | "chevronLeft"
   | "close"
   | "overflow"
   | "heart"
@@ -128,6 +131,8 @@ function Paths({ name }: { name: IconName }) {
       );
     case "chevronRight":
       return <path d="M10 6l6 6-6 6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" fill="none" />;
+    case "chevronLeft":
+      return <path d="M14 6l-6 6 6 6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" fill="none" />;
     case "close":
       return (
         <path
@@ -160,6 +165,26 @@ function Paths({ name }: { name: IconName }) {
           strokeWidth="2.5"
           strokeLinecap="round"
         />
+      );
+    case "camera":
+      return (
+        <>
+          <path
+            d="M7 7h2l1-2h4l1 2h2a3 3 0 013 3v7a3 3 0 01-3 3H7a3 3 0 01-3-3v-7a3 3 0 013-3z"
+            stroke="currentColor"
+            strokeWidth="2"
+            fill="none"
+            strokeLinejoin="round"
+          />
+          <circle cx="12" cy="13" r="3.2" stroke="currentColor" strokeWidth="2" fill="none" />
+        </>
+      );
+    case "plusCircle":
+      return (
+        <>
+          <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2" fill="none" />
+          <path d="M12 8v8M8 12h8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+        </>
       );
     case "mic":
       return (

@@ -11,7 +11,7 @@ export function HeaderBar(props: {
     <div className="header">
       {props.left ? (
         props.left.kind === "avatar" ? (
-          <div aria-label={props.left.label} style={{ width: 44, height: 44, borderRadius: 999, background: "rgba(255,255,255,0.14)" }} />
+          <div className="headerAvatar" aria-label={props.left.label} />
         ) : (
           <button className="iconBtn" type="button" aria-label={props.left.label} onClick={props.left.onPress}>
             <Icon name={props.left.icon ?? "ring"} size={22} />
@@ -23,7 +23,7 @@ export function HeaderBar(props: {
       <div className="headerTitle" role="heading" aria-level={1}>
         {props.title}
       </div>
-      <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: 8, width: 48 }}>
+      <div className="headerRight">
         {props.rightIcons?.map((it) => (
           <button key={it.label} type="button" className="iconBtn" aria-label={it.label} onClick={it.onPress}>
             <Icon name={it.icon} size={22} />

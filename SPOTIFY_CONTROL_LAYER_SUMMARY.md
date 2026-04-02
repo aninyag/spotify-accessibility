@@ -73,67 +73,66 @@ Files:
 - `src/ui/App.tsx`
   - Added `nowPlayingOpen` boolean route state; mini-player sets it `true`
 
-### 2) Command Palette: “Spotify Search, but for actions”
+### 2) Command Palette: bottom sheet, voice-first (Spotify-native)
 
-**Goal**: content-first layout, full-width rows, no console vibe, mic inside search.
+**Goal**: bottom-sheet action surface (not search), voice-first entry, Spotify row pattern, no “new app” UI.
 
 Implemented:
-- Replaced “Command Palette” title + “Type a command…” UI with a **Spotify-like search bar**
-- Sections in order:
-  1. **Pinned**
-  2. **Suggested** (current track as a first-class content row)
-  3. **Actions** (play/pause + nav actions as rows)
-- Removed the “Speak a command” CTA button; mic now lives inside search.
-- Removed keyboard shortcut hint text from the overlay.
-- Overlay is **full width**, not a centered floating panel.
+- **Entry point**: persistent **header mic icon** on every screen (see section 3 below)
+- Palette is a **bottom sheet** (85% height) that slides up (300ms ease-out translateY)
+- No search UI inside palette (Search remains the Search tab)
+- Primary control: full-width green voice button (56pt) with placeholder “Say something…”
+- Sections rendered as full-width Spotify-style rows:
+  - **Pinned** (row + pin icon on the right)
+  - **Recent actions** (last 3 actions)
+  - **Quick actions** (play/pause, skip, add to queue)
+- Accessibility: `aria-modal="true"`, focus moves to the voice button on open, focus trapped, focus returns to the header mic icon on close
 
 Files:
 - `src/ui/overlays/CommandPalette.tsx`
-- `src/ui/styles.css` (`.overlay` width set to `100%`)
+- `src/ui/styles.css` (`.bottomSheetBackdrop`, `.bottomSheet`, `.spotifyRow`, `.sectionHeader`, `.voicePrimary`)
 
-### 3) Home: remove invented features, use Spotify-native patterns
+### 3) Header entry point: Spotify-style mic icon (no pill, no gestures)
+
+**Goal**: stable, VoiceOver-friendly entry point that feels native to Spotify headers.
+
+Implemented:
+- Removed swipe-down gesture as an entry (conflicts with VoiceOver gestures)
+- Removed keyboard shortcut entry (Ctrl/⌘+K) for opening the palette
+- Added a **standard Spotify-style header icon button** (mic) on the right side of every header
+  - `aria-label="Open command palette"`
+  - Focus return after closing palette targets this icon
+
+Files:
+- `src/ui/components/HeaderBar.tsx`
+- `src/ui/overlays/CommandPalette.tsx`
+- `src/ui/App.tsx`
+
+### 4) Home: remove invented features, move toward Spotify-native structure
 
 **Goal**: stop “new app” vibes; match Spotify Home’s structure.
 
 Implemented:
 - Home header uses a greeting (“Good morning/afternoon/evening”).
-- Home content uses Spotify-esque patterns:
-  - **Recently played** 2‑column tile grid
-  - **Made for you** horizontal row of cards
+- Home content avoids invented “systems” and uses Spotify-native patterns:
+  - **Recently played** rendered as **full-width list rows** (no grids)
+  - **Made for you** horizontal row of cards (Spotify-native)
   - **Recommended** list rows
-- Removed the previous invented “Play Something New / Quick Moods / Current Suggestion” system.
 
 Files:
 - `src/ui/screens/DiscoverScreen.tsx`
 
-### 4) Remove Support as a destination; move settings into a sheet
+### 5) Remove Support as a destination
 
 **Goal**: no “mode UI” or separate help/settings screen.
 
 Implemented:
-- Deleted `SupportScreen`.
-- Added a **Settings sheet** overlay opened via Home header button.
-- Moved **Manage Pinned** into the Library screen (top).
+- Deleted `SupportScreen` and removed the dedicated settings destination UI.
 
 Files:
 - Deleted: `src/ui/screens/SupportScreen.tsx`
-- Added: `src/ui/overlays/SettingsSheet.tsx`
-- Updated: `src/ui/App.tsx` (sheet mount + state)
-- Updated: `src/ui/screens/LibraryScreen.tsx` (Pinned management)
 
-### 5) Swipe-down gesture: primary entry to Command Palette
-
-**Goal**: swipe-down from top to open palette (primary); icon remains secondary.
-
-Implemented:
-- Touch gesture detection on the `<main>` screen:
-  - swipe start must be near the top
-  - downward swipe threshold opens palette
-
-Files:
-- `src/ui/App.tsx`
-
-### 6) Pinned: rows, not cards; place in all 3 required locations
+### 6) Pinned: end-to-end pinning + Spotify-style context menu
 
 **Goal**: pinned looks identical to Spotify content rows and appears:
 - Top of Command Palette
@@ -141,26 +140,32 @@ Files:
 - Below queue in Now Playing
 
 Implemented:
-- Now Playing pinned section now renders **full-width rows** (not 84×84 cards).
-- Library now has **Pinned** at the top with removal affordance.
-- Command palette includes **Pinned** as the topmost section.
+- Pinned is now **interactive end-to-end**:
+  - Long-press/context menu on Search/Library rows opens a Spotify-style bottom sheet context menu
+  - First item toggles **Pin / Unpin** with a proper pin SVG icon
+  - Max 6 pinned items enforced; attempting a 7th triggers an **error message** (no toast/modal)
+- Pinned appears in all 3 required locations:
+  - Top of command palette
+  - Top of library
+  - Below queue in now playing
 
 Files:
 - `src/ui/overlays/CommandPalette.tsx`
+- `src/ui/overlays/ContextMenuSheet.tsx`
 - `src/ui/screens/LibraryScreen.tsx`
 - `src/ui/screens/NowScreen.tsx`
+- `src/ui/screens/SearchScreen.tsx`
+- `src/ui/App.tsx`
+- `src/ui/components/Icon.tsx` (added `pin`)
 
-Note:
-- Pin icon is currently represented as a small **📌** marker in the row thumbnail; the spec calls for a small pin icon on the right. (Easy follow-up: add `pin` icon to `Icon.tsx` and place it on the right of pinned rows.)
-
-### 7) “Where am I”: remove visible UI, keep as dev-only shortcut
+### 7) “Where am I”: removed from visible UI
 
 **Goal**: stop duplicating screen reader output.
 
 Implemented:
 - Removed the ring/“Where am I” button from screen headers.
-- Removed the “Where am I” action from the command palette list.
-- Kept the underlying toast + Ctrl/⌘+W as a developer/testing affordance.
+- Removed “Where am I” as a command palette action.
+- Kept the underlying toast UI as internal/development-only behavior.
 
 Files:
 - `src/ui/components/HeaderBar.tsx` (supports avatar, custom icons; default ring no longer forced)
@@ -170,32 +175,33 @@ Files:
 - `src/ui/overlays/CommandPalette.tsx`
 - `src/ui/App.tsx`
 
-### 8) Audio redundancy removed (directionally correct)
+### 8) Audio redundancy removed (strict)
 
-**Goal**: no “Playing…” / “Added…” spoken confirmations on taps.
+**Goal**: no redundant spoken feedback on user actions (screen reader handles it).
 
-State:
-- The app still *calls* `speak()` in a few places (e.g. play/pause), but `src/ui/tts.ts` already guards most non-voice-input phrases.
-- User-facing text was changed from “landmarks” to **pinned/unpinned** in App state updates.
-
-Files:
-- `src/ui/App.tsx` (strings updated: “pinned/unpinned”)
-- `src/ui/tts.ts` (guard behavior)
+Implemented:
+- Removed all `speak()` calls for play/pause/skip/pin/unpin/navigation.
+- Kept only:
+  - `speak("Listening…")` when voice input starts
+  - `speak(errorMessage)` when an actual error occurs (e.g., pin limit reached)
 
 ### 9) Visual proportions & polish (applied)
 
 Implemented:
 - `index.html` title changed to **Spotify** (removes “Accessible Mode” label).
-- Header height reduced (`.headerGradient` to ~140px).
-- Typography scale corrected for Spotify-like list hierarchy:
-  - `.title` → 16px / 20px line-height
-  - `.subtitle` → 13px
-  - `.navLabel` → 11px
+- Header height reduced (`.headerGradient`).
+- Typography switched to Spotify-like stack and locked scale:
+  - Font stack: `"Circular Std", "Circular", -apple-system, BlinkMacSystemFont, sans-serif`
+  - Header title: 22pt/700
+  - Section header: 12pt/700/uppercase/#b3b3b3
+  - Row primary: 16pt/400/#fff
+  - Row secondary: 13pt/400/#b3b3b3
+  - Nav label: 10pt/400
 - Tap targets improved:
   - `.miniIcon` → 44×44
   - Now controls non-primary → min height 56
 - Album art container no longer uses centered “auto” margins; it respects padding-based layout.
-- Overlay sheet is full-width.
+- Bottom sheet overlays are constrained to the device frame (render inside `.app`).
 
 Files:
 - `index.html`
@@ -208,9 +214,9 @@ Files:
 
 - **Bottom tabs**: Home / Search / Your Library
 - **Now Playing**: tap the mini-player
-- **Command Palette**: swipe down from the top OR open via header affordance (where present)
+- **Command Palette**: tap the **header mic icon** (sole entry point)
 - **Pinned**:
-  - add pinned items via existing context-menu/long-press stubs in Search/Library rows
+  - pin/unpin via context menu bottom sheet on Search/Library rows
   - manage pinned at top of Library
 
 ---
@@ -219,23 +225,17 @@ Files:
 
 These are not blockers for spec compliance, but they’re the most likely sources of “proportions feel off” feedback:
 
-1) **Pin icon fidelity**
-   - Replace the 📌 glyph with a Spotify-like pin SVG in `src/ui/components/Icon.tsx`
-   - Place it on the **right** side of pinned rows (per spec)
+1) **Mirror current Spotify layouts more closely**
+   - Update Search and Library screens to match the current Spotify screenshot structures (chips, browse tiles, icon clusters).
 
-2) **Command Palette motion fidelity**
-   - Make it feel like Spotify’s search pull-down: tighter easing, overscroll behavior, no modal “backdrop” vibe
-   - Consider using pointer events + spring-based animation (Framer Motion) for high fidelity
+2) **Mini-player proportions**
+   - Match Spotify’s mini-player: typography, spacing, and trailing controls layout (still within the iPhone 16 Pro frame).
 
-3) **Mini-player anchoring + “attached” feel**
-   - Ensure it visually reads as part of the app chrome, not a floating element
-   - Tune shadow/gradient and spacing around bottom nav
-
-4) **Replace stub visuals that read “prototype”**
+3) **Replace stub visuals that read “prototype”**
    - Placeholder album art and placeholder thumbnails should become Spotify-like skeletons (subtle shimmer, correct radii)
 
-5) **Remove any remaining `speak()` calls that don’t match the voice-input/error-only rule**
-   - Even if guarded, it’s better to remove the calls to avoid future regressions
+4) **Recent actions fidelity**
+   - Persist and shape recent actions as Spotify-style rows that reflect real actions (Liked, Added to playlist, Queued).
 
 ---
 
@@ -245,7 +245,7 @@ These are not blockers for spec compliance, but they’re the most likely source
 - Bottom nav: `src/ui/components/BottomNavBar.tsx`
 - Header system: `src/ui/components/HeaderBar.tsx`
 - Command palette overlay: `src/ui/overlays/CommandPalette.tsx`
-- Settings sheet overlay: `src/ui/overlays/SettingsSheet.tsx`
+- Context menu sheet overlay: `src/ui/overlays/ContextMenuSheet.tsx`
 - Home: `src/ui/screens/DiscoverScreen.tsx`
 - Search: `src/ui/screens/SearchScreen.tsx`
 - Library (incl. Pinned management): `src/ui/screens/LibraryScreen.tsx`

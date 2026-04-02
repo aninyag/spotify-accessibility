@@ -34,6 +34,7 @@ export function NowScreen(props: {
       <div className="headerGradient">
         <HeaderBar
           title="Now Playing"
+          left={{ kind: "icon", label: "Back", onPress: () => {}, icon: "chevronLeft" }}
           onCommandPalette={props.onCommandPalette}
         />
       </div>

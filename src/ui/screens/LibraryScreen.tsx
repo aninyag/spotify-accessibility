@@ -27,48 +27,28 @@ export function LibraryScreen(props: {
   onRemoveLandmark: (id: string) => void;
 }) {
   const [filter, setFilter] = React.useState<Filter>("Playlists");
-  const [sort, setSort] = React.useState<Sort>("Recently Played");
-  const [ascending, setAscending] = React.useState(false);
 
   const items = React.useMemo(() => mockLibrary.filter((x) => x.type === filter), [filter]);
 
   return (
     <>
-      <div className="headerGradient">
-        <HeaderBar title="Your Library" onCommandPalette={props.onCommandPalette} />
+      <div className="headerPlain">
+        <HeaderBar
+          title="Your Library"
+          left={{ kind: "avatar", label: "Profile" }}
+          rightIcons={[
+            { icon: "search", label: "Search", onPress: () => {} },
+            { icon: "plusCircle", label: "Create", onPress: () => {} },
+          ]}
+          onCommandPalette={props.onCommandPalette}
+        />
       </div>
       <div className="screenInner">
-        <section aria-label="Pinned" style={{ marginTop: -6 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-            <div className="sectionHeader" style={{ marginTop: 0 }}>Pinned</div>
-            <div className="muted">{props.landmarks.length} / 6</div>
-          </div>
-          {props.landmarks.length === 0 ? (
-            <div className="muted" style={{ marginTop: 8 }}>
-              Pin items for quick access.
-            </div>
-          ) : (
-            <div style={{ display: "grid", gap: 2, marginTop: 8 }}>
-              {props.landmarks.map((lm, idx) => (
-                <div key={lm.id} className="row" role="group" aria-label={`Pinned item ${idx + 1}: ${lm.label}`}>
-                  <div className="thumb" aria-hidden="true" style={{ position: "relative" }}>
-                    <span style={{ position: "absolute", left: 2, top: 2, fontSize: 12, color: "rgba(255,255,255,0.8)" }}>📌</span>
-                  </div>
-                  <div>
-                    <div className="title">{lm.label}</div>
-                    <div className="subtitle">{lm.type}</div>
-                  </div>
-                  <button type="button" className="ghostBtn" aria-label={`Remove ${lm.label}`} onClick={() => props.onRemoveLandmark(lm.id)}>
-                    <Icon name="close" size={16} />
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-        </section>
-
         <div aria-label="Library filters">
-          <div className="pillRow" role="tablist" aria-label="Library filter tabs">
+          <div className="pillRow" role="tablist" aria-label="Library filter tabs" style={{ gap: 10 }}>
+            <button type="button" className="iconBtn" aria-label="Filters" style={{ width: 44, height: 44 }}>
+              <Icon name="overflow" size={20} />
+            </button>
             {filterOptions.map((opt, idx) => (
               <button
                 key={opt}
@@ -87,42 +67,18 @@ export function LibraryScreen(props: {
           </div>
         </div>
 
-        <div aria-label="Sort control">
-          <div style={{ display: "flex", gap: 10, alignItems: "center", justifyContent: "space-between" }}>
-            <div>
-              <div className="muted" style={{ fontSize: 14 }}>
-                Sort
-              </div>
-              <button
-                type="button"
-                className="ghostBtn"
-                aria-label={`Sort: ${sort}. Activate to change sort.`}
-                onClick={() => {
-                  const idx = sortOptions.indexOf(sort);
-                  const next = sortOptions[(idx + 1) % sortOptions.length];
-                  setSort(next);
-                }}
-              >
-                {sort} ▼
-              </button>
-            </div>
-            <button
-              type="button"
-              className="ghostBtn"
-              aria-label={`Toggle ${ascending ? "ascending" : "descending"}`}
-              onClick={() => {
-                setAscending((a) => !a);
-              }}
-            >
-              <Icon name="overflow" size={18} />
-            </button>
+        <div aria-label="Sort row" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 6 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <div aria-hidden="true" style={{ color: "#b3b3b3" }}>⇅</div>
+            <div className="rowPrimary" style={{ color: "#b3b3b3" }}>Recents</div>
           </div>
+          <button type="button" className="iconBtn" aria-label="Grid view" style={{ width: 44, height: 44 }}>
+            <Icon name="library" size={20} />
+          </button>
         </div>
 
         <section aria-label="Library list">
-          <div className="sectionHeader" style={{ marginTop: 0 }}>Recently played</div>
-          <div className="muted">{items.length} {filter}</div>
-          <div style={{ display: "grid", gap: 2, marginTop: 4 }}>
+          <div style={{ display: "grid", gap: 2, marginTop: 6 }}>
             {items.map((it) => (
               <ListRow
                 key={it.id}
@@ -142,7 +98,6 @@ export function LibraryScreen(props: {
               />
             ))}
           </div>
-          <div className="hint">Prototype note: playlist detail screen is next on the build list.</div>
         </section>
       </div>
     </>

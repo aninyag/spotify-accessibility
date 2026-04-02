@@ -190,10 +190,30 @@ input:focus-visible {
   gap: 10px;
 }
 
+.headerPlain {
+  padding: 10px 16px 12px;
+  background: var(--bg-primary);
+}
+
 .header {
   display: grid;
   grid-template-columns: 48px 1fr 48px;
   align-items: center;
+}
+
+.headerAvatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.16);
+  justify-self: start;
+}
+
+.headerRight {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 6px;
 }
 
 .headerTitle {
@@ -235,6 +255,65 @@ input:focus-visible {
   border-radius: 6px;
   background: white;
   padding: 8px;
+}
+
+.searchBarWrapSpotify {
+  height: 44px;
+  border-radius: 8px;
+  background: #ffffff;
+  padding: 0 12px;
+}
+
+.browseGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.browseTile {
+  height: 84px;
+  border-radius: 10px;
+  padding: 12px;
+  color: white;
+  font-size: 16px;
+  font-weight: 700;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  overflow: hidden;
+  position: relative;
+}
+
+.browseTileArt {
+  width: 46px;
+  height: 46px;
+  border-radius: 6px;
+  background: rgba(0,0,0,0.25);
+  transform: rotate(18deg);
+}
+
+.rail {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+}
+
+.railCard {
+  width: 132px;
+  height: 132px;
+  border-radius: 10px;
+  background: #262626;
+  overflow: hidden;
+  flex: 0 0 auto;
+  position: relative;
+}
+
+.railLabel {
+  margin-top: 10px;
+  font-size: 16px;
+  font-weight: 400;
+  color: #ffffff;
 }
 
 .searchIcon {
@@ -441,7 +520,7 @@ input:focus-visible {
 .bottomNav {
   background: var(--bg-primary);
   border-top: 1px solid rgba(255, 255, 255, 0.1);
-  padding: 6px 6px calc(env(safe-area-inset-bottom) + 8px);
+  padding: 8px 6px calc(env(safe-area-inset-bottom) + 6px);
   display: grid;
   grid-template-columns: repeat(3, 1fr);
 }
@@ -480,7 +559,7 @@ input:focus-visible {
 
 .navIcon {
   color: var(--icon-inactive);
-  font-size: 20px;
+  font-size: 22px;
   line-height: 20px;
 }
 
@@ -488,7 +567,8 @@ input:focus-visible {
   color: var(--text-nav);
   font-size: 10px;
   font-weight: 400;
-  line-height: 14px;
+  line-height: 12px;
+  margin-top: 2px;
 }
 
 .muted {
