@@ -277,19 +277,13 @@ export function CommandPalette(props: {
           type="button"
           className={`paletteSaySomethingBtn${!speechSupported ? " paletteSaySomethingBtnUnsupported" : ""}`}
           onClick={onSaySomething}
-          aria-label={
-            speechSupported
-              ? speechListening
-                ? "Listening…"
-                : "Say something to find music and actions"
-              : "Voice input is not supported in this browser"
-          }
+          title={!speechSupported ? "Voice input is not available in this browser" : undefined}
         >
-          <span className="paletteSaySomethingMic" aria-hidden="true">
-            <Icon name="mic" size={22} />
-          </span>
           <span className="paletteSaySomethingText">
-            {speechListening ? "Listening…" : searchQuery ? `“${searchQuery}”` : "Say something…"}
+            {speechListening ? "Listening…" : searchQuery ? `“${searchQuery}”` : "Say something"}
+          </span>
+          <span className="paletteSaySomethingMic" aria-hidden="true">
+            <Icon name="mic" size={24} />
           </span>
         </button>
         <div className="srLive" aria-live="polite" aria-atomic="true">

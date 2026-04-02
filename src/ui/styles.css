@@ -599,23 +599,66 @@ input:focus-visible {
   margin: 0 0 6px 16px;
 }
 
-.paletteSearchInput {
-  width: calc(100% + 32px);
-  margin: 0 -16px;
+/** Command palette: wide primary voice control (replaces typing field). */
+.paletteSaySomethingBtn {
+  width: 100%;
   box-sizing: border-box;
-  height: 48px;
-  padding: 0 16px;
+  min-height: 58px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
   border: none;
-  border-top: 1px solid #282828;
-  border-bottom: 1px solid #282828;
-  background: #181818;
-  color: #fff;
-  font-size: 16px;
+  border-radius: 12px;
+  background: #1db954;
+  color: #121212;
+  font-size: 17px;
+  text-align: left;
+  cursor: pointer;
   outline: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.paletteSearchInput::placeholder {
-  color: #6a6a6a;
+.paletteSaySomethingBtn:active {
+  filter: brightness(0.94);
+}
+
+.paletteSaySomethingBtn:focus-visible {
+  outline: 3px solid #ffffff;
+  outline-offset: 2px;
+}
+
+.paletteSaySomethingBtnUnsupported {
+  background: #3d3d3d;
+  color: #a7a7a7;
+  cursor: default;
+}
+
+.paletteSaySomethingBtnUnsupported:active {
+  filter: none;
+}
+
+.paletteSaySomethingMic {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  color: #121212;
+}
+
+.paletteSaySomethingBtnUnsupported .paletteSaySomethingMic {
+  color: #a7a7a7;
+}
+
+.paletteSaySomethingText {
+  flex: 1;
+  min-width: 0;
+  font-weight: 700;
+  color: #121212;
+}
+
+.paletteSaySomethingBtnUnsupported .paletteSaySomethingText {
+  color: #a7a7a7;
 }
 
 .paletteRowFlash {
