@@ -344,6 +344,14 @@ input:focus-visible {
   display: grid;
   place-items: center;
   user-select: none;
+  overflow: hidden;
+}
+
+.thumbPhoto {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
 .playBtn {
@@ -1775,6 +1783,105 @@ input[type="range"]::-moz-range-thumb {
 
 .axisHomeTabPanel {
   margin-top: 8px;
+}
+
+.axisBrowseTileArt {
+  overflow: hidden;
+  padding: 0;
+  background: rgba(0, 0, 0, 0.22) !important;
+}
+
+.axisBrowseTileArtImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.axisHomeControlsCard {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  margin-top: 8px;
+  padding: 16px 18px;
+  border: none;
+  border-radius: 12px;
+  background: #2a2a2a;
+  color: #fff;
+  text-align: left;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.axisHomeControlsCard:active {
+  opacity: 0.92;
+  transform: scale(0.99);
+}
+
+.axisHomeControlsGlyph {
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: linear-gradient(145deg, #1ed760 0%, #169c4c 100%);
+  color: #121212;
+  display: grid;
+  place-items: center;
+}
+
+.axisHomeControlsText {
+  flex: 1;
+  min-width: 0;
+}
+
+.axisHomeControlsTitle {
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.axisHomeControlsSub {
+  margin-top: 4px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #b3b3b3;
+  line-height: 1.25;
+}
+
+.axisHomeControlsChevron {
+  flex-shrink: 0;
+  color: #b3b3b3;
+}
+
+.axisHomeSubTabsRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  margin-top: 12px;
+  padding-bottom: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.axisHomeSubTab {
+  padding: 10px 0;
+  margin-bottom: -1px;
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: #b3b3b3;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.axisHomeSubTab.active {
+  color: #ffffff;
+  border-bottom-color: #1db954;
 }
 
 .axisHomeVoiceBar {

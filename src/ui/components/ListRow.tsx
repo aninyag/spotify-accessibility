@@ -11,6 +11,8 @@ export function ListRow(props: {
   onLongPress?: () => void;
   ariaLabel: string;
   thumbText?: string;
+  /** Square cover URL; when set, replaces thumb text letter. */
+  thumbSrc?: string;
   highlight?: boolean;
   /** Show a pin when this row already has a saved shortcut */
   pinnedShortcut?: boolean;
@@ -48,7 +50,11 @@ export function ListRow(props: {
       }}
     >
       <div className="thumb" aria-hidden="true">
-        {props.thumbText ?? "♪"}
+        {props.thumbSrc ? (
+          <img src={props.thumbSrc} alt="" className="thumbPhoto" />
+        ) : (
+          props.thumbText ?? "♪"
+        )}
       </div>
       <div style={{ overflow: "hidden", display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
         <div style={{ flex: 1, minWidth: 0 }}>

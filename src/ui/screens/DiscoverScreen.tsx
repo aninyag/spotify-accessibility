@@ -5,8 +5,11 @@ import { Icon } from "../components/Icon";
 import { LongPressable } from "../components/LongPressable";
 import { useLongPress } from "../useLongPress";
 import { axisLocalPng, axisTileFallback, homeLocalPng } from "../axisMedia";
+import { mockNowPlaying } from "../mockData";
 import { ResilientImg } from "../components/ResilientImg";
 import { useAxisSearchSpeech } from "../useAxisSearchSpeech";
+import { ListRow, trackAriaLabel } from "../components/ListRow";
+import { isContextPinned } from "../pinnedUtils";
 
 const chips = ["All", "Music", "Podcasts", "Audiobooks"] as const;
 
@@ -23,6 +26,27 @@ const homeDummyTiles = [
 ] as const;
 
 const axisMainTabs = ["Songs", "Artists", "Albums", "Playlists"] as const;
+
+const axisTopSongChips = ["All", "Pop", "HipHop"] as const;
+
+const axisCategoryTiles: {
+  tab: (typeof axisMainTabs)[number];
+  label: string;
+  color: string;
+  art: string;
+  seed: string;
+}[] = [
+  { tab: "Songs", label: "Songs", color: "#E85D32", art: "axis-recent-songs", seed: "axisRecentSongs" },
+  { tab: "Artists", label: "Artists", color: "#C23B3B", art: "axis-recent-artists", seed: "axisRecentArtists" },
+  { tab: "Albums", label: "Albums", color: "#A8D5BA", art: "axis-recent-albums", seed: "axisRecentAlbums" },
+  { tab: "Playlists", label: "Playlist", color: "#C9A227", art: "axis-recent-playlist", seed: "axisRecentPlaylist" },
+];
+
+const axisTopSongRows: { track: Track; genre: "Pop" | "HipHop" }[] = [
+  { track: mockNowPlaying, genre: "Pop" },
+  { track: { ...mockNowPlaying, id: "axis-home-ts-2" }, genre: "Pop" },
+  { track: { ...mockNowPlaying, id: "axis-home-ts-3" }, genre: "HipHop" },
+];
 
 function DiscoverTopChrome<T extends string>(props: {
   tabs: readonly T[];
@@ -171,6 +195,7 @@ export function DiscoverScreen(props: {
 }) {
   const [chip, setChip] = React.useState<(typeof chips)[number]>("All");
   const [axisMainTab, setAxisMainTab] = React.useState<(typeof axisMainTabs)[number]>("Songs");
+  const [axisTopSongChip, setAxisTopSongChip] = React.useState<(typeof axisTopSongChips)[number]>("All");
   const [searchQuery, setSearchQuery] = React.useState("");
 
   const appendVoiceText = React.useCallback((text: string) => {
@@ -199,10 +224,66 @@ export function DiscoverScreen(props: {
         />
 
         <div className="screenInner">
-          <section aria-label="Pinned shortcuts">
+          <section aria-label="Recently played categories">
             <div className="sectionHeader" style={{ marginTop: 0 }}>
-              Pinned
+              Recently played
             </div>
+            <div className="browseGrid" style={{ marginTop: 12 }}>
+              {axisCategoryTiles.map((c) => (
+                <LongPressable
+                  key={c.tab}
+                  role="button"
+                  className="browseTile"
+                  style={{ background: c.color }}
+                  ariaLabel={`${c.label}. Sets ${c.tab} browse.`}
+                  onClick={() => setAxisMainTab(c.tab)}
+                  onLongPress={() =>
+                    props.onOpenContext({
+                      landmark: {
+                        id: `lm-axis-cat-${c.tab}`,
+                        label: c.label,
+                        type: "playlist",
+                        payload: { kind: "stub", ref: `axis-cat-${c.tab}` },
+                      },
+                      artistName: "Spotify",
+                    })
+                  }
+                >
+                  <span>{c.label}</span>
+                  <div className="browseTileArt axisBrowseTileArt" aria-hidden="true">
+                    <ResilientImg
+                      primarySrc={axisLocalPng(c.art)}
+                      fallbackSrc={axisTileFallback(c.seed, 96)}
+                      alt=""
+                      className="axisBrowseTileArtImg"
+                    />
+                  </div>
+                </LongPressable>
+              ))}
+            </div>
+          </section>
+
+          <section aria-label="Axis controls">
+            <div className="sectionHeader">Axis controls</div>
+            <button
+              type="button"
+              className="axisHomeControlsCard"
+              onClick={() => props.onCommandPalette()}
+              data-command-palette-trigger="true"
+            >
+              <div className="axisHomeControlsGlyph" aria-hidden="true">
+                <Icon name="command" size={24} />
+              </div>
+              <div className="axisHomeControlsText">
+                <div className="axisHomeControlsTitle">Commands &amp; voice</div>
+                <div className="axisHomeControlsSub">Open the command palette</div>
+              </div>
+              <Icon name="chevronRight" size={22} className="axisHomeControlsChevron" aria-hidden="true" />
+            </button>
+          </section>
+
+          <section aria-label="Pinned shortcuts">
+            <div className="sectionHeader">Pinned</div>
             <div className="axisHomePinnedList">
               {props.landmarks.slice(0, 2).map((lm) => (
                 <PinnedHomeRow
@@ -216,15 +297,52 @@ export function DiscoverScreen(props: {
             </div>
           </section>
 
-          <section className="axisHomeTabPanel" aria-labelledby={`axis-tab-${axisMainTab}`}>
-            <h2 id={`axis-tab-${axisMainTab}`} className="sectionHeader">
-              {axisMainTab}
+          <section aria-labelledby="axis-top-songs-heading">
+            <h2 id="axis-top-songs-heading" className="sectionHeader">
+              Top Songs
             </h2>
-            <p className="muted" style={{ marginTop: 8, lineHeight: 1.45 }}>
-              {searchQuery
-                ? `Showing ${axisMainTab.toLowerCase()} for “${searchQuery}”.`
-                : `Pick a tab and search, or use the mic to dictate into the search field.`}
-            </p>
+            <div className="axisHomeSubTabsRow" role="tablist" aria-label="Filter by genre">
+              {axisTopSongChips.map((g) => (
+                <button
+                  key={g}
+                  type="button"
+                  role="tab"
+                  className={`axisHomeSubTab${axisTopSongChip === g ? " active" : ""}`}
+                  aria-selected={axisTopSongChip === g}
+                  onClick={() => setAxisTopSongChip(g)}
+                >
+                  {g}
+                </button>
+              ))}
+            </div>
+            <div style={{ display: "grid", gap: 2, marginTop: 12 }}>
+              {axisTopSongRows
+                .filter((row) => axisTopSongChip === "All" || row.genre === axisTopSongChip)
+                .map((row) => {
+                  const ctx: ContextTarget = {
+                    landmark: {
+                      id: `lm-axis-top-${row.track.id}`,
+                      label: row.track.title,
+                      type: "album",
+                      payload: { kind: "stub", ref: row.track.id },
+                    },
+                    queueTrack: row.track,
+                    artistName: row.track.artist,
+                  };
+                  return (
+                    <ListRow
+                      key={row.track.id}
+                      title={row.track.title}
+                      subtitle={`${row.track.artist} · ${row.genre}`}
+                      thumbSrc={axisTileFallback(`axisThumb-${row.track.id}`, 96)}
+                      ariaLabel={trackAriaLabel(row.track)}
+                      pinnedShortcut={isContextPinned(ctx, props.landmarks)}
+                      onPress={() => props.onPlayTrack(row.track)}
+                      onPlayPress={() => props.onPlayTrack(row.track)}
+                    />
+                  );
+                })}
+            </div>
           </section>
         </div>
       </>
