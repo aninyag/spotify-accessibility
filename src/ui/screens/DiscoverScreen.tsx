@@ -7,7 +7,8 @@ import { LongPressable } from "../components/LongPressable";
 import { speak } from "../tts";
 import { useLongPress } from "../useLongPress";
 import { mockNowPlaying } from "../mockData";
-import { axisImg } from "../axisMedia";
+import { axisLocalPng, axisTileFallback } from "../axisMedia";
+import { ResilientImg } from "../components/ResilientImg";
 
 type Shortcut = { id: string; title: string; artKind: "cover" | "gradient" };
 
@@ -30,33 +31,13 @@ const recentPlayed = [
   { id: "rp3", title: "Lo-fi study", subtitle: "Radio · 3 days ago" },
 ];
 
-/** Browse grid: maps to `browse-*` stubs and optional artwork in /public/axis/. */
-const axisBrowseTiles = [
-  { id: "songs", label: "Your Top Songs", image: axisImg.topSongs, ref: "songs" as const },
-  { id: "artists", label: "Your Artists", image: axisImg.wrappedArtists, ref: "artists" as const },
-  { id: "albums", label: "Fresh picks", image: axisImg.tileMix, ref: "albums" as const },
-  { id: "indie", label: "Indie Pop", image: axisImg.indiePop, ref: "indie-pop" as const },
+/** Spotify-style category tiles; local PNGs in /public/axis/tile-*.png optional. */
+const axisRecentTiles = [
+  { id: "songs", label: "Songs", tint: "#E85D04", file: "tile-songs", seed: "axisSongs" },
+  { id: "artists", label: "Artists", tint: "#C1121F", file: "tile-artists", seed: "axisArtists" },
+  { id: "albums", label: "Albums", tint: "#52B788", file: "tile-albums", seed: "axisAlbums" },
+  { id: "playlist", label: "Playlist", tint: "#D4A017", file: "tile-playlist", seed: "axisPlaylist" },
 ] as const;
-
-function AxisSafeImg(props: { src: string; alt: string; className?: string; fallbackClassName?: string }) {
-  const [broken, setBroken] = React.useState(false);
-  if (broken) {
-    return (
-      <div
-        className={`${props.className ?? ""} ${props.fallbackClassName ?? "axisSafeImgFallback"}`.trim()}
-        aria-hidden={props.alt === ""}
-      />
-    );
-  }
-  return (
-    <img
-      src={props.src}
-      alt={props.alt}
-      className={props.className}
-      onError={() => setBroken(true)}
-    />
-  );
-}
 
 const topTabs = ["All", "Pop", "HipHop"] as const;
 
@@ -135,12 +116,13 @@ export function DiscoverScreen(props: {
   pinnedFlashId: string | null;
   onPlayTrack: (t: Track) => void;
   tts: { enabled: boolean; rate: number };
+  onGoToLibrary: () => void;
 }) {
   const [chip, setChip] = React.useState<(typeof chips)[number]>("All");
   const [topTab, setTopTab] = React.useState<(typeof topTabs)[number]>("All");
   const [listening, setListening] = React.useState(false);
 
-  const onVoiceBarClick = () => {
+  const openCommandFromVoiceUi = () => {
     setListening(true);
     speak("Listening…", { enabled: props.tts.enabled, rate: props.tts.rate, priority: "interrupt" });
     props.onCommandPalette();
@@ -152,40 +134,30 @@ export function DiscoverScreen(props: {
   }, [topTab]);
 
   if (props.axisEnabled) {
-    return (
-      <div className="axisHomeRoot">
-        <section className="axisHomeHero" aria-label="Axis spotlight">
-          <AxisSafeImg
-            src={axisImg.hero}
-            alt=""
-            className="axisHomeHeroPhoto"
-            fallbackClassName="axisHomeHeroPhoto axisHomeHeroPhotoFallback"
-          />
-          <div className="axisHomeHeroScrim" aria-hidden />
-          <div className="axisHomeHeroTop">
-            <span className="axisHomeSpotifyBadge" aria-hidden="true" />
-          </div>
-          <p className="axisHomeHeroOutline" aria-hidden>
-            Axis
-          </p>
-        </section>
+    const popThumbPrimary = axisLocalPng("thumb-levitating");
+    const popThumbFallback = axisTileFallback("axisLevitatingArt", 192);
+    const hopThumbPrimary = axisLocalPng("thumb-hiphop");
+    const hopThumbFallback = axisTileFallback("axisHumbleArt", 192);
 
-        <div className="headerPlain axisHomeAxisHeader">
+    return (
+      <>
+        <div className="headerPlain axisHomeSimpleTop">
+          <div className="axisHomeBrandStrip">
+            <span className="axisHomeBrandDot" aria-hidden="true" />
+            <p className="axisHomeBrandOutline" aria-hidden="true">
+              Axis
+            </p>
+          </div>
           <HeaderBar
             title="Axis"
-            left={{
-              kind: "avatar",
-              label: "Open profile",
-              onPress: props.onOpenProfile,
-              imageSrc: axisImg.avatarProfile,
-            }}
+            left={{ kind: "avatar", label: "Open profile", onPress: props.onOpenProfile }}
             onCommandPalette={props.onCommandPalette}
-            showAxisMic={false}
+            showAxisMic
           />
           <button
             type="button"
             className="axisHomeVoiceBar"
-            onClick={onVoiceBarClick}
+            onClick={openCommandFromVoiceUi}
             aria-label="Say a voice command. Opens Axis controls."
           >
             <span className="axisHomeVoiceHint">Say something…</span>
@@ -198,7 +170,7 @@ export function DiscoverScreen(props: {
 
         <div className="screenInner">
           <section aria-label="Pinned shortcuts">
-            <div className="sectionHeader axisHomeSectionLight" style={{ marginTop: 0 }}>
+            <div className="sectionHeader" style={{ marginTop: 0 }}>
               Pinned
             </div>
             <div className="axisHomePinnedList">
@@ -214,43 +186,33 @@ export function DiscoverScreen(props: {
             </div>
           </section>
 
-          <section aria-label="Your year in music">
-            <button
-              type="button"
-              className="axisHomeFeaturedCard"
-              onClick={() =>
-                props.onOpenContext({
-                  landmark: {
-                    id: "lm-axis-wrapped-feature",
-                    label: "Your Artists Revealed",
-                    type: "playlist",
-                    payload: { kind: "stub", ref: "wrapped-feature" },
-                  },
-                  artistName: "Spotify",
-                })
-              }
-            >
-              <AxisSafeImg
-                src={axisImg.banner}
-                alt=""
-                className="axisHomeFeaturedImg"
-                fallbackClassName="axisHomeFeaturedImg axisHomeFeaturedImgFallback"
-              />
-              <div className="axisHomeFeaturedOverlay">
-                <span className="axisHomeFeaturedKicker">Wrapped</span>
-                <span className="axisHomeFeaturedTitle">Your Artists Revealed</span>
-              </div>
-            </button>
+          <section aria-label="Quick suggestions">
+            <div className="sectionHeader">Quick suggestions</div>
+            <div className="axisHomeQuickRow">
+              <button type="button" className="axisHomeQuickBtn" onClick={() => props.onCommandPalette()}>
+                <span className="axisHomeQuickIcon" aria-hidden="true">
+                  <Icon name="mic" size={20} />
+                </span>
+                Axis controls
+              </button>
+              <button type="button" className="axisHomeQuickBtn" onClick={props.onGoToLibrary}>
+                <span className="axisHomeQuickIcon" aria-hidden="true">
+                  <Icon name="library" size={20} />
+                </span>
+                Your Library
+              </button>
+            </div>
           </section>
 
-          <section aria-label="Browse categories">
-            <div className="sectionHeader axisHomeSectionLight">Jump back in</div>
+          <section aria-label="Recently played">
+            <div className="sectionHeader">Recently played</div>
             <div className="axisHomeBrowseGrid">
-              {axisBrowseTiles.map((tile) => (
+              {axisRecentTiles.map((tile) => (
                 <button
                   key={tile.id}
                   type="button"
                   className="axisHomeBrowseTile axisHomeBrowseTileArt"
+                  style={{ background: tile.tint }}
                   aria-label={tile.label}
                   onClick={() =>
                     props.onOpenContext({
@@ -258,13 +220,18 @@ export function DiscoverScreen(props: {
                         id: `lm-axis-browse-${tile.id}`,
                         label: tile.label,
                         type: "playlist",
-                        payload: { kind: "stub", ref: `browse-${tile.ref}` },
+                        payload: { kind: "stub", ref: `browse-${tile.id}` },
                       },
                       artistName: "Spotify",
                     })
                   }
                 >
-                  <AxisSafeImg src={tile.image} alt="" className="axisHomeBrowseImg" />
+                  <ResilientImg
+                    primarySrc={axisLocalPng(tile.file)}
+                    fallbackSrc={axisTileFallback(tile.seed)}
+                    alt=""
+                    className="axisHomeBrowseImg"
+                  />
                   <span className="axisHomeBrowseLabel">{tile.label}</span>
                 </button>
               ))}
@@ -272,7 +239,7 @@ export function DiscoverScreen(props: {
           </section>
 
           <section aria-label="Top songs">
-            <div className="axisHomeTopSongsHeader axisHomeSectionLight">Top Songs</div>
+            <div className="axisHomeTopSongsHeader">Top Songs</div>
             <div className="axisHomeTopTabs" role="tablist" aria-label="Genre">
               {topTabs.map((t) => (
                 <button
@@ -291,8 +258,9 @@ export function DiscoverScreen(props: {
               {topSongRows.map((row) => (
                 <div key={row.id} className="axisHomeTopRow">
                   <div className="axisHomeTopThumbWrap" aria-hidden="true">
-                    <AxisSafeImg
-                      src={topTab === "HipHop" ? axisImg.tileMix : axisImg.beatles}
+                    <ResilientImg
+                      primarySrc={topTab === "HipHop" ? hopThumbPrimary : popThumbPrimary}
+                      fallbackSrc={topTab === "HipHop" ? hopThumbFallback : popThumbFallback}
                       alt=""
                       className="axisHomeTopThumb"
                     />
@@ -318,18 +286,8 @@ export function DiscoverScreen(props: {
               ))}
             </div>
           </section>
-
-          <section className="axisHomeAlbumFeature" aria-label="Featured album">
-            <AxisSafeImg src={axisImg.artistFeature} alt="" className="axisHomeAlbumFeatureImg" />
-            <div className="axisHomeAlbumFeatureCaption">
-              <div style={{ fontSize: 22, fontWeight: 800, lineHeight: "28px" }}>Albums featuring songs you like</div>
-              <div className="muted" style={{ marginTop: 6, fontSize: 13, fontWeight: 400 }}>
-                Editorial picks · updated weekly
-              </div>
-            </div>
-          </section>
         </div>
-      </div>
+      </>
     );
   }
 

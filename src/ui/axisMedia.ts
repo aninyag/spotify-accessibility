@@ -1,21 +1,14 @@
 /**
- * Art for the Axis-enabled home. Copy into `public/axis/` as:
- *   hero.png ← about-headshot-…png
- *   wrapped-artists.png, wrapped-top-songs.png, tile-mix.png, tile-indie-pop.png, tile-beatles.png
- *   banner-wrapped.png ← Frame_331-…png
- *   hero-artist-feature.png, avatar-profile.png
- * Missing files get gradient/image fallbacks in the UI.
+ * Axis home imagery: tries `/public/axis/<name>.png` first (add files there anytime),
+ * then falls back to deterministic placeholder photos so tiles always show art in dev.
  */
-const base = `${import.meta.env.BASE_URL}axis/`;
+const base = import.meta.env.BASE_URL;
 
-export const axisImg = {
-  hero: `${base}hero.png`,
-  wrappedArtists: `${base}wrapped-artists.png`,
-  topSongs: `${base}wrapped-top-songs.png`,
-  tileMix: `${base}tile-mix.png`,
-  indiePop: `${base}tile-indie-pop.png`,
-  beatles: `${base}tile-beatles.png`,
-  banner: `${base}banner-wrapped.png`,
-  artistFeature: `${base}hero-artist-feature.png`,
-  avatarProfile: `${base}avatar-profile.png`,
-} as const;
+export function axisLocalPng(name: string): string {
+  return `${base}axis/${name}.png`;
+}
+
+/** Per-tile placeholder if local PNG missing (picsum is dev-friendly; swap for your CDN later). */
+export function axisTileFallback(seed: string, size = 240): string {
+  return `https://picsum.photos/seed/${encodeURIComponent(seed)}/${size}/${size}`;
+}

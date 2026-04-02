@@ -595,6 +595,7 @@ export function App() {
               pinnedFlashId={pinnedFlashId}
               onPlayTrack={playTrack}
               tts={{ enabled: ttsEnabled, rate: ttsRate }}
+              onGoToLibrary={() => onTabChange("library")}
             />
           )}
         </main>
