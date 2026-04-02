@@ -31,7 +31,27 @@ export function ListRow(props: {
       </div>
       <div>
         <div className="title">{props.title}</div>
-        {props.subtitle ? <div className="subtitle">{props.subtitle}</div> : null}
+        {props.subtitle ? (
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 3 }}>
+            <div
+              aria-hidden="true"
+              style={{
+                width: 16,
+                height: 16,
+                borderRadius: 999,
+                background: "#57B65F",
+                color: "black",
+                fontSize: 10,
+                display: "grid",
+                placeItems: "center",
+                fontWeight: 700,
+              }}
+            >
+              E
+            </div>
+            <div className="subtitle">{props.subtitle}</div>
+          </div>
+        ) : null}
       </div>
       {props.onPlayPress ? (
         <button className="playBtn" type="button" aria-label={`Play ${props.title}`} onClick={(e) => (e.stopPropagation(), props.onPlayPress?.())}>

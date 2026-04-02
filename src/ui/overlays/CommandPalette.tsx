@@ -97,6 +97,16 @@ export function CommandPalette(props: {
           </button>
         </div>
 
+        <button
+          type="button"
+          className="cta"
+          aria-label="Speak a command"
+          onClick={() => speak("Listening for command. Prototype voice input is not enabled yet.", { enabled: props.tts.enabled, rate: props.tts.rate, priority: "interrupt" })}
+          style={{ width: "100%", minHeight: 48, marginBottom: 12 }}
+        >
+          🎤 Speak a command
+        </button>
+
         <input
           ref={inputRef}
           className="field"

@@ -7,7 +7,7 @@ export function HeaderBar(props: {
     <div className="header">
       {props.left ? (
         <button className="iconBtn" type="button" aria-label={props.left.label} onClick={props.left.onPress}>
-          ←
+          ◎
         </button>
       ) : (
         <div aria-hidden="true" style={{ width: 48, height: 48 }} />

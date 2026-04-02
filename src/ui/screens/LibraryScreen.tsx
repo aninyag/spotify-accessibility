@@ -33,85 +33,89 @@ export function LibraryScreen(props: {
 
   return (
     <>
-      <HeaderBar title="Your Library" left={{ label: "Where am I", onPress: props.onWhereAmI }} right={{ label: "Open command palette", onPress: props.onCommandPalette }} />
-
-      <div className="card" aria-label="Library filters">
-        <div className="pillRow" role="tablist" aria-label="Library filter tabs">
-          {filterOptions.map((opt, idx) => (
-            <button
-              key={opt}
-              type="button"
-              className="pill"
-              role="tab"
-              aria-selected={filter === opt}
-              aria-label={`${opt}. Tab. ${idx + 1} of ${filterOptions.length}. ${filter === opt ? "Selected" : "Not selected"}.`}
-              onClick={() => {
-                setFilter(opt);
-                speak(`Viewing ${opt}`, { enabled: props.tts.enabled, rate: props.tts.rate, priority: "queue" });
-              }}
-            >
-              {opt}
-            </button>
-          ))}
-        </div>
+      <div className="headerGradient">
+        <HeaderBar title="Your Library" left={{ label: "Where am I", onPress: props.onWhereAmI }} right={{ label: "Open command palette", onPress: props.onCommandPalette }} />
       </div>
+      <div className="screenInner">
+        <div className="card" aria-label="Library filters">
+          <div className="pillRow" role="tablist" aria-label="Library filter tabs">
+            {filterOptions.map((opt, idx) => (
+              <button
+                key={opt}
+                type="button"
+                className="pill"
+                role="tab"
+                aria-selected={filter === opt}
+                aria-label={`${opt}. Tab. ${idx + 1} of ${filterOptions.length}. ${filter === opt ? "Selected" : "Not selected"}.`}
+                onClick={() => {
+                  setFilter(opt);
+                  speak(`Viewing ${opt}`, { enabled: props.tts.enabled, rate: props.tts.rate, priority: "queue" });
+                }}
+              >
+                {opt}
+              </button>
+            ))}
+          </div>
+        </div>
 
-      <div className="card" aria-label="Sort control">
-        <div style={{ display: "flex", gap: 10, alignItems: "center", justifyContent: "space-between" }}>
-          <div>
-            <div className="muted" style={{ fontSize: 14 }}>
-              Sort
+        <div className="card" aria-label="Sort control">
+          <div style={{ display: "flex", gap: 10, alignItems: "center", justifyContent: "space-between" }}>
+            <div>
+              <div className="muted" style={{ fontSize: 14 }}>
+                Sort
+              </div>
+              <button
+                type="button"
+                aria-label={`Sort: ${sort}. Activate to change sort.`}
+                onClick={() => {
+                  const idx = sortOptions.indexOf(sort);
+                  const next = sortOptions[(idx + 1) % sortOptions.length];
+                  setSort(next);
+                  speak(`Sort ${next}`, { enabled: props.tts.enabled, rate: props.tts.rate, priority: "interrupt" });
+                }}
+              >
+                {sort} ▼
+              </button>
             </div>
             <button
               type="button"
-              aria-label={`Sort: ${sort}. Activate to change sort.`}
+              aria-label={`Toggle ${ascending ? "ascending" : "descending"}`}
               onClick={() => {
-                const idx = sortOptions.indexOf(sort);
-                const next = sortOptions[(idx + 1) % sortOptions.length];
-                setSort(next);
-                speak(`Sort ${next}`, { enabled: props.tts.enabled, rate: props.tts.rate, priority: "interrupt" });
+                setAscending((a) => !a);
+                speak(ascending ? "Descending" : "Ascending", { enabled: props.tts.enabled, rate: props.tts.rate, priority: "interrupt" });
               }}
             >
-              {sort} ▼
+              ↑↓
             </button>
           </div>
-          <button
-            type="button"
-            aria-label={`Toggle ${ascending ? "ascending" : "descending"}`}
-            onClick={() => {
-              setAscending((a) => !a);
-              speak(ascending ? "Descending" : "Ascending", { enabled: props.tts.enabled, rate: props.tts.rate, priority: "interrupt" });
-            }}
-          >
-            ↑↓
-          </button>
         </div>
-      </div>
 
-      <section className="card" aria-label="Library list">
-        <div className="muted">{items.length} {filter}</div>
-        <div style={{ display: "grid", gap: 10, marginTop: 12 }}>
-          {items.map((it) => (
-            <ListRow
-              key={it.id}
-              title={it.title}
-              subtitle={it.subtitle}
-              ariaLabel={`${it.title}. ${it.subtitle}. Tap to open.`}
-              onPress={() => speak(`Opening ${it.title}`, { enabled: props.tts.enabled, rate: props.tts.rate, priority: "interrupt" })}
-              onPlayPress={() => speak(`Playing ${it.title}`, { enabled: props.tts.enabled, rate: props.tts.rate, priority: "interrupt" })}
-              onLongPress={() =>
-                props.onAddLandmark({
-                  id: `lm-${Date.now()}`,
-                  label: it.title,
-                  type: "playlist",
-                  payload: { kind: "stub", ref: it.id },
-                })
-              }
-            />
-          ))}
-        </div>
-        <div className="hint">Prototype note: playlist detail screen is next on the build list.</div>
-      </section>
+        <section className="card" aria-label="Library list">
+          <div className="sectionTitle" style={{ margin: 0, fontSize: 19 }}>Recently played</div>
+          <div className="muted">{items.length} {filter}</div>
+          <div style={{ display: "grid", gap: 2, marginTop: 4 }}>
+            {items.map((it) => (
+              <ListRow
+                key={it.id}
+                title={it.title}
+                subtitle={it.subtitle}
+                ariaLabel={`${it.title}. ${it.subtitle}. Tap to open.`}
+                onPress={() => speak(`Opening ${it.title}`, { enabled: props.tts.enabled, rate: props.tts.rate, priority: "interrupt" })}
+                onPlayPress={() => speak(`Playing ${it.title}`, { enabled: props.tts.enabled, rate: props.tts.rate, priority: "interrupt" })}
+                onLongPress={() =>
+                  props.onAddLandmark({
+                    id: `lm-${Date.now()}`,
+                    label: it.title,
+                    type: "playlist",
+                    payload: { kind: "stub", ref: it.id },
+                  })
+                }
+              />
+            ))}
+          </div>
+          <div className="hint">Prototype note: playlist detail screen is next on the build list.</div>
+        </section>
+      </div>
     </>
   );
 }

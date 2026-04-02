@@ -23,33 +23,35 @@ export function SupportScreen(props: {
 
   return (
     <>
-      <HeaderBar title="Support" left={{ label: "Where am I", onPress: props.onWhereAmI }} right={{ label: "Open command palette", onPress: props.onCommandPalette }} />
+      <div className="headerGradient">
+        <HeaderBar title="Help & Settings" left={{ label: "Where am I", onPress: props.onWhereAmI }} right={{ label: "Open command palette", onPress: props.onCommandPalette }} />
+      </div>
+      <div className="screenInner">
+        <button
+          type="button"
+          className="cta"
+          aria-label="Help Me"
+          onClick={() => speak("Help. Choose a common question below, or open the command palette.", { enabled: ttsEnabled, rate, priority: "interrupt" })}
+          style={{ background: "#3E3E3E", color: "white", border: "1px solid rgba(255,255,255,0.12)" }}
+        >
+          ❓ Help Me
+        </button>
 
-      <button
-        type="button"
-        className="cta"
-        aria-label="Help Me"
-        onClick={() => speak("Help. Choose a common question below, or open the command palette.", { enabled: ttsEnabled, rate, priority: "interrupt" })}
-        style={{ background: "#3e3e3e", color: "white", borderColor: "rgba(255,255,255,0.12)" }}
-      >
-        ❓ Help Me
-      </button>
+        <section className="card" aria-label="Common questions">
+          <div className="sectionTitle" style={{ margin: 0, fontSize: 19 }}>Common Questions</div>
+          <Accordion
+            title="How do I add a song to a playlist?"
+            body="Open the Command Palette (Control K). Type 'add to [playlist]'. In the prototype, this is stubbed."
+            tts={{ enabled: ttsEnabled, rate }}
+          />
+          <Accordion title="How do I find my downloads?" body="In prototype, downloads are not implemented." tts={{ enabled: ttsEnabled, rate }} />
+          <Accordion title="How do I use voice commands?" body="Press Control K to open commands, then type. Voice input is a stub in prototype." tts={{ enabled: ttsEnabled, rate }} />
+          <Accordion title="How do I create a landmark?" body="Right-click an item in Search/Library to add as a landmark." tts={{ enabled: ttsEnabled, rate }} />
+          <Accordion title="How do I contact Spotify support?" body="This prototype doesn’t connect to Spotify support yet." tts={{ enabled: ttsEnabled, rate }} />
+        </section>
 
-      <section className="card" aria-label="Common questions">
-        <div style={{ fontWeight: 900, marginBottom: 10 }}>Common Questions</div>
-        <Accordion
-          title="How do I add a song to a playlist?"
-          body="Open the Command Palette (Control K). Type 'add to [playlist]'. In the prototype, this is stubbed."
-          tts={{ enabled: ttsEnabled, rate }}
-        />
-        <Accordion title="How do I find my downloads?" body="In prototype, downloads are not implemented." tts={{ enabled: ttsEnabled, rate }} />
-        <Accordion title="How do I use voice commands?" body="Press Control K to open commands, then type. Voice input is a stub in prototype." tts={{ enabled: ttsEnabled, rate }} />
-        <Accordion title="How do I create a landmark?" body="Right-click an item in Search/Library to add as a landmark." tts={{ enabled: ttsEnabled, rate }} />
-        <Accordion title="How do I contact Spotify support?" body="This prototype doesn’t connect to Spotify support yet." tts={{ enabled: ttsEnabled, rate }} />
-      </section>
-
-      <section className="card" aria-label="Settings">
-        <div style={{ fontWeight: 900, marginBottom: 10 }}>Settings</div>
+        <section className="card" aria-label="Settings">
+          <div className="sectionTitle" style={{ margin: 0, fontSize: 19 }}>Settings</div>
 
         <ToggleRow
           label="Voice Feedback"
@@ -89,34 +91,35 @@ export function SupportScreen(props: {
           value={false}
           onChange={() => speak("High contrast mode is a stub in this prototype.", { enabled: ttsEnabled, rate, priority: "interrupt" })}
         />
-      </section>
+        </section>
 
-      <section className="card" aria-label="Manage landmarks">
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <div style={{ fontWeight: 900 }}>Manage Landmarks</div>
-          <div className="muted">{props.landmarks.length} / 6</div>
-        </div>
-        <div style={{ display: "grid", gap: 10, marginTop: 12 }}>
-          {props.landmarks.length === 0 ? (
-            <div className="muted">No landmarks yet.</div>
-          ) : (
-            props.landmarks.map((lm, idx) => (
-              <div key={lm.id} className="row" role="group" aria-label={`Landmark ${idx + 1}: ${lm.label}`}>
-                <div className="thumb" aria-hidden="true">
-                  {idx + 1}
+        <section className="card" aria-label="Manage landmarks">
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div className="sectionTitle" style={{ margin: 0, fontSize: 19 }}>Manage Landmarks</div>
+            <div className="muted">{props.landmarks.length} / 6</div>
+          </div>
+          <div style={{ display: "grid", gap: 10, marginTop: 12 }}>
+            {props.landmarks.length === 0 ? (
+              <div className="muted">No landmarks yet.</div>
+            ) : (
+              props.landmarks.map((lm, idx) => (
+                <div key={lm.id} className="row" role="group" aria-label={`Landmark ${idx + 1}: ${lm.label}`}>
+                  <div className="thumb" aria-hidden="true">
+                    {idx + 1}
+                  </div>
+                  <div>
+                    <div className="title">{lm.label}</div>
+                    <div className="subtitle">{lm.type}</div>
+                  </div>
+                  <button type="button" aria-label={`Remove ${lm.label}`} onClick={() => props.onRemoveLandmark(lm.id)}>
+                    ×
+                  </button>
                 </div>
-                <div>
-                  <div className="title">{lm.label}</div>
-                  <div className="subtitle">{lm.type}</div>
-                </div>
-                <button type="button" aria-label={`Remove ${lm.label}`} onClick={() => props.onRemoveLandmark(lm.id)}>
-                  ×
-                </button>
-              </div>
-            ))
-          )}
-        </div>
-      </section>
+              ))
+            )}
+          </div>
+        </section>
+      </div>
     </>
   );
 }

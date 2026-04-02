@@ -169,109 +169,149 @@ export function App() {
   }, [whereAmIOpen, whereAmIText, ttsEnabled, ttsRate]);
 
   return (
-    <div className="app">
-      <main className="screen" role="tabpanel" aria-label="Accessible Mode content">
-        {tab === "now" ? (
-          <NowScreen
-            track={track}
-            isPlaying={isPlaying}
-            shuffleEnabled={shuffle}
-            repeatMode={repeat}
-            currentTimeSec={currentTime}
-            queue={mockQueue}
-            landmarks={landmarks}
-            onTogglePlay={() => {
-              setIsPlaying((p) => !p);
-              speak(isPlaying ? "Paused" : "Playing", { enabled: ttsEnabled, rate: ttsRate, priority: "interrupt" });
-            }}
-            onNext={() => {
+    <div className="appShell">
+      <div className="app">
+        <div className="statusBar" aria-hidden="true">
+          <div className="statusTime">1:20</div>
+          <div className="statusRight">
+            <div className="statusDot" />
+            <div className="statusDot" />
+            <div className="statusBattery" />
+          </div>
+        </div>
+
+        <main className="screen" role="tabpanel" aria-label="Accessible Mode content">
+          {tab === "now" ? (
+            <NowScreen
+              track={track}
+              isPlaying={isPlaying}
+              shuffleEnabled={shuffle}
+              repeatMode={repeat}
+              currentTimeSec={currentTime}
+              queue={mockQueue}
+              landmarks={landmarks}
+              onTogglePlay={() => {
+                setIsPlaying((p) => !p);
+                speak(isPlaying ? "Paused" : "Playing", { enabled: ttsEnabled, rate: ttsRate, priority: "interrupt" });
+              }}
+              onNext={() => {
+                const idx = mockQueue.findIndex((t) => t.id === track.id);
+                const next = mockQueue[Math.min(mockQueue.length - 1, Math.max(0, idx + 1))] ?? track;
+                setTrack(next);
+                setCurrentTime(0);
+                speak(`Next: ${next.title} by ${next.artist}`, { enabled: ttsEnabled, rate: ttsRate, priority: "interrupt" });
+              }}
+              onPrevious={() => {
+                const idx = mockQueue.findIndex((t) => t.id === track.id);
+                const prev = mockQueue[Math.max(0, idx - 1)] ?? track;
+                setTrack(prev);
+                setCurrentTime(0);
+                speak(`Previous: ${prev.title} by ${prev.artist}`, { enabled: ttsEnabled, rate: ttsRate, priority: "interrupt" });
+              }}
+              onShuffleToggle={() => {
+                setShuffle((s) => !s);
+                speak(!shuffle ? "Shuffle on" : "Shuffle off", { enabled: ttsEnabled, rate: ttsRate, priority: "interrupt" });
+              }}
+              onRepeatToggle={() => {
+                const next: RepeatMode = repeat === "off" ? "all" : repeat === "all" ? "one" : "off";
+                setRepeat(next);
+                speak(next === "all" ? "Repeat all" : next === "one" ? "Repeat one" : "Repeat off", {
+                  enabled: ttsEnabled,
+                  rate: ttsRate,
+                  priority: "interrupt",
+                });
+              }}
+              onSeek={(t) => {
+                setCurrentTime(t);
+                speak(`Seek ${Math.floor(t / 60)} minutes ${Math.floor(t % 60)} seconds`, { enabled: ttsEnabled, rate: ttsRate, priority: "interrupt" });
+              }}
+              onCommandPalette={() => setCommandOpen(true)}
+              onWhereAmI={() => setWhereAmIOpen(true)}
+              onLandmarkPress={navigateToLandmark}
+              onLandmarkRemove={(id) => removeLandmark(id)}
+              onAddLandmark={() =>
+                addLandmark({
+                  id: `lm-${Date.now()}`,
+                  label: `${track.title}`,
+                  type: "album",
+                  payload: { kind: "stub", ref: `track:${track.id}` },
+                })
+              }
+            />
+          ) : tab === "search" ? (
+            <SearchScreen
+              onCommandPalette={() => setCommandOpen(true)}
+              onWhereAmI={() => setWhereAmIOpen(true)}
+              tts={{ enabled: ttsEnabled, rate: ttsRate }}
+              onAddLandmark={addLandmark}
+            />
+          ) : tab === "library" ? (
+            <LibraryScreen onCommandPalette={() => setCommandOpen(true)} onWhereAmI={() => setWhereAmIOpen(true)} tts={{ enabled: ttsEnabled, rate: ttsRate }} onAddLandmark={addLandmark} />
+          ) : tab === "discover" ? (
+            <DiscoverScreen onCommandPalette={() => setCommandOpen(true)} onWhereAmI={() => setWhereAmIOpen(true)} tts={{ enabled: ttsEnabled, rate: ttsRate }} />
+          ) : (
+            <SupportScreen
+              settings={settings}
+              onSettingsChange={setSettings}
+              landmarks={landmarks}
+              onRemoveLandmark={removeLandmark}
+              onCommandPalette={() => setCommandOpen(true)}
+              onWhereAmI={() => setWhereAmIOpen(true)}
+            />
+          )}
+        </main>
+
+        <div className="miniPlayer" aria-label="Now playing mini bar">
+          <div className="miniThumb" />
+          <button
+            type="button"
+            style={{ border: "none", background: "transparent", textAlign: "left", padding: 0, minHeight: 0 }}
+            aria-label={`Now playing ${track.title} by ${track.artist}`}
+            onClick={() => onTabChange("now")}
+          >
+            <div className="miniTitle">{track.title}</div>
+            <div className="miniMeta">BEATSPILL+</div>
+          </button>
+          <div className="miniControls">
+            <button className="miniIcon" type="button" aria-label={isPlaying ? "Pause" : "Play"} onClick={() => setIsPlaying((p) => !p)}>
+              {isPlaying ? "❚❚" : "▶"}
+            </button>
+            <button className="miniIcon" type="button" aria-label="Next" onClick={() => {
               const idx = mockQueue.findIndex((t) => t.id === track.id);
               const next = mockQueue[Math.min(mockQueue.length - 1, Math.max(0, idx + 1))] ?? track;
               setTrack(next);
               setCurrentTime(0);
-              speak(`Next: ${next.title} by ${next.artist}`, { enabled: ttsEnabled, rate: ttsRate, priority: "interrupt" });
-            }}
-            onPrevious={() => {
-              const idx = mockQueue.findIndex((t) => t.id === track.id);
-              const prev = mockQueue[Math.max(0, idx - 1)] ?? track;
-              setTrack(prev);
-              setCurrentTime(0);
-              speak(`Previous: ${prev.title} by ${prev.artist}`, { enabled: ttsEnabled, rate: ttsRate, priority: "interrupt" });
-            }}
-            onShuffleToggle={() => {
-              setShuffle((s) => !s);
-              speak(!shuffle ? "Shuffle on" : "Shuffle off", { enabled: ttsEnabled, rate: ttsRate, priority: "interrupt" });
-            }}
-            onRepeatToggle={() => {
-              const next: RepeatMode = repeat === "off" ? "all" : repeat === "all" ? "one" : "off";
-              setRepeat(next);
-              speak(next === "all" ? "Repeat all" : next === "one" ? "Repeat one" : "Repeat off", {
-                enabled: ttsEnabled,
-                rate: ttsRate,
-                priority: "interrupt",
-              });
-            }}
-            onSeek={(t) => {
-              setCurrentTime(t);
-              speak(`Seek ${Math.floor(t / 60)} minutes ${Math.floor(t % 60)} seconds`, { enabled: ttsEnabled, rate: ttsRate, priority: "interrupt" });
-            }}
-            onCommandPalette={() => setCommandOpen(true)}
-            onWhereAmI={() => setWhereAmIOpen(true)}
-            onLandmarkPress={navigateToLandmark}
-            onLandmarkRemove={(id) => removeLandmark(id)}
-            onAddLandmark={() =>
-              addLandmark({
-                id: `lm-${Date.now()}`,
-                label: `${track.title}`,
-                type: "album",
-                payload: { kind: "stub", ref: `track:${track.id}` },
-              })
+            }}>
+              ⏭
+            </button>
+          </div>
+        </div>
+        <div className="miniProgress" aria-hidden="true">
+          <div className="miniProgressFill" style={{ width: `${Math.min(100, (currentTime / Math.max(1, track.durationSec)) * 100)}%` }} />
+        </div>
+
+        <BottomNavBar currentTab={tab} onTabChange={onTabChange} />
+
+        <CommandPalette
+          open={commandOpen}
+          onClose={() => setCommandOpen(false)}
+          context={{ tab, track, isPlaying }}
+          landmarks={landmarks}
+          onCommand={(cmd) => {
+            // Keep it small for MVP; this grows into full spec.
+            if (cmd.kind === "nav") onTabChange(cmd.tab);
+            if (cmd.kind === "playPause") {
+              setIsPlaying((p) => !p);
+              speak(isPlaying ? "Paused" : "Playing", { enabled: ttsEnabled, rate: ttsRate, priority: "interrupt" });
             }
-          />
-        ) : tab === "search" ? (
-          <SearchScreen
-            onCommandPalette={() => setCommandOpen(true)}
-            onWhereAmI={() => setWhereAmIOpen(true)}
-            tts={{ enabled: ttsEnabled, rate: ttsRate }}
-            onAddLandmark={addLandmark}
-          />
-        ) : tab === "library" ? (
-          <LibraryScreen onCommandPalette={() => setCommandOpen(true)} onWhereAmI={() => setWhereAmIOpen(true)} tts={{ enabled: ttsEnabled, rate: ttsRate }} onAddLandmark={addLandmark} />
-        ) : tab === "discover" ? (
-          <DiscoverScreen onCommandPalette={() => setCommandOpen(true)} onWhereAmI={() => setWhereAmIOpen(true)} tts={{ enabled: ttsEnabled, rate: ttsRate }} />
-        ) : (
-          <SupportScreen
-            settings={settings}
-            onSettingsChange={setSettings}
-            landmarks={landmarks}
-            onRemoveLandmark={removeLandmark}
-            onCommandPalette={() => setCommandOpen(true)}
-            onWhereAmI={() => setWhereAmIOpen(true)}
-          />
-        )}
-      </main>
+            if (cmd.kind === "whereAmI") setWhereAmIOpen(true);
+            if (cmd.kind === "landmark") navigateToLandmark(cmd.landmark);
+          }}
+          tts={{ enabled: ttsEnabled, rate: ttsRate }}
+        />
 
-      <BottomNavBar currentTab={tab} onTabChange={onTabChange} />
-
-      <CommandPalette
-        open={commandOpen}
-        onClose={() => setCommandOpen(false)}
-        context={{ tab, track, isPlaying }}
-        landmarks={landmarks}
-        onCommand={(cmd) => {
-          // Keep it small for MVP; this grows into full spec.
-          if (cmd.kind === "nav") onTabChange(cmd.tab);
-          if (cmd.kind === "playPause") {
-            setIsPlaying((p) => !p);
-            speak(isPlaying ? "Paused" : "Playing", { enabled: ttsEnabled, rate: ttsRate, priority: "interrupt" });
-          }
-          if (cmd.kind === "whereAmI") setWhereAmIOpen(true);
-          if (cmd.kind === "landmark") navigateToLandmark(cmd.landmark);
-        }}
-        tts={{ enabled: ttsEnabled, rate: ttsRate }}
-      />
-
-      <WhereAmIToast open={whereAmIOpen} text={whereAmIText} />
+        <WhereAmIToast open={whereAmIOpen} text={whereAmIText} />
+      </div>
     </div>
   );
 }
