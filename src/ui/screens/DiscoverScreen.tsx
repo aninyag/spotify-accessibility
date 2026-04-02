@@ -213,8 +213,6 @@ export function DiscoverScreen(props: {
           speechListening={speechListening}
           speechSupported={speechSupported}
           searchInputId="axis-home-search"
-          onCommandPalette={props.onCommandPalette}
-          showCommandPaletteTrigger
         />
 
         <div className="screenInner">
