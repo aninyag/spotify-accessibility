@@ -2,6 +2,7 @@ import * as React from "react";
 import { HeaderBar } from "../components/HeaderBar";
 import type { Landmark } from "../types";
 import { speak } from "../tts";
+import { Icon } from "../components/Icon";
 
 const speedOptions = ["slow", "normal", "fast"] as const;
 type Speed = (typeof speedOptions)[number];
@@ -34,10 +35,10 @@ export function SupportScreen(props: {
           onClick={() => speak("Help. Choose a common question below, or open the command palette.", { enabled: ttsEnabled, rate, priority: "interrupt" })}
           style={{ background: "#3E3E3E", color: "white", border: "1px solid rgba(255,255,255,0.12)" }}
         >
-          ❓ Help Me
+          <Icon name="help" size={18} /> Help Me
         </button>
 
-        <section className="card" aria-label="Common questions">
+        <section aria-label="Common questions">
           <div className="sectionTitle" style={{ margin: 0, fontSize: 19 }}>Common Questions</div>
           <Accordion
             title="How do I add a song to a playlist?"
@@ -50,7 +51,7 @@ export function SupportScreen(props: {
           <Accordion title="How do I contact Spotify support?" body="This prototype doesn’t connect to Spotify support yet." tts={{ enabled: ttsEnabled, rate }} />
         </section>
 
-        <section className="card" aria-label="Settings">
+        <section aria-label="Settings">
           <div className="sectionTitle" style={{ margin: 0, fontSize: 19 }}>Settings</div>
 
         <ToggleRow
@@ -68,6 +69,7 @@ export function SupportScreen(props: {
           </div>
           <button
             type="button"
+            className="ghostBtn"
             aria-label={`Voice speed, ${props.settings.voiceRate}, popup button`}
             onClick={() => {
               const idx = speedOptions.indexOf(props.settings.voiceRate);
@@ -93,7 +95,7 @@ export function SupportScreen(props: {
         />
         </section>
 
-        <section className="card" aria-label="Manage landmarks">
+        <section aria-label="Manage landmarks">
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <div className="sectionTitle" style={{ margin: 0, fontSize: 19 }}>Manage Landmarks</div>
             <div className="muted">{props.landmarks.length} / 6</div>
@@ -111,8 +113,8 @@ export function SupportScreen(props: {
                     <div className="title">{lm.label}</div>
                     <div className="subtitle">{lm.type}</div>
                   </div>
-                  <button type="button" aria-label={`Remove ${lm.label}`} onClick={() => props.onRemoveLandmark(lm.id)}>
-                    ×
+                  <button type="button" className="ghostBtn" aria-label={`Remove ${lm.label}`} onClick={() => props.onRemoveLandmark(lm.id)}>
+                    <Icon name="close" size={16} />
                   </button>
                 </div>
               ))
@@ -128,8 +130,17 @@ function ToggleRow(props: { label: string; value: boolean; onChange: (v: boolean
   return (
     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, marginTop: 10 }}>
       <div style={{ fontWeight: 800 }}>{props.label}</div>
-      <button type="button" role="switch" aria-checked={props.value} aria-label={`${props.label}, switch, ${props.value ? "on" : "off"}`} onClick={() => props.onChange(!props.value)}>
-        {props.value ? "On" : "Off"}
+      <button
+        type="button"
+        role="switch"
+        aria-checked={props.value}
+        aria-label={`${props.label}, switch, ${props.value ? "on" : "off"}`}
+        onClick={() => props.onChange(!props.value)}
+        style={{ padding: 0 }}
+      >
+        <span className={`toggleSwitch ${props.value ? "toggleSwitchOn" : ""}`} aria-hidden="true">
+          <span className="toggleThumb" />
+        </span>
       </button>
     </div>
   );
@@ -138,7 +149,7 @@ function ToggleRow(props: { label: string; value: boolean; onChange: (v: boolean
 function Accordion(props: { title: string; body: string; tts: { enabled: boolean; rate: number } }) {
   const [open, setOpen] = React.useState(false);
   return (
-    <div style={{ marginTop: 10 }}>
+    <div style={{ marginTop: 10, borderBottom: "1px solid rgba(255,255,255,0.08)", paddingBottom: 10 }}>
       <button
         type="button"
         aria-expanded={open}
@@ -147,9 +158,22 @@ function Accordion(props: { title: string; body: string; tts: { enabled: boolean
           setOpen((o) => !o);
           if (!open) speak(props.body, { enabled: props.tts.enabled, rate: props.tts.rate, priority: "interrupt" });
         }}
-        style={{ width: "100%", textAlign: "left" }}
+        style={{
+          width: "100%",
+          textAlign: "left",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          gap: 12,
+          minHeight: 44,
+          color: "white",
+          fontWeight: 700,
+        }}
       >
-        {props.title}
+        <span>{props.title}</span>
+        <span aria-hidden="true" style={{ color: "rgba(255,255,255,0.7)" }}>
+          <Icon name="chevronRight" size={18} />
+        </span>
       </button>
       {open ? (
         <div className="muted" style={{ padding: "10px 6px 0", fontSize: 14 }}>

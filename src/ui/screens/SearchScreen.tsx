@@ -4,6 +4,7 @@ import { ListRow, trackAriaLabel } from "../components/ListRow";
 import type { Landmark } from "../types";
 import type { Track } from "../types";
 import { speak } from "../tts";
+import { Icon } from "../components/Icon";
 
 const filterOptions = ["All", "Songs", "Artists", "Albums", "Playlists", "Podcasts"] as const;
 type Filter = (typeof filterOptions)[number];
@@ -45,7 +46,9 @@ export function SearchScreen(props: {
       <div className="headerGradient">
         <HeaderBar title="IV Mode" left={{ label: "Where am I", onPress: props.onWhereAmI }} right={{ label: "Open command palette", onPress: props.onCommandPalette }} />
         <div className="searchBarWrap" style={{ marginTop: 6 }}>
-          <div className="searchIcon">⌕</div>
+          <div className="searchIcon" aria-hidden="true" style={{ display: "grid", placeItems: "center" }}>
+            <Icon name="search" size={18} />
+          </div>
           <input
             className="searchText"
             value={query}
@@ -63,7 +66,7 @@ export function SearchScreen(props: {
             onClick={() => speak("Listening... (prototype stub)", { enabled: props.tts.enabled, rate: props.tts.rate, priority: "interrupt" })}
             style={{ border: "none", background: "transparent", color: "black", minHeight: 19, padding: 0 }}
           >
-            🎤
+            <Icon name="mic" size={18} />
           </button>
         </div>
         <div className="pillRow" role="tablist" aria-label="Filter chips" style={{ marginTop: 12 }}>
@@ -75,6 +78,13 @@ export function SearchScreen(props: {
               role="tab"
               aria-selected={idx === 0}
               aria-label={`${opt} filter chip`}
+              style={{
+                padding: "0",
+                borderRadius: 0,
+                background: "transparent",
+                height: "26px",
+                borderBottom: idx === 0 ? "2px solid #57B65F" : "2px solid transparent",
+              }}
             >
               {opt}
             </button>
@@ -88,11 +98,11 @@ export function SearchScreen(props: {
           aria-label="Voice search. Tap to speak."
           onClick={() => speak("Listening... (prototype stub)", { enabled: props.tts.enabled, rate: props.tts.rate, priority: "interrupt" })}
         >
-          🎤 Tap to speak
+          <Icon name="mic" size={18} /> Tap to speak
         </button>
 
         {!showResults ? (
-          <section className="card" aria-label="Category cards">
+          <section aria-label="Category cards">
             <div className="sectionTitle">Top Songs</div>
             <div className="pillRow" role="tablist" aria-label="Top songs filters" style={{ gap: 24 }}>
               {["All", "Pop", "HipHop"].map((name, idx) => (
@@ -139,7 +149,7 @@ export function SearchScreen(props: {
             </div>
           </section>
         ) : (
-          <section className="card" aria-label="Results list">
+          <section aria-label="Results list">
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
               <div className="sectionTitle" style={{ margin: 0, fontSize: 19 }}>Results for “{query.trim()}”</div>
               <div className="muted">{results.length}</div>
@@ -165,11 +175,12 @@ export function SearchScreen(props: {
               ))}
             </div>
             <div style={{ display: "flex", gap: 10, marginTop: 12 }}>
-              <button type="button" onClick={submit} aria-label="Search again">
+              <button type="button" className="ghostBtn" onClick={submit} aria-label="Search again">
                 Search
               </button>
               <button
                 type="button"
+                className="ghostBtn"
                 onClick={() => {
                   setQuery("");
                   speak("Cleared search", { enabled: props.tts.enabled, rate: props.tts.rate, priority: "interrupt" });

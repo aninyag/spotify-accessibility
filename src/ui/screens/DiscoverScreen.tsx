@@ -3,6 +3,7 @@ import { HeaderBar } from "../components/HeaderBar";
 import { ListRow, trackAriaLabel } from "../components/ListRow";
 import type { Track } from "../types";
 import { speak } from "../tts";
+import { Icon } from "../components/Icon";
 
 const moods = ["Chill", "Focus", "Workout", "Happy", "Sad", "Party"] as const;
 
@@ -36,10 +37,10 @@ export function DiscoverScreen(props: { onCommandPalette: () => void; onWhereAmI
       </div>
       <div className="screenInner">
         <button type="button" className="cta" aria-label="Play Something New" onClick={playSomethingNew}>
-          ▶ Play Something New
+          <Icon name="play" size={18} /> Play Something New
         </button>
 
-        <section className="card" aria-label="Current suggestion">
+        <section aria-label="Current suggestion">
           <div className="sectionTitle" style={{ margin: 0, fontSize: 19 }}>Current Suggestion</div>
           {suggestion ? (
             <>
@@ -57,17 +58,37 @@ export function DiscoverScreen(props: { onCommandPalette: () => void; onWhereAmI
                 Because you liked “Don’t Start Now”
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10, marginTop: 12 }}>
-                <button type="button" aria-label="Dislike. Less like this." onClick={() => speak("Got it. Less like this.", { enabled: props.tts.enabled, rate: props.tts.rate, priority: "interrupt" })}>
-                  👎
+                <button
+                  type="button"
+                  className="ghostBtn"
+                  aria-label="Dislike. Less like this."
+                  onClick={() => speak("Got it. Less like this.", { enabled: props.tts.enabled, rate: props.tts.rate, priority: "interrupt" })}
+                >
+                  −
                 </button>
-                <button type="button" aria-label="Like. More like this." onClick={() => speak("Great. More like this.", { enabled: props.tts.enabled, rate: props.tts.rate, priority: "interrupt" })}>
-                  👍
-                </button>
-                <button type="button" aria-label="Save to Liked Songs" onClick={() => speak("Saved to Liked Songs.", { enabled: props.tts.enabled, rate: props.tts.rate, priority: "interrupt" })}>
+                <button
+                  type="button"
+                  className="ghostBtn"
+                  aria-label="Like. More like this."
+                  onClick={() => speak("Great. More like this.", { enabled: props.tts.enabled, rate: props.tts.rate, priority: "interrupt" })}
+                >
                   +
                 </button>
-                <button type="button" aria-label="Play suggestion" onClick={() => speak("Playing.", { enabled: props.tts.enabled, rate: props.tts.rate, priority: "interrupt" })}>
-                  ▶
+                <button
+                  type="button"
+                  className="ghostBtn"
+                  aria-label="Save to Liked Songs"
+                  onClick={() => speak("Saved to Liked Songs.", { enabled: props.tts.enabled, rate: props.tts.rate, priority: "interrupt" })}
+                >
+                  <Icon name="heart" size={18} />
+                </button>
+                <button
+                  type="button"
+                  className="ghostBtn"
+                  aria-label="Play suggestion"
+                  onClick={() => speak("Playing.", { enabled: props.tts.enabled, rate: props.tts.rate, priority: "interrupt" })}
+                >
+                  <Icon name="play" size={18} />
                 </button>
               </div>
             </>
@@ -76,7 +97,7 @@ export function DiscoverScreen(props: { onCommandPalette: () => void; onWhereAmI
           )}
         </section>
 
-        <section className="card" aria-label="Quick moods">
+        <section aria-label="Quick moods">
           <div className="sectionTitle" style={{ margin: 0, fontSize: 19 }}>Quick Moods</div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }}>
             {moods.map((m) => (
@@ -85,7 +106,14 @@ export function DiscoverScreen(props: { onCommandPalette: () => void; onWhereAmI
                 type="button"
                 aria-label={`${m} mood`}
                 onClick={() => speak(`Finding ${m} music for you.`, { enabled: props.tts.enabled, rate: props.tts.rate, priority: "interrupt" })}
-                style={{ minHeight: 56 }}
+                style={{
+                  minHeight: 56,
+                  background: "rgba(255,255,255,0.07)",
+                  border: "1px solid rgba(255,255,255,0.10)",
+                  borderRadius: 8,
+                  color: "white",
+                  fontWeight: 700,
+                }}
               >
                 {m}
               </button>
@@ -93,10 +121,10 @@ export function DiscoverScreen(props: { onCommandPalette: () => void; onWhereAmI
           </div>
         </section>
 
-        <section className="card" aria-label="Recently discovered">
+        <section aria-label="Recently discovered">
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
             <div className="sectionTitle" style={{ margin: 0, fontSize: 19 }}>Recently Discovered</div>
-            <button type="button" aria-label="All recently discovered">
+            <button type="button" className="ghostBtn" aria-label="All recently discovered">
               All
             </button>
           </div>

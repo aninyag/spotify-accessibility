@@ -1,8 +1,10 @@
 import type { Track } from "../types";
+import { Icon } from "./Icon";
 
 export function ListRow(props: {
   title: string;
   subtitle?: string;
+  explicit?: boolean;
   onPress: () => void;
   onPlayPress?: () => void;
   onLongPress?: () => void;
@@ -33,29 +35,31 @@ export function ListRow(props: {
         <div className="title">{props.title}</div>
         {props.subtitle ? (
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 3 }}>
-            <div
-              aria-hidden="true"
-              style={{
-                width: 16,
-                height: 16,
-                borderRadius: 999,
-                background: "#57B65F",
-                color: "black",
-                fontSize: 10,
-                display: "grid",
-                placeItems: "center",
-                fontWeight: 700,
-              }}
-            >
-              E
-            </div>
+            {props.explicit ? (
+              <div
+                aria-hidden="true"
+                style={{
+                  width: 16,
+                  height: 16,
+                  borderRadius: 999,
+                  background: "#57B65F",
+                  color: "black",
+                  fontSize: 10,
+                  display: "grid",
+                  placeItems: "center",
+                  fontWeight: 700,
+                }}
+              >
+                E
+              </div>
+            ) : null}
             <div className="subtitle">{props.subtitle}</div>
           </div>
         ) : null}
       </div>
       {props.onPlayPress ? (
         <button className="playBtn" type="button" aria-label={`Play ${props.title}`} onClick={(e) => (e.stopPropagation(), props.onPlayPress?.())}>
-          ▶
+          <Icon name="play" size={18} />
         </button>
       ) : (
         <div aria-hidden="true" style={{ width: 48, height: 48 }} />

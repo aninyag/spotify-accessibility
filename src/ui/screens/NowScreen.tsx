@@ -2,6 +2,7 @@ import * as React from "react";
 import type { Landmark, RepeatMode, Track } from "../types";
 import { HeaderBar } from "../components/HeaderBar";
 import { formatTime } from "../a11y";
+import { Icon } from "../components/Icon";
 
 export function NowScreen(props: {
   track: Track;
@@ -39,7 +40,7 @@ export function NowScreen(props: {
         />
       </div>
       <div className="screenInner">
-        <section className="card" aria-label="Now playing" style={{ background: "transparent", border: "none", paddingTop: 0 }}>
+        <section aria-label="Now playing" style={{ paddingTop: 0 }}>
           <div
             aria-hidden="true"
             style={{
@@ -64,7 +65,8 @@ export function NowScreen(props: {
             </div>
             <button
               type="button"
-              style={{ marginTop: 2, background: "transparent", borderColor: "transparent", minHeight: 28 }}
+              className="textBtn"
+              style={{ marginTop: 2, minHeight: 28 }}
               aria-label={`Go to artist: ${props.track.artist}`}
             >
               <span style={{ fontSize: 18, fontWeight: 500 }}>{props.track.artist}</span>
@@ -72,7 +74,8 @@ export function NowScreen(props: {
             {props.track.album ? (
               <button
                 type="button"
-                style={{ display: "block", width: "100%", background: "transparent", borderColor: "transparent", minHeight: 24 }}
+                className="textBtn textBtnMuted"
+                style={{ display: "block", width: "100%", minHeight: 24 }}
                 aria-label={`Go to album: ${props.track.album}`}
               >
                 <span className="muted" style={{ fontSize: 14 }}>
@@ -83,7 +86,7 @@ export function NowScreen(props: {
           </div>
         </section>
 
-        <section className="card" aria-label="Progress" style={{ background: "transparent", border: "none" }}>
+        <section aria-label="Progress">
           <label className="muted" htmlFor="progress" style={{ display: "flex", justifyContent: "space-between", fontSize: 11 }}>
             <span>{formatTime(current)}</span>
             <span>{formatTime(total)}</span>
@@ -96,37 +99,37 @@ export function NowScreen(props: {
             value={current}
             onChange={(e) => props.onSeek(Number(e.target.value))}
             aria-label={`Progress, adjustable, ${formatTime(current)} of ${formatTime(total)}`}
-            style={{ width: "100%", height: 30, marginTop: 4, accentColor: "white" }}
+            style={{ width: "100%", marginTop: 6 }}
           />
-          <div className="muted" style={{ fontSize: 14, marginTop: 4, textAlign: "center" }}>
+          <div className="muted" style={{ fontSize: 12, marginTop: 6, textAlign: "center", color: "rgba(255,255,255,0.65)" }}>
             {Math.floor(remaining / 60)} minutes {Math.floor(remaining % 60)} seconds remaining
           </div>
         </section>
 
-        <section className="card" aria-label="Playback controls" style={{ background: "transparent", border: "none" }}>
+        <section aria-label="Playback controls">
           <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 6 }}>
           <ControlButton
             label={`Shuffle, toggle button, ${props.shuffleEnabled ? "on" : "off"}`}
             active={props.shuffleEnabled}
             onPress={props.onShuffleToggle}
           >
-            ⟲
+            <Icon name="shuffle" size={22} />
           </ControlButton>
           <ControlButton label="Previous, button" onPress={props.onPrevious}>
-            ◀◀
+            <Icon name="previous" size={22} />
           </ControlButton>
           <ControlButton
             label={props.isPlaying ? "Pause, button" : "Play, button"}
             onPress={props.onTogglePlay}
             big
           >
-            {props.isPlaying ? "❚❚" : "▶"}
+            <Icon name={props.isPlaying ? "pause" : "play"} size={24} />
           </ControlButton>
           <ControlButton label="Next, button" onPress={props.onNext}>
-            ▶▶
+            <Icon name="next" size={22} />
           </ControlButton>
           <ControlButton label={`Repeat, toggle button, ${props.repeatMode}`} active={props.repeatMode !== "off"} onPress={props.onRepeatToggle}>
-            ⟳
+            <Icon name={props.repeatMode === "one" ? "repeatOne" : "repeat"} size={22} />
           </ControlButton>
           </div>
           <div className="muted" style={{ display: "flex", justifyContent: "space-between", marginTop: 8, fontSize: 12 }}>
@@ -138,10 +141,10 @@ export function NowScreen(props: {
           </div>
         </section>
 
-        <section className="card" aria-label="Queue preview">
+        <section aria-label="Queue preview">
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
           <div>
-            <div style={{ fontWeight: 900 }}>Queue Preview</div>
+            <div style={{ fontWeight: 700 }}>Queue Preview</div>
             <div className="muted" style={{ fontSize: 14, marginTop: 4 }}>
               Up next: “{queueNext?.title ?? "—"}” — {queueNext?.artist ?? ""}
             </div>
@@ -149,17 +152,17 @@ export function NowScreen(props: {
               {props.queue.length} songs
             </div>
           </div>
-          <button type="button" aria-label="Open queue" onClick={props.onCommandPalette}>
-            →
+          <button type="button" className="ghostBtn" aria-label="Open queue" onClick={props.onCommandPalette}>
+            <Icon name="chevronRight" size={18} />
           </button>
           </div>
         </section>
 
-        <section className="card" aria-label="Your landmarks">
+        <section aria-label="Your landmarks">
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <div style={{ fontWeight: 900 }}>Your Landmarks</div>
-          <button type="button" aria-label="Add current item to landmarks" onClick={props.onAddLandmark}>
-            Add
+          <div style={{ fontWeight: 700 }}>Your Landmarks</div>
+          <button type="button" className="ghostBtn" aria-label="Add current item to landmarks" onClick={props.onAddLandmark}>
+            <Icon name="plus" size={16} /> Add
           </button>
           </div>
 
@@ -168,22 +171,54 @@ export function NowScreen(props: {
               Add landmarks for quick access. Right-click any item to add.
             </div>
           ) : (
-            <div className="pillRow" style={{ marginTop: 12 }}>
+            <div
+              style={{
+                marginTop: 12,
+                display: "flex",
+                gap: 12,
+                overflowX: "auto",
+                paddingBottom: 6,
+              }}
+            >
               {props.landmarks.map((lm, idx) => (
                 <button
                   key={lm.id}
                   type="button"
-                  className="pill"
                   aria-label={`Landmark ${idx + 1}. ${lm.label}. ${lm.type}. Tap to open.`}
                   onClick={() => props.onLandmarkPress(lm)}
                   onContextMenu={(e) => {
                     e.preventDefault();
                     props.onLandmarkRemove(lm.id);
                   }}
-                  style={{ minHeight: 80, minWidth: 120, textAlign: "left" }}
+                  style={{
+                    minWidth: 92,
+                    background: "transparent",
+                    border: "none",
+                    padding: 0,
+                    textAlign: "left",
+                    color: "white",
+                  }}
                 >
-                  <div style={{ fontWeight: 700 }}>{lm.label}</div>
-                  <div className="muted" style={{ fontSize: 12, marginTop: 6 }}>
+                  <div
+                    aria-hidden="true"
+                    style={{
+                      width: 84,
+                      height: 84,
+                      borderRadius: 6,
+                      background: "rgba(255,255,255,0.08)",
+                      border: "1px solid rgba(255,255,255,0.12)",
+                      display: "grid",
+                      placeItems: "center",
+                      color: "rgba(255,255,255,0.75)",
+                      fontSize: 11,
+                    }}
+                  >
+                    Landmark
+                  </div>
+                  <div style={{ fontWeight: 700, fontSize: 13, marginTop: 8, maxWidth: 84, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    {lm.label}
+                  </div>
+                  <div className="muted" style={{ fontSize: 11, marginTop: 4, maxWidth: 84, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                     {lm.type}
                   </div>
                 </button>
@@ -214,9 +249,11 @@ function ControlButton(props: {
         borderRadius: props.big ? 999 : 8,
         borderColor: props.big ? "transparent" : "transparent",
         background: props.big ? "white" : "transparent",
-        color: props.big ? "black" : props.active ? "#1DB954" : "white",
+        color: props.big ? "black" : props.active ? "#1DB954" : "#B3B3B3",
         fontWeight: 700,
         fontSize: props.big ? 22 : 18,
+        display: "grid",
+        placeItems: "center",
       }}
     >
       {props.children}

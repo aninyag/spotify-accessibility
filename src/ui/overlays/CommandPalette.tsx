@@ -1,6 +1,7 @@
 import * as React from "react";
 import type { Landmark, TabId, Track } from "../types";
 import { speak } from "../tts";
+import { Icon } from "../components/Icon";
 
 type Command =
   | { kind: "nav"; tab: TabId; label: string }
@@ -93,7 +94,7 @@ export function CommandPalette(props: {
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
           <h2 className="overlayTitle">Command Palette</h2>
           <button type="button" aria-label="Close command palette" onClick={props.onClose} className="iconBtn">
-            ×
+            <Icon name="close" size={18} />
           </button>
         </div>
 
@@ -104,7 +105,7 @@ export function CommandPalette(props: {
           onClick={() => speak("Listening for command. Prototype voice input is not enabled yet.", { enabled: props.tts.enabled, rate: props.tts.rate, priority: "interrupt" })}
           style={{ width: "100%", minHeight: 48, marginBottom: 12 }}
         >
-          🎤 Speak a command
+          <Icon name="mic" size={18} /> Speak a command
         </button>
 
         <input
@@ -125,7 +126,20 @@ export function CommandPalette(props: {
 
         <div style={{ display: "grid", gap: 10, marginTop: 12 }} aria-label="Suggestions">
           {suggestions.map((s) => (
-            <button key={s.label} type="button" onClick={() => run(s)} aria-label={s.label} style={{ textAlign: "left" }}>
+            <button
+              key={s.label}
+              type="button"
+              className="textBtn"
+              onClick={() => run(s)}
+              aria-label={s.label}
+              style={{
+                textAlign: "left",
+                width: "100%",
+                borderRadius: 10,
+                padding: "10px 8px",
+                background: "transparent",
+              }}
+            >
               {s.label}
             </button>
           ))}

@@ -3,6 +3,7 @@ import { HeaderBar } from "../components/HeaderBar";
 import { ListRow } from "../components/ListRow";
 import type { Landmark } from "../types";
 import { speak } from "../tts";
+import { Icon } from "../components/Icon";
 
 const filterOptions = ["Playlists", "Albums", "Artists", "Podcasts", "Downloads"] as const;
 type Filter = (typeof filterOptions)[number];
@@ -37,7 +38,7 @@ export function LibraryScreen(props: {
         <HeaderBar title="Your Library" left={{ label: "Where am I", onPress: props.onWhereAmI }} right={{ label: "Open command palette", onPress: props.onCommandPalette }} />
       </div>
       <div className="screenInner">
-        <div className="card" aria-label="Library filters">
+        <div aria-label="Library filters">
           <div className="pillRow" role="tablist" aria-label="Library filter tabs">
             {filterOptions.map((opt, idx) => (
               <button
@@ -58,7 +59,7 @@ export function LibraryScreen(props: {
           </div>
         </div>
 
-        <div className="card" aria-label="Sort control">
+        <div aria-label="Sort control">
           <div style={{ display: "flex", gap: 10, alignItems: "center", justifyContent: "space-between" }}>
             <div>
               <div className="muted" style={{ fontSize: 14 }}>
@@ -66,6 +67,7 @@ export function LibraryScreen(props: {
               </div>
               <button
                 type="button"
+                className="ghostBtn"
                 aria-label={`Sort: ${sort}. Activate to change sort.`}
                 onClick={() => {
                   const idx = sortOptions.indexOf(sort);
@@ -79,18 +81,19 @@ export function LibraryScreen(props: {
             </div>
             <button
               type="button"
+              className="ghostBtn"
               aria-label={`Toggle ${ascending ? "ascending" : "descending"}`}
               onClick={() => {
                 setAscending((a) => !a);
                 speak(ascending ? "Descending" : "Ascending", { enabled: props.tts.enabled, rate: props.tts.rate, priority: "interrupt" });
               }}
             >
-              ↑↓
+              <Icon name="overflow" size={18} />
             </button>
           </div>
         </div>
 
-        <section className="card" aria-label="Library list">
+        <section aria-label="Library list">
           <div className="sectionTitle" style={{ margin: 0, fontSize: 19 }}>Recently played</div>
           <div className="muted">{items.length} {filter}</div>
           <div style={{ display: "grid", gap: 2, marginTop: 4 }}>
