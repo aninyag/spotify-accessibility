@@ -179,7 +179,7 @@ export function SearchScreen(props: {
                 Clear
               </button>
             </div>
-          </div>
+          </section>
         )}
       </div>
     </>
