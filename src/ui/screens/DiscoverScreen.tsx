@@ -1,36 +1,102 @@
 import * as React from "react";
-import { HeaderBar } from "../components/HeaderBar";
-import { AxisEntryCard } from "../components/AxisEntryCard";
 import type { ContextTarget, Landmark, Track } from "../types";
 import { Icon } from "../components/Icon";
 import { LongPressable } from "../components/LongPressable";
 import { useLongPress } from "../useLongPress";
-import { axisLocalPng, axisTileFallback } from "../axisMedia";
+import { axisLocalPng, axisTileFallback, homeLocalPng } from "../axisMedia";
 import { ResilientImg } from "../components/ResilientImg";
 import { useAxisSearchSpeech } from "../useAxisSearchSpeech";
 
-type Shortcut = { id: string; title: string; artKind: "cover" | "gradient" };
-
 const chips = ["All", "Music", "Podcasts", "Audiobooks"] as const;
 
-const shortcuts: Shortcut[] = [
-  { id: "sc1", title: "Daily Mix", artKind: "cover" },
-  { id: "sc2", title: "On Repeat", artKind: "gradient" },
-  { id: "sc3", title: "Chill Hits", artKind: "cover" },
-  { id: "sc4", title: "Top Songs", artKind: "cover" },
-  { id: "sc5", title: "Radio", artKind: "cover" },
-  { id: "sc6", title: "Recently Played", artKind: "cover" },
-  { id: "sc7", title: "Focus", artKind: "cover" },
-  { id: "sc8", title: "Workout", artKind: "cover" },
-];
-
-const recentPlayed = [
-  { id: "rp1", title: "Midnight pulse", subtitle: "Playlist · 2 hr ago" },
-  { id: "rp2", title: "Neon dreams", subtitle: "Album · Yesterday" },
-  { id: "rp3", title: "Lo-fi study", subtitle: "Radio · 3 days ago" },
-];
+/** Fictional labels only — thumbnails from `public/home/tile-NN.png` or picsum fallback. */
+const homeDummyTiles = [
+  { id: "dummy-1", title: "Lumen mix radio", thumbFile: "tile-01", fallbackSeed: "homeDummyTile01" },
+  { id: "dummy-2", title: "Velocity repeat", thumbFile: "tile-02", fallbackSeed: "homeDummyTile02" },
+  { id: "dummy-3", title: "Harbor slow focus", thumbFile: "tile-03", fallbackSeed: "homeDummyTile03" },
+  { id: "dummy-4", title: "Northstar dance mix", thumbFile: "tile-04", fallbackSeed: "homeDummyTile04" },
+  { id: "dummy-5", title: "Quartz indie hour", thumbFile: "tile-05", fallbackSeed: "homeDummyTile05" },
+  { id: "dummy-6", title: "Canvas live session", thumbFile: "tile-06", fallbackSeed: "homeDummyTile06" },
+  { id: "dummy-7", title: "Aurora commute", thumbFile: "tile-07", fallbackSeed: "homeDummyTile07" },
+  { id: "dummy-8", title: "Driftwork study", thumbFile: "tile-08", fallbackSeed: "homeDummyTile08" },
+] as const;
 
 const axisMainTabs = ["Songs", "Artists", "Albums", "Playlists"] as const;
+
+function DiscoverTopChrome<T extends string>(props: {
+  tabs: readonly T[];
+  activeTab: T;
+  onTab: (t: T) => void;
+  tablistLabel: string;
+  searchQuery: string;
+  onSearchQueryChange: (v: string) => void;
+  onOpenProfile: () => void;
+  startListening: () => void;
+  speechListening: boolean;
+  speechSupported: boolean;
+  searchInputId: string;
+  profileNotifyDot?: boolean;
+}) {
+  return (
+    <div className="headerPlain axisHomeSimpleTop">
+      <div className="axisHomeTopBar">
+        <button type="button" className="axisHomeProfileBtn" onClick={props.onOpenProfile} aria-label="Open profile">
+          <span className="axisHomeProfileBtnInner">
+            <ResilientImg
+              primarySrc={axisLocalPng("avatar-profile")}
+              fallbackSrc={axisTileFallback("axisProfileAvatar", 128)}
+              alt=""
+              className="axisHomeProfilePhoto"
+            />
+            {props.profileNotifyDot ? <span className="homeProfileNotifyDot" aria-hidden="true" /> : null}
+          </span>
+        </button>
+        <div className="axisHomeMainTabs" role="tablist" aria-label={props.tablistLabel}>
+          {props.tabs.map((t) => (
+            <button
+              key={t}
+              type="button"
+              role="tab"
+              aria-selected={props.activeTab === t}
+              className={`axisHomeMainTab${props.activeTab === t ? " active" : ""}`}
+              onClick={() => props.onTab(t)}
+            >
+              {t}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="axisHomeSearchShell">
+        <span className="axisHomeSearchIcon" aria-hidden="true">
+          <Icon name="search" size={20} />
+        </span>
+        <input
+          id={props.searchInputId}
+          type="search"
+          className="axisHomeSearchInput"
+          placeholder="Search songs, artists, album"
+          value={props.searchQuery}
+          onChange={(e) => props.onSearchQueryChange(e.target.value)}
+          aria-label="Search songs, artists, albums"
+          autoComplete="off"
+        />
+        <button
+          type="button"
+          className="axisHomeSearchMic"
+          onClick={props.startListening}
+          disabled={!props.speechSupported}
+          aria-label={props.speechListening ? "Listening…" : "Voice to text"}
+        >
+          <Icon name="mic" size={22} />
+        </button>
+      </div>
+      <div className="srLive" aria-live="polite" aria-atomic="true">
+        {props.speechListening ? "Listening" : ""}
+      </div>
+    </div>
+  );
+}
 
 function PinnedHomeRow(props: {
   lm: Landmark;
@@ -80,7 +146,6 @@ export function DiscoverScreen(props: {
   onOpenContext: (target: ContextTarget) => void;
   onOpenProfile: () => void;
   axisEnabled: boolean;
-  onStartAxisTutorial: () => void;
   landmarks: Landmark[];
   onExecutePinned: (lm: Landmark) => void;
   onPinnedLongPress: (lm: Landmark) => void;
@@ -90,10 +155,10 @@ export function DiscoverScreen(props: {
 }) {
   const [chip, setChip] = React.useState<(typeof chips)[number]>("All");
   const [axisMainTab, setAxisMainTab] = React.useState<(typeof axisMainTabs)[number]>("Songs");
-  const [axisSearchQuery, setAxisSearchQuery] = React.useState("");
+  const [searchQuery, setSearchQuery] = React.useState("");
 
   const appendVoiceText = React.useCallback((text: string) => {
-    setAxisSearchQuery((prev) => (prev ? `${prev.trimEnd()} ${text}` : text));
+    setSearchQuery((prev) => (prev ? `${prev.trimEnd()} ${text}` : text));
   }, []);
 
   const { startListening, listening: speechListening, supported: speechSupported } = useAxisSearchSpeech(appendVoiceText);
@@ -101,60 +166,19 @@ export function DiscoverScreen(props: {
   if (props.axisEnabled) {
     return (
       <>
-        <div className="headerPlain axisHomeSimpleTop">
-          <div className="axisHomeTopBar">
-            <button type="button" className="axisHomeProfileBtn" onClick={props.onOpenProfile} aria-label="Open profile">
-              <ResilientImg
-                primarySrc={axisLocalPng("avatar-profile")}
-                fallbackSrc={axisTileFallback("axisProfileAvatar", 128)}
-                alt=""
-                className="axisHomeProfilePhoto"
-              />
-            </button>
-            <div className="axisHomeMainTabs" role="tablist" aria-label="Browse">
-              {axisMainTabs.map((t) => (
-                <button
-                  key={t}
-                  type="button"
-                  role="tab"
-                  aria-selected={axisMainTab === t}
-                  className={`axisHomeMainTab${axisMainTab === t ? " active" : ""}`}
-                  onClick={() => setAxisMainTab(t)}
-                >
-                  {t}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="axisHomeSearchShell">
-            <span className="axisHomeSearchIcon" aria-hidden="true">
-              <Icon name="search" size={20} />
-            </span>
-            <input
-              id="axis-home-search"
-              type="search"
-              className="axisHomeSearchInput"
-              placeholder="Search songs, artists, album"
-              value={axisSearchQuery}
-              onChange={(e) => setAxisSearchQuery(e.target.value)}
-              aria-label="Search songs, artists, albums"
-              autoComplete="off"
-            />
-            <button
-              type="button"
-              className="axisHomeSearchMic"
-              onClick={startListening}
-              disabled={!speechSupported}
-              aria-label={speechListening ? "Listening…" : "Voice to text"}
-            >
-              <Icon name="mic" size={22} />
-            </button>
-          </div>
-          <div className="srLive" aria-live="polite" aria-atomic="true">
-            {speechListening ? "Listening" : ""}
-          </div>
-        </div>
+        <DiscoverTopChrome
+          tabs={axisMainTabs}
+          activeTab={axisMainTab}
+          onTab={setAxisMainTab}
+          tablistLabel="Browse"
+          searchQuery={searchQuery}
+          onSearchQueryChange={setSearchQuery}
+          onOpenProfile={props.onOpenProfile}
+          startListening={startListening}
+          speechListening={speechListening}
+          speechSupported={speechSupported}
+          searchInputId="axis-home-search"
+        />
 
         <div className="screenInner">
           <section aria-label="Pinned shortcuts">
@@ -179,8 +203,8 @@ export function DiscoverScreen(props: {
               {axisMainTab}
             </h2>
             <p className="muted" style={{ marginTop: 8, lineHeight: 1.45 }}>
-              {axisSearchQuery
-                ? `Showing ${axisMainTab.toLowerCase()} for “${axisSearchQuery}”.`
+              {searchQuery
+                ? `Showing ${axisMainTab.toLowerCase()} for “${searchQuery}”.`
                 : `Pick a tab and search, or use the mic to dictate into the search field.`}
             </p>
           </section>
@@ -191,99 +215,56 @@ export function DiscoverScreen(props: {
 
   return (
     <>
-      <div className="headerPlain">
-        <HeaderBar
-          title=""
-          left={{ kind: "avatar", label: "Open profile", onPress: props.onOpenProfile }}
-          onCommandPalette={props.onCommandPalette}
-          showAxisMic={props.axisEnabled}
-        />
-        <div className="pillRow" role="tablist" aria-label="Home chips" style={{ marginTop: 10, gap: 10 }}>
-          {chips.map((c) => (
-            <button
-              key={c}
-              type="button"
-              className="pill"
-              role="tab"
-              aria-selected={chip === c}
-              aria-label={`${c}. Tab.`}
-              onClick={() => setChip(c)}
-              style={{
-                height: 32,
-                padding: "0 16px",
-                borderRadius: 999,
-                background: chip === c ? "#1DB954" : "#2A2A2A",
-                color: chip === c ? "black" : "white",
-                fontWeight: 700,
-              }}
-            >
-              {c}
-            </button>
-          ))}
-        </div>
-      </div>
+      <DiscoverTopChrome
+        tabs={chips}
+        activeTab={chip}
+        onTab={setChip}
+        tablistLabel="Home categories"
+        searchQuery={searchQuery}
+        onSearchQueryChange={setSearchQuery}
+        onOpenProfile={props.onOpenProfile}
+        startListening={startListening}
+        speechListening={speechListening}
+        speechSupported={speechSupported}
+        searchInputId="discover-home-search"
+        profileNotifyDot
+      />
+
       <div className="screenInner">
-        <section aria-label="Recently played">
-          <div className="sectionHeader" style={{ marginTop: 0 }}>
-            Recently played
-          </div>
-          <div style={{ display: "grid", gap: 8, marginTop: 8 }}>
-            {recentPlayed.map((r) => (
-              <button
-                key={r.id}
-                type="button"
-                className="homeRecentRow"
-                aria-label={`${r.title}. ${r.subtitle}`}
-              >
-                <div className="homeRecentArt" aria-hidden="true" />
-                <div style={{ textAlign: "left", minWidth: 0 }}>
-                  <div className="rowPrimary">{r.title}</div>
-                  <div className="rowSecondary">{r.subtitle}</div>
-                </div>
-                <div className="homeRecentChevron" aria-hidden="true">
-                  <Icon name="chevronRight" size={18} />
-                </div>
-              </button>
-            ))}
-          </div>
-        </section>
-
-        <AxisEntryCard onStartTutorial={props.onStartAxisTutorial} />
-
-        <section aria-label="Shortcuts">
-          <div className="sectionHeader">Made for you</div>
-          <div style={{ display: "grid", gap: 8, marginTop: 8 }}>
-            {shortcuts.map((s) => {
+        <section aria-label="Your shortcuts">
+          <div className="homeTileGrid" style={{ marginTop: 0 }}>
+            {homeDummyTiles.map((tile) => {
               const openCtx = () =>
                 props.onOpenContext({
                   landmark: {
-                    id: `lm-home-${s.id}`,
-                    label: s.title,
+                    id: `lm-home-${tile.id}`,
+                    label: tile.title,
                     type: "playlist",
-                    payload: { kind: "stub", ref: s.id },
+                    payload: { kind: "stub", ref: tile.id },
                   },
                   artistName: "Spotify",
                 });
               return (
                 <LongPressable
-                  key={s.id}
+                  key={tile.id}
                   role="button"
                   className="homeShortcutRow"
-                  ariaLabel={`${s.title}. Tap for options.`}
+                  ariaLabel={`${tile.title}. Tap for options.`}
                   onLongPress={openCtx}
                 >
-                  <div
-                    className="homeShortcutArt"
-                    aria-hidden="true"
-                    style={{
-                      background: s.artKind === "gradient" ? "linear-gradient(135deg, #6B2AE8, #111)" : "#262626",
-                    }}
-                  />
-                  <div className="homeShortcutTitle">{s.title}</div>
+                  <div className="homeShortcutArt homeShortcutArtImage" aria-hidden="true">
+                    <ResilientImg
+                      primarySrc={homeLocalPng(tile.thumbFile)}
+                      fallbackSrc={axisTileFallback(tile.fallbackSeed, 112)}
+                      alt=""
+                      className="homeTileThumbImg"
+                    />
+                  </div>
+                  <div className="homeShortcutTitle">{tile.title}</div>
                   <button
                     type="button"
                     className="homeShortcutOverflow"
-                    aria-label={`More options for ${s.title}`}
+                    aria-label={`More options for ${tile.title}`}
                     onTouchStart={(e) => e.stopPropagation()}
                     onMouseDown={(e) => e.stopPropagation()}
                     onClick={(e) => {
@@ -297,13 +278,6 @@ export function DiscoverScreen(props: {
                 </LongPressable>
               );
             })}
-          </div>
-        </section>
-
-        <section aria-label="Albums featuring songs you like">
-          <div style={{ fontSize: 26, fontWeight: 700, lineHeight: "32px", marginTop: 10 }}>Albums featuring songs you like</div>
-          <div className="muted" style={{ marginTop: 6, fontSize: 13, fontWeight: 400 }}>
-            Various artists · 5 days ago · 2 min
           </div>
         </section>
       </div>

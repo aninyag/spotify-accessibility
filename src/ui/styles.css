@@ -829,6 +829,29 @@ input:focus-visible {
   color: #1db954;
 }
 
+.homeTileGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.homeTileGrid > * {
+  min-width: 0;
+}
+
+.homeShortcutArtImage {
+  position: relative;
+  overflow: hidden;
+}
+
+.homeTileThumbImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
 .moreBtn {
   width: 46px;
   height: 46px;
@@ -1625,9 +1648,32 @@ input[type="range"]::-moz-range-thumb {
   padding: 0;
   border: none;
   border-radius: 50%;
-  overflow: hidden;
+  overflow: visible;
   cursor: pointer;
   background: #2a2a2a;
+  position: relative;
+}
+
+.axisHomeProfileBtnInner {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  overflow: hidden;
+  position: relative;
+}
+
+.homeProfileNotifyDot {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #3b82f6;
+  border: 2px solid #121212;
+  box-sizing: border-box;
+  pointer-events: none;
 }
 
 .axisHomeProfilePhoto {

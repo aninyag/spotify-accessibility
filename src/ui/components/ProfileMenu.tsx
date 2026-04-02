@@ -24,6 +24,8 @@ export function ProfileMenu(props: {
   onClose: () => void;
   axisEnabled: boolean;
   onAxisEnabledChange: (enabled: boolean) => void;
+  /** Opens the Axis onboarding flow (e.g. when the home promo card is hidden). */
+  onOpenAxisTutorial?: () => void;
   displayName?: string;
 }) {
   if (!props.isOpen) return null;
@@ -66,6 +68,19 @@ export function ProfileMenu(props: {
           <ProfileMenuItem icon="help" label="Recents" />
           <ProfileMenuItem icon="ring" label="Your Updates" dot />
           <ProfileMenuItem icon="speaker" label="Settings and privacy" />
+        </div>
+
+        <div className="profileMenuSection">
+          {props.onOpenAxisTutorial ? (
+            <ProfileMenuItem
+              icon="sparkles"
+              label="Axis introduction"
+              onClick={() => {
+                props.onOpenAxisTutorial?.();
+                props.onClose();
+              }}
+            />
+          ) : null}
         </div>
 
         <div className="profileMenuSection">
