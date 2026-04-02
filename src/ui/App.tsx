@@ -2,8 +2,8 @@ import * as React from "react";
 import { BottomNavBar } from "./components/BottomNavBar";
 import type { AppAction, ContextTarget, Landmark, RepeatMode, TabId, Track } from "./types";
 import { MAX_PINNED_SHORTCUTS } from "./constants";
-import { allKnownTracks, mockNowPlaying, mockQueue } from "./mockData";
-import { browseStubSearchLabel, resolveStubToTrack } from "./stubResolve";
+import { allKnownTracks, defaultAxisHomeLandmarks, mockNowPlaying, mockQueue } from "./mockData";
+import { resolveStubToTrack, stubSearchSeedForRef } from "./stubResolve";
 import { NowScreen } from "./screens/NowScreen";
 import { SearchScreen } from "./screens/SearchScreen";
 import { LibraryScreen } from "./screens/LibraryScreen";
@@ -49,7 +49,7 @@ export function App() {
     announceSongChanges: true,
   });
 
-  const [landmarks, setLandmarks] = React.useState<Landmark[]>([]);
+  const [landmarks, setLandmarks] = React.useState<Landmark[]>(() => [...defaultAxisHomeLandmarks]);
   const [axisSettings, setAxisSettings] = React.useState<AxisSettings>(defaultAxisSettings);
   const [profileMenuOpen, setProfileMenuOpen] = React.useState(false);
   const [axisTutorialOpen, setAxisTutorialOpen] = React.useState(false);
@@ -271,7 +271,7 @@ export function App() {
       if (lm.payload.kind === "stub") {
         setArtistDetailName(null);
         const ref = lm.payload.ref;
-        const browseLabel = browseStubSearchLabel(ref);
+        const browseLabel = stubSearchSeedForRef(ref);
         if (browseLabel) {
           setSearchSeed(browseLabel);
           setTab("search");
@@ -589,6 +589,12 @@ export function App() {
               onOpenProfile={() => setProfileMenuOpen(true)}
               axisEnabled={axisEnabled}
               onStartAxisTutorial={() => setAxisTutorialOpen(true)}
+              landmarks={landmarks}
+              onExecutePinned={executePinned}
+              onPinnedLongPress={(lm) => openContext({ landmark: lm, menuVariant: "pinned-management" })}
+              pinnedFlashId={pinnedFlashId}
+              onPlayTrack={playTrack}
+              tts={{ enabled: ttsEnabled, rate: ttsRate }}
             />
           )}
         </main>

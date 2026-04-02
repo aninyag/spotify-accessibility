@@ -7,6 +7,11 @@ const BROWSE_REF_TO_SEARCH_LABEL: Record<string, string> = {
   podcasts: "Podcasts",
   audiobooks: "Audiobooks",
   live: "Live Events",
+  songs: "Songs",
+  artists: "Artists",
+  albums: "Albums",
+  playlist: "Playlist",
+  "indie-pop": "Indie Pop",
 };
 
 /** Map `browse-*` stub refs (from Search tiles) to a search field seed. */
@@ -14,6 +19,12 @@ export function browseStubSearchLabel(stubRef: string): string | undefined {
   if (!stubRef.startsWith("browse-")) return undefined;
   const key = stubRef.slice("browse-".length);
   return BROWSE_REF_TO_SEARCH_LABEL[key] ?? key.charAt(0).toUpperCase() + key.slice(1);
+}
+
+/** Stubs that should open Search with a seed (includes non-`browse-*` promo tiles). */
+export function stubSearchSeedForRef(stubRef: string): string | undefined {
+  if (stubRef === "wrapped-feature") return "Your Artists Revealed";
+  return browseStubSearchLabel(stubRef);
 }
 
 /** Resolve a pinned/search stub ref to a playable track when possible. */

@@ -1,6 +1,12 @@
 import { PALETTE_SEARCH_CATALOG } from "./paletteSearch";
 import type { Landmark, Track } from "./types";
 
+/** Two shortcuts shown on the Axis home screen (session state). */
+export const defaultAxisHomeLandmarks: Landmark[] = [
+  { id: "pin-library", label: "Your Library", type: "screen", payload: { kind: "screen", tab: "library" } },
+  { id: "pin-jazz", label: "Jazz search", type: "search", payload: { kind: "search", query: "jazz" } },
+];
+
 /** Songs shown on Search; stub refs s1–s3 resolve here. */
 export const browseStubTracks: Track[] = [
   { id: "s1", title: "Song title one", artist: "Artist A", durationSec: 210 },

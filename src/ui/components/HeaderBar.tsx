@@ -5,7 +5,7 @@ export function HeaderBar(props: {
   title: string;
   left?:
     | { kind: "icon"; label: string; onPress: () => void; icon?: IconName }
-    | { kind: "avatar"; label: string; onPress?: () => void };
+    | { kind: "avatar"; label: string; onPress?: () => void; imageSrc?: string };
   rightIcons?: Array<{ icon: IconName; label: string; onPress: () => void }>;
   onCommandPalette: () => void;
   /** When false, hides the mic / Axis control entry in the header. */
@@ -24,10 +24,24 @@ export function HeaderBar(props: {
               aria-label={props.left.label}
               onClick={props.left.onPress}
             >
-              <span className="headerAvatar" aria-hidden="true" />
+              <span
+                className={`headerAvatar${props.left.imageSrc ? " headerAvatarPhoto" : ""}`}
+                style={
+                  props.left.imageSrc
+                    ? { backgroundImage: `url(${props.left.imageSrc})` }
+                    : undefined
+                }
+                aria-hidden="true"
+              />
             </button>
           ) : (
-            <div className="headerAvatar" aria-label={props.left.label} />
+            <div
+              className={`headerAvatar${props.left.imageSrc ? " headerAvatarPhoto" : ""}`}
+              style={
+                props.left.imageSrc ? { backgroundImage: `url(${props.left.imageSrc})` } : undefined
+              }
+              aria-label={props.left.label}
+            />
           )
         ) : (
           <button className="iconBtn" type="button" aria-label={props.left.label} onClick={props.left.onPress}>
