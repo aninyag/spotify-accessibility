@@ -197,7 +197,7 @@ input:focus-visible {
 
 .header {
   display: grid;
-  grid-template-columns: 48px 1fr 48px;
+  grid-template-columns: auto 1fr auto;
   align-items: center;
 }
 

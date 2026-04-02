@@ -7,14 +7,14 @@ type Shortcut = { id: string; title: string; artKind: "cover" | "gradient" };
 const chips = ["All", "Music", "Podcasts", "Audiobooks"] as const;
 
 const shortcuts: Shortcut[] = [
-  { id: "sc1", title: "ARIRANG", artKind: "cover" },
+  { id: "sc1", title: "Daily Mix", artKind: "cover" },
   { id: "sc2", title: "On Repeat", artKind: "gradient" },
-  { id: "sc3", title: "daebak", artKind: "cover" },
-  { id: "sc4", title: "Shall We Dance Radio", artKind: "cover" },
-  { id: "sc5", title: "Rock Tha Party Radio", artKind: "cover" },
-  { id: "sc6", title: "BTS ARIRANG WORLD TOUR S…", artKind: "cover" },
-  { id: "sc7", title: "Love Dose Radio", artKind: "cover" },
-  { id: "sc8", title: "Dil Garden Ho Gay…", artKind: "cover" },
+  { id: "sc3", title: "Chill Hits", artKind: "cover" },
+  { id: "sc4", title: "Top Songs", artKind: "cover" },
+  { id: "sc5", title: "Radio", artKind: "cover" },
+  { id: "sc6", title: "Recently Played", artKind: "cover" },
+  { id: "sc7", title: "Focus", artKind: "cover" },
+  { id: "sc8", title: "Workout", artKind: "cover" },
 ];
 
 export function DiscoverScreen(props: { onCommandPalette: () => void }) {
@@ -102,7 +102,7 @@ export function DiscoverScreen(props: { onCommandPalette: () => void }) {
             Albums featuring songs you like
           </div>
           <div className="muted" style={{ marginTop: 6, fontSize: 13, fontWeight: 400 }}>
-            BTS · 5 days ago · 2 min
+            Various artists · 5 days ago · 2 min
           </div>
         </section>
       </div>

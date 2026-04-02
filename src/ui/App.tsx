@@ -259,7 +259,7 @@ export function App() {
             onClick={() => setNowPlayingOpen(true)}
           >
             <div className="miniTitle">{track.title}</div>
-            <div className="miniMeta">BEATSPILL+</div>
+            <div className="miniMeta">Now playing</div>
           </button>
           <div className="miniControls">
             <button className="miniIcon" type="button" aria-label={isPlaying ? "Pause" : "Play"} onClick={() => setIsPlaying((p) => !p)}>

@@ -18,7 +18,7 @@ export const mockQueue: Track[] = [
 
 export const defaultLandmarks: Landmark[] = [
   { id: "lm1", label: "Home", type: "screen", payload: { kind: "screen", tab: "home" } },
-  { id: "lm2", label: "Search: jazz piano", type: "search", payload: { kind: "search", query: "jazz piano" } },
+  { id: "lm2", label: "Search: chill", type: "search", payload: { kind: "search", query: "chill" } },
   { id: "lm3", label: "Liked Songs", type: "playlist", payload: { kind: "stub", ref: "liked-songs" } }
 ];
 
