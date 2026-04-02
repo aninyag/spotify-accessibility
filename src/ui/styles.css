@@ -1601,36 +1601,9 @@ input[type="range"]::-moz-range-thumb {
   transform: translateX(20px);
 }
 
-/* Axis-enabled home (Discover) — compact header; art via /public/axis/*.png or placeholders */
+/* Axis-enabled home: profile + tabs + search (mic = speech-to-text only) */
 .axisHomeSimpleTop {
   background: var(--bg-primary);
-}
-
-.axisHomeBrandStrip {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 6px;
-  padding-bottom: 10px;
-}
-
-.axisHomeBrandDot {
-  display: block;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: linear-gradient(145deg, #1ed760 0%, #2941ab 100%);
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
-}
-
-.axisHomeBrandOutline {
-  margin: 0;
-  font-size: 2rem;
-  font-weight: 900;
-  line-height: 1;
-  color: transparent;
-  -webkit-text-stroke: 2px #f5e942;
-  letter-spacing: -0.02em;
 }
 
 .axisHomeSimpleTop .headerTitle {
@@ -1638,41 +1611,118 @@ input[type="range"]::-moz-range-thumb {
   font-weight: 800;
 }
 
-.axisHomeQuickRow {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  margin-top: 8px;
-}
-
-.axisHomeQuickBtn {
+.axisHomeTopBar {
   display: flex;
   align-items: center;
-  gap: 10px;
-  min-height: 52px;
-  padding: 12px 14px;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.axisHomeProfileBtn {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  padding: 0;
   border: none;
-  border-radius: 12px;
+  border-radius: 50%;
+  overflow: hidden;
+  cursor: pointer;
   background: #2a2a2a;
-  color: #fff;
-  font-size: 14px;
+}
+
+.axisHomeProfilePhoto {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.axisHomeMainTabs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.axisHomeMainTabs::-webkit-scrollbar {
+  display: none;
+}
+
+.axisHomeMainTab {
+  flex-shrink: 0;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 999px;
+  background: #2a2a2a;
+  color: #e5e5e5;
+  font-size: 13px;
   font-weight: 700;
   cursor: pointer;
-  text-align: left;
 }
 
-.axisHomeQuickBtn:active {
-  transform: scale(0.98);
+.axisHomeMainTab.active {
+  background: #1db954;
+  color: #121212;
 }
 
-.axisHomeQuickIcon {
+.axisHomeSearchShell {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 999px;
+  background: #ffffff;
+  box-sizing: border-box;
+}
+
+.axisHomeSearchIcon {
   display: grid;
   place-items: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
-  background: #1a1a1a;
-  color: #1db954;
+  color: #121212;
+}
+
+.axisHomeSearchInput {
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 16px;
+  font-weight: 500;
+  color: #121212;
+}
+
+.axisHomeSearchInput::placeholder {
+  color: rgba(0, 0, 0, 0.45);
+}
+
+.axisHomeSearchMic {
+  display: grid;
+  place-items: center;
+  padding: 4px;
+  border: none;
+  background: transparent;
+  color: #121212;
+  cursor: pointer;
+  border-radius: 50%;
+}
+
+.axisHomeSearchMic:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.axisHomeSearchMic:active:not(:disabled) {
+  opacity: 0.7;
+}
+
+.axisHomeTabPanel {
+  margin-top: 8px;
 }
 
 .axisHomeVoiceBar {

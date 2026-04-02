@@ -4,11 +4,10 @@ import { AxisEntryCard } from "../components/AxisEntryCard";
 import type { ContextTarget, Landmark, Track } from "../types";
 import { Icon } from "../components/Icon";
 import { LongPressable } from "../components/LongPressable";
-import { speak } from "../tts";
 import { useLongPress } from "../useLongPress";
-import { mockNowPlaying } from "../mockData";
 import { axisLocalPng, axisTileFallback } from "../axisMedia";
 import { ResilientImg } from "../components/ResilientImg";
+import { useAxisSearchSpeech } from "../useAxisSearchSpeech";
 
 type Shortcut = { id: string; title: string; artKind: "cover" | "gradient" };
 
@@ -31,35 +30,7 @@ const recentPlayed = [
   { id: "rp3", title: "Lo-fi study", subtitle: "Radio · 3 days ago" },
 ];
 
-/** Spotify-style category tiles; local PNGs in /public/axis/tile-*.png optional. */
-const axisRecentTiles = [
-  { id: "songs", label: "Songs", tint: "#E85D04", file: "tile-songs", seed: "axisSongs" },
-  { id: "artists", label: "Artists", tint: "#C1121F", file: "tile-artists", seed: "axisArtists" },
-  { id: "albums", label: "Albums", tint: "#52B788", file: "tile-albums", seed: "axisAlbums" },
-  { id: "playlist", label: "Playlist", tint: "#D4A017", file: "tile-playlist", seed: "axisPlaylist" },
-] as const;
-
-const topTabs = ["All", "Pop", "HipHop"] as const;
-
-const levitatingRow = {
-  id: "lev-1",
-  title: "Levitating",
-  subtitle: "Dua Lipa · Pop",
-  track: mockNowPlaying,
-};
-
-const humbleRow = {
-  id: "hh-1",
-  title: "HUMBLE.",
-  subtitle: "Kendrick Lamar · Hip-hop",
-  track: {
-    id: "hh-demo",
-    title: "HUMBLE.",
-    artist: "Kendrick Lamar",
-    album: "DAMN.",
-    durationSec: 177,
-  } satisfies Track,
-};
+const axisMainTabs = ["Songs", "Artists", "Albums", "Playlists"] as const;
 
 function PinnedHomeRow(props: {
   lm: Landmark;
@@ -116,55 +87,72 @@ export function DiscoverScreen(props: {
   pinnedFlashId: string | null;
   onPlayTrack: (t: Track) => void;
   tts: { enabled: boolean; rate: number };
-  onGoToLibrary: () => void;
 }) {
   const [chip, setChip] = React.useState<(typeof chips)[number]>("All");
-  const [topTab, setTopTab] = React.useState<(typeof topTabs)[number]>("All");
-  const [listening, setListening] = React.useState(false);
+  const [axisMainTab, setAxisMainTab] = React.useState<(typeof axisMainTabs)[number]>("Songs");
+  const [axisSearchQuery, setAxisSearchQuery] = React.useState("");
 
-  const openCommandFromVoiceUi = () => {
-    setListening(true);
-    speak("Listening…", { enabled: props.tts.enabled, rate: props.tts.rate, priority: "interrupt" });
-    props.onCommandPalette();
-  };
+  const appendVoiceText = React.useCallback((text: string) => {
+    setAxisSearchQuery((prev) => (prev ? `${prev.trimEnd()} ${text}` : text));
+  }, []);
 
-  const topSongRows = React.useMemo(() => {
-    if (topTab === "HipHop") return [humbleRow];
-    return [levitatingRow, { ...levitatingRow, id: "lev-2" }, { ...levitatingRow, id: "lev-3" }];
-  }, [topTab]);
+  const { startListening, listening: speechListening, supported: speechSupported } = useAxisSearchSpeech(appendVoiceText);
 
   if (props.axisEnabled) {
-    const popThumbPrimary = axisLocalPng("thumb-levitating");
-    const popThumbFallback = axisTileFallback("axisLevitatingArt", 192);
-    const hopThumbPrimary = axisLocalPng("thumb-hiphop");
-    const hopThumbFallback = axisTileFallback("axisHumbleArt", 192);
-
     return (
       <>
         <div className="headerPlain axisHomeSimpleTop">
-          <div className="axisHomeBrandStrip">
-            <span className="axisHomeBrandDot" aria-hidden="true" />
-            <p className="axisHomeBrandOutline" aria-hidden="true">
-              Axis
-            </p>
+          <div className="axisHomeTopBar">
+            <button type="button" className="axisHomeProfileBtn" onClick={props.onOpenProfile} aria-label="Open profile">
+              <ResilientImg
+                primarySrc={axisLocalPng("avatar-profile")}
+                fallbackSrc={axisTileFallback("axisProfileAvatar", 128)}
+                alt=""
+                className="axisHomeProfilePhoto"
+              />
+            </button>
+            <div className="axisHomeMainTabs" role="tablist" aria-label="Browse">
+              {axisMainTabs.map((t) => (
+                <button
+                  key={t}
+                  type="button"
+                  role="tab"
+                  aria-selected={axisMainTab === t}
+                  className={`axisHomeMainTab${axisMainTab === t ? " active" : ""}`}
+                  onClick={() => setAxisMainTab(t)}
+                >
+                  {t}
+                </button>
+              ))}
+            </div>
           </div>
-          <HeaderBar
-            title="Axis"
-            left={{ kind: "avatar", label: "Open profile", onPress: props.onOpenProfile }}
-            onCommandPalette={props.onCommandPalette}
-            showAxisMic
-          />
-          <button
-            type="button"
-            className="axisHomeVoiceBar"
-            onClick={openCommandFromVoiceUi}
-            aria-label="Say a voice command. Opens Axis controls."
-          >
-            <span className="axisHomeVoiceHint">Say something…</span>
-            <Icon name="mic" size={22} aria-hidden="true" />
-          </button>
+
+          <div className="axisHomeSearchShell">
+            <span className="axisHomeSearchIcon" aria-hidden="true">
+              <Icon name="search" size={20} />
+            </span>
+            <input
+              id="axis-home-search"
+              type="search"
+              className="axisHomeSearchInput"
+              placeholder="Search songs, artists, album"
+              value={axisSearchQuery}
+              onChange={(e) => setAxisSearchQuery(e.target.value)}
+              aria-label="Search songs, artists, albums"
+              autoComplete="off"
+            />
+            <button
+              type="button"
+              className="axisHomeSearchMic"
+              onClick={startListening}
+              disabled={!speechSupported}
+              aria-label={speechListening ? "Listening…" : "Voice to text"}
+            >
+              <Icon name="mic" size={22} />
+            </button>
+          </div>
           <div className="srLive" aria-live="polite" aria-atomic="true">
-            {listening ? "Listening" : ""}
+            {speechListening ? "Listening" : ""}
           </div>
         </div>
 
@@ -186,105 +174,15 @@ export function DiscoverScreen(props: {
             </div>
           </section>
 
-          <section aria-label="Quick suggestions">
-            <div className="sectionHeader">Quick suggestions</div>
-            <div className="axisHomeQuickRow">
-              <button type="button" className="axisHomeQuickBtn" onClick={() => props.onCommandPalette()}>
-                <span className="axisHomeQuickIcon" aria-hidden="true">
-                  <Icon name="mic" size={20} />
-                </span>
-                Axis controls
-              </button>
-              <button type="button" className="axisHomeQuickBtn" onClick={props.onGoToLibrary}>
-                <span className="axisHomeQuickIcon" aria-hidden="true">
-                  <Icon name="library" size={20} />
-                </span>
-                Your Library
-              </button>
-            </div>
-          </section>
-
-          <section aria-label="Recently played">
-            <div className="sectionHeader">Recently played</div>
-            <div className="axisHomeBrowseGrid">
-              {axisRecentTiles.map((tile) => (
-                <button
-                  key={tile.id}
-                  type="button"
-                  className="axisHomeBrowseTile axisHomeBrowseTileArt"
-                  style={{ background: tile.tint }}
-                  aria-label={tile.label}
-                  onClick={() =>
-                    props.onOpenContext({
-                      landmark: {
-                        id: `lm-axis-browse-${tile.id}`,
-                        label: tile.label,
-                        type: "playlist",
-                        payload: { kind: "stub", ref: `browse-${tile.id}` },
-                      },
-                      artistName: "Spotify",
-                    })
-                  }
-                >
-                  <ResilientImg
-                    primarySrc={axisLocalPng(tile.file)}
-                    fallbackSrc={axisTileFallback(tile.seed)}
-                    alt=""
-                    className="axisHomeBrowseImg"
-                  />
-                  <span className="axisHomeBrowseLabel">{tile.label}</span>
-                </button>
-              ))}
-            </div>
-          </section>
-
-          <section aria-label="Top songs">
-            <div className="axisHomeTopSongsHeader">Top Songs</div>
-            <div className="axisHomeTopTabs" role="tablist" aria-label="Genre">
-              {topTabs.map((t) => (
-                <button
-                  key={t}
-                  type="button"
-                  role="tab"
-                  aria-selected={topTab === t}
-                  className={`axisHomeTopTab${topTab === t ? " active" : ""}`}
-                  onClick={() => setTopTab(t)}
-                >
-                  {t}
-                </button>
-              ))}
-            </div>
-            <div className="axisHomeTopList">
-              {topSongRows.map((row) => (
-                <div key={row.id} className="axisHomeTopRow">
-                  <div className="axisHomeTopThumbWrap" aria-hidden="true">
-                    <ResilientImg
-                      primarySrc={topTab === "HipHop" ? hopThumbPrimary : popThumbPrimary}
-                      fallbackSrc={topTab === "HipHop" ? hopThumbFallback : popThumbFallback}
-                      alt=""
-                      className="axisHomeTopThumb"
-                    />
-                  </div>
-                  <div className="axisHomeTopText">
-                    <div className="rowPrimary axisHomeTopTitle">{row.title}</div>
-                    <div className="rowSecondary axisHomeTopMeta">
-                      {row.subtitle}
-                      <span className="axisHomeDownloaded" aria-label="Downloaded" title="Downloaded">
-                        ↓
-                      </span>
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    className="axisHomeTopPlay"
-                    aria-label={`Play ${row.title}`}
-                    onClick={() => props.onPlayTrack(row.track)}
-                  >
-                    <Icon name="play" size={22} />
-                  </button>
-                </div>
-              ))}
-            </div>
+          <section className="axisHomeTabPanel" aria-labelledby={`axis-tab-${axisMainTab}`}>
+            <h2 id={`axis-tab-${axisMainTab}`} className="sectionHeader">
+              {axisMainTab}
+            </h2>
+            <p className="muted" style={{ marginTop: 8, lineHeight: 1.45 }}>
+              {axisSearchQuery
+                ? `Showing ${axisMainTab.toLowerCase()} for “${axisSearchQuery}”.`
+                : `Pick a tab and search, or use the mic to dictate into the search field.`}
+            </p>
           </section>
         </div>
       </>
