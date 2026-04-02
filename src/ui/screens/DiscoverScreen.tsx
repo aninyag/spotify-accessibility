@@ -54,66 +54,31 @@ export function DiscoverScreen(props: { onCommandPalette: () => void }) {
       </div>
       <div className="screenInner">
         <section aria-label="Shortcuts">
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 10 }}>
+          <div style={{ display: "grid", gap: 8 }}>
             {shortcuts.map((s, idx) => (
               <button
                 key={s.id}
                 type="button"
+                className="homeShortcutRow"
+                role="button"
                 aria-label={s.title}
                 onClick={() => {}}
-                style={{
-                  height: 56,
-                  borderRadius: 8,
-                  background: "#2A2A2A",
-                  display: "grid",
-                  gridTemplateColumns: "56px 1fr",
-                  alignItems: "center",
-                  gap: 10,
-                  textAlign: "left",
-                  position: "relative",
-                  overflow: "hidden",
-                }}
               >
                 <div
+                  className="homeShortcutArt"
                   aria-hidden="true"
                   style={{
-                    width: 56,
-                    height: 56,
-                    borderRadius: 8,
                     background: s.artKind === "gradient" ? "linear-gradient(135deg, #6B2AE8, #111)" : "#262626",
                   }}
                 />
-                <div
-                  style={{
-                    fontSize: 14,
-                    fontWeight: 700,
-                    color: "white",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                    paddingRight: idx === 0 ? 28 : 12,
-                  }}
-                >
-                  {s.title}
-                </div>
+                <div className="homeShortcutTitle">{s.title}</div>
                 {idx === 0 ? (
-                  <div
-                    aria-hidden="true"
-                    style={{
-                      position: "absolute",
-                      right: 10,
-                      top: "50%",
-                      transform: "translateY(-50%)",
-                      width: 24,
-                      height: 24,
-                      display: "grid",
-                      placeItems: "center",
-                      color: "#1DB954",
-                    }}
-                  >
+                  <div className="homeShortcutOverflow" aria-hidden="true">
                     <Icon name="overflow" size={18} />
                   </div>
-                ) : null}
+                ) : (
+                  <div aria-hidden="true" style={{ width: 24, height: 24 }} />
+                )}
               </button>
             ))}
           </div>

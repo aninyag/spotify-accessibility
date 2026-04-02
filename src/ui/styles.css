@@ -349,8 +349,8 @@ input:focus-visible {
 
 .pill {
   white-space: nowrap;
-  height: 35px;
-  padding: 10px 36px 9px 36px;
+  height: 30px;
+  padding: 0 14px;
   min-height: unset;
   border-radius: 40px;
   background: var(--chip-inactive);
@@ -679,6 +679,44 @@ input:focus-visible {
   color: #b3b3b3;
   line-height: 16px;
   margin-top: 2px;
+}
+
+.homeShortcutRow {
+  height: 56px;
+  border-radius: 8px;
+  background: #282828;
+  display: grid;
+  grid-template-columns: 56px 1fr 24px;
+  align-items: center;
+  gap: 10px;
+  padding-right: 10px;
+  text-align: left;
+  overflow: hidden;
+}
+
+.homeShortcutArt {
+  width: 56px;
+  height: 56px;
+  border-top-left-radius: 8px;
+  border-bottom-left-radius: 8px;
+}
+
+.homeShortcutTitle {
+  font-size: 12px;
+  font-weight: 600;
+  color: white;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: 16px;
+}
+
+.homeShortcutOverflow {
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  color: #1db954;
 }
 
 .hint {
