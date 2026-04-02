@@ -1,4 +1,4 @@
-export type TabId = "now" | "search" | "library" | "discover" | "support";
+export type TabId = "home" | "search" | "library";
 
 export type RepeatMode = "off" | "all" | "one";
 

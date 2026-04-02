@@ -181,7 +181,7 @@ input:focus-visible {
 }
 
 .headerGradient {
-  height: 239px;
+  height: 140px;
   padding: 10px 16px 12px;
   background: radial-gradient(ellipse 89.12% 89.12% at 17.33% -4.18%, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%), var(--bg-elevated);
   backdrop-filter: blur(100px);
@@ -318,17 +318,17 @@ input:focus-visible {
 
 .title {
   font-family: var(--font-secondary);
-  font-size: 12px;
+  font-size: 16px;
   font-weight: 600;
   color: white;
-  line-height: 16px;
+  line-height: 20px;
 }
 
 .subtitle {
   margin-top: 3px;
   color: var(--text-secondary);
   font-family: var(--font-secondary);
-  font-size: 10px;
+  font-size: 13px;
   font-weight: 600;
 }
 
@@ -430,9 +430,10 @@ input:focus-visible {
   background: transparent;
   border: none;
   color: white;
-  min-height: 29px;
+  min-height: 44px;
   padding: 0;
-  width: 29px;
+  width: 44px;
+  height: 44px;
   display: grid;
   place-items: center;
 }
@@ -464,7 +465,7 @@ input:focus-visible {
   border-top: 1px solid rgba(255, 255, 255, 0.1);
   padding: 6px 6px calc(env(safe-area-inset-bottom) + 8px);
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(3, 1fr);
 }
 
 .bottomNav {
@@ -507,7 +508,7 @@ input:focus-visible {
 
 .navLabel {
   color: var(--text-nav);
-  font-size: 13px;
+  font-size: 11px;
   line-height: 14px;
 }
 
@@ -529,7 +530,7 @@ input:focus-visible {
 }
 
 .overlay {
-  width: min(428px, calc(100% - 24px));
+  width: 100%;
   background: var(--bg-elevated);
   border-radius: 0 0 12px 12px;
   padding: 16px;

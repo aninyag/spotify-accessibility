@@ -5,138 +5,128 @@ import type { Track } from "../types";
 import { speak } from "../tts";
 import { Icon } from "../components/Icon";
 
-const moods = ["Chill", "Focus", "Workout", "Happy", "Sad", "Party"] as const;
+type Tile = { id: string; title: string; subtitle?: string };
 
-const mockSuggestion: Track = {
-  id: "d1",
-  title: "Blinding Lights",
-  artist: "The Weeknd",
-  album: "After Hours",
-  durationSec: 200,
-};
+const recentlyPlayedTiles: Tile[] = [
+  { id: "rp1", title: "Liked Songs", subtitle: "Playlist" },
+  { id: "rp2", title: "Chill Vibes", subtitle: "Playlist" },
+  { id: "rp3", title: "Dua Lipa", subtitle: "Artist" },
+  { id: "rp4", title: "Workout Mix", subtitle: "Playlist" },
+  { id: "rp5", title: "Jazz Classics", subtitle: "Playlist" },
+  { id: "rp6", title: "Discover Weekly", subtitle: "Playlist" },
+];
 
-export function DiscoverScreen(props: { onCommandPalette: () => void; onWhereAmI: () => void; tts: { enabled: boolean; rate: number } }) {
-  const [suggestion, setSuggestion] = React.useState<Track | null>(mockSuggestion);
-  const [recent, setRecent] = React.useState<Track[]>([
-    { id: "r1", title: "Levitating", artist: "Dua Lipa", album: "Future Nostalgia", durationSec: 225 },
-    { id: "r2", title: "Take Five", artist: "Dave Brubeck", album: "Time Out", durationSec: 324 },
-  ]);
+const madeForYou: Tile[] = [
+  { id: "mf1", title: "Discover Weekly", subtitle: "Playlist" },
+  { id: "mf2", title: "Release Radar", subtitle: "Playlist" },
+  { id: "mf3", title: "Daily Mix 1", subtitle: "Playlist" },
+  { id: "mf4", title: "Daily Mix 2", subtitle: "Playlist" },
+];
 
-  const playSomethingNew = () => {
-    setSuggestion(mockSuggestion);
-    speak(
-      `Here's something you might like: ${mockSuggestion.title} by ${mockSuggestion.artist}. Because you liked Don't Start Now.`,
-      { enabled: props.tts.enabled, rate: props.tts.rate, priority: "interrupt" },
-    );
-  };
+const homeList: Track[] = [
+  { id: "h1", title: "Levitating", artist: "Dua Lipa", album: "Future Nostalgia", durationSec: 225 },
+  { id: "h2", title: "Take Five", artist: "Dave Brubeck", album: "Time Out", durationSec: 324 },
+  { id: "h3", title: "Blinding Lights", artist: "The Weeknd", album: "After Hours", durationSec: 200 },
+];
+
+export function DiscoverScreen(props: { onCommandPalette: () => void; onSettings: () => void; tts: { enabled: boolean; rate: number } }) {
+  const greeting = React.useMemo(() => {
+    const h = new Date().getHours();
+    if (h < 12) return "Good morning";
+    if (h < 18) return "Good afternoon";
+    return "Good evening";
+  }, []);
 
   return (
     <>
       <div className="headerGradient">
-        <HeaderBar title="Home" left={{ label: "Where am I", onPress: props.onWhereAmI }} right={{ label: "Open command palette", onPress: props.onCommandPalette }} />
+        <HeaderBar
+          title={greeting}
+          left={{ kind: "avatar", label: "Profile" }}
+          right={{ label: "Settings", onPress: props.onSettings }}
+        />
       </div>
       <div className="screenInner">
-        <button type="button" className="cta" aria-label="Play Something New" onClick={playSomethingNew}>
-          <Icon name="play" size={18} /> Play Something New
-        </button>
-
-        <section aria-label="Current suggestion">
-          <div className="sectionTitle" style={{ margin: 0, fontSize: 19 }}>Current Suggestion</div>
-          {suggestion ? (
-            <>
-              <ListRow
-                title={suggestion.title}
-                subtitle={`${suggestion.artist} · ${suggestion.album ?? ""}`}
-                ariaLabel={trackAriaLabel(suggestion)}
-                onPress={() => speak(`Opening ${suggestion.title}`, { enabled: props.tts.enabled, rate: props.tts.rate, priority: "interrupt" })}
-                onPlayPress={() => {
-                  speak(`Playing ${suggestion.title} by ${suggestion.artist}`, { enabled: props.tts.enabled, rate: props.tts.rate, priority: "interrupt" });
-                  setRecent((prev) => [suggestion, ...prev.filter((t) => t.id !== suggestion.id)].slice(0, 5));
-                }}
-              />
-              <div className="muted" style={{ fontSize: 12, marginTop: 10, fontStyle: "italic" }}>
-                Because you liked “Don’t Start Now”
-              </div>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10, marginTop: 12 }}>
-                <button
-                  type="button"
-                  className="ghostBtn"
-                  aria-label="Dislike. Less like this."
-                  onClick={() => speak("Got it. Less like this.", { enabled: props.tts.enabled, rate: props.tts.rate, priority: "interrupt" })}
-                >
-                  −
-                </button>
-                <button
-                  type="button"
-                  className="ghostBtn"
-                  aria-label="Like. More like this."
-                  onClick={() => speak("Great. More like this.", { enabled: props.tts.enabled, rate: props.tts.rate, priority: "interrupt" })}
-                >
-                  +
-                </button>
-                <button
-                  type="button"
-                  className="ghostBtn"
-                  aria-label="Save to Liked Songs"
-                  onClick={() => speak("Saved to Liked Songs.", { enabled: props.tts.enabled, rate: props.tts.rate, priority: "interrupt" })}
-                >
-                  <Icon name="heart" size={18} />
-                </button>
-                <button
-                  type="button"
-                  className="ghostBtn"
-                  aria-label="Play suggestion"
-                  onClick={() => speak("Playing.", { enabled: props.tts.enabled, rate: props.tts.rate, priority: "interrupt" })}
-                >
-                  <Icon name="play" size={18} />
-                </button>
-              </div>
-            </>
-          ) : (
-            <div className="muted">Tap “Play Something New” to get a recommendation.</div>
-          )}
-        </section>
-
-        <section aria-label="Quick moods">
-          <div className="sectionTitle" style={{ margin: 0, fontSize: 19 }}>Quick Moods</div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }}>
-            {moods.map((m) => (
+        <section aria-label="Recently played">
+          <div className="sectionTitle" style={{ margin: 0, fontSize: 19 }}>
+            Recently played
+          </div>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(2, 1fr)",
+              gap: 10,
+              marginTop: 12,
+            }}
+          >
+            {recentlyPlayedTiles.slice(0, 6).map((t) => (
               <button
-                key={m}
+                key={t.id}
                 type="button"
-                aria-label={`${m} mood`}
-                onClick={() => speak(`Finding ${m} music for you.`, { enabled: props.tts.enabled, rate: props.tts.rate, priority: "interrupt" })}
+                aria-label={`${t.title}. ${t.subtitle ?? ""}.`}
+                onClick={() => speak(`Opening ${t.title}`, { enabled: props.tts.enabled, rate: props.tts.rate, priority: "interrupt" })}
                 style={{
                   minHeight: 56,
-                  background: "rgba(255,255,255,0.07)",
-                  border: "1px solid rgba(255,255,255,0.10)",
-                  borderRadius: 8,
-                  color: "white",
-                  fontWeight: 700,
+                  display: "grid",
+                  gridTemplateColumns: "56px 1fr",
+                  gap: 10,
+                  alignItems: "center",
+                  borderRadius: 6,
+                  background: "rgba(255,255,255,0.08)",
+                  border: "1px solid rgba(255,255,255,0.08)",
+                  padding: 6,
+                  textAlign: "left",
                 }}
               >
-                {m}
+                <div aria-hidden="true" style={{ width: 56, height: 56, borderRadius: 4, background: "#262626" }} />
+                <div style={{ overflow: "hidden" }}>
+                  <div style={{ fontWeight: 800, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{t.title}</div>
+                  {t.subtitle ? <div className="muted" style={{ fontSize: 12, marginTop: 2 }}>{t.subtitle}</div> : null}
+                </div>
               </button>
             ))}
           </div>
         </section>
 
-        <section aria-label="Recently discovered">
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-            <div className="sectionTitle" style={{ margin: 0, fontSize: 19 }}>Recently Discovered</div>
-            <button type="button" className="ghostBtn" aria-label="All recently discovered">
-              All
-            </button>
+        <section aria-label="Made for you">
+          <div className="sectionTitle" style={{ margin: 0, fontSize: 19 }}>
+            Made for you
+          </div>
+          <div style={{ display: "flex", gap: 12, overflowX: "auto", paddingBottom: 6, marginTop: 12 }}>
+            {madeForYou.map((t) => (
+              <button
+                key={t.id}
+                type="button"
+                aria-label={`${t.title}. ${t.subtitle ?? ""}.`}
+                onClick={() => speak(`Opening ${t.title}`, { enabled: props.tts.enabled, rate: props.tts.rate, priority: "interrupt" })}
+                style={{
+                  minWidth: 132,
+                  textAlign: "left",
+                  padding: 0,
+                  color: "white",
+                }}
+              >
+                <div aria-hidden="true" style={{ width: 132, height: 132, borderRadius: 6, background: "#262626" }} />
+                <div style={{ fontWeight: 800, fontSize: 14, marginTop: 10, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{t.title}</div>
+                {t.subtitle ? <div className="muted" style={{ fontSize: 12, marginTop: 2 }}>{t.subtitle}</div> : null}
+              </button>
+            ))}
+          </div>
+        </section>
+
+        <section aria-label="Home list">
+          <div className="sectionTitle" style={{ margin: 0, fontSize: 19 }}>
+            Recommended
           </div>
           <div style={{ display: "grid", gap: 2, marginTop: 8 }}>
-            {recent.map((t) => (
+            {homeList.map((t) => (
               <ListRow
                 key={t.id}
                 title={t.title}
-                subtitle={t.artist}
+                subtitle={`${t.artist} · ${t.album ?? ""}`}
                 ariaLabel={trackAriaLabel(t)}
-                onPress={() => speak(`Playing ${t.title} by ${t.artist}`, { enabled: props.tts.enabled, rate: props.tts.rate, priority: "interrupt" })}
-                onPlayPress={() => speak(`Playing ${t.title}`, { enabled: props.tts.enabled, rate: props.tts.rate, priority: "interrupt" })}
+                onPress={() => speak(`Opening ${t.title}`, { enabled: props.tts.enabled, rate: props.tts.rate, priority: "interrupt" })}
+                onPlayPress={() => speak(`Playing ${t.title} by ${t.artist}`, { enabled: props.tts.enabled, rate: props.tts.rate, priority: "interrupt" })}
               />
             ))}
           </div>

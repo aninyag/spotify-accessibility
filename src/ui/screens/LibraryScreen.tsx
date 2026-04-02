@@ -22,9 +22,10 @@ const mockLibrary: LibraryItem[] = [
 
 export function LibraryScreen(props: {
   onCommandPalette: () => void;
-  onWhereAmI: () => void;
   tts: { enabled: boolean; rate: number };
   onAddLandmark: (lm: Landmark) => void;
+  landmarks: Landmark[];
+  onRemoveLandmark: (id: string) => void;
 }) {
   const [filter, setFilter] = React.useState<Filter>("Playlists");
   const [sort, setSort] = React.useState<Sort>("Recently Played");
@@ -35,9 +36,40 @@ export function LibraryScreen(props: {
   return (
     <>
       <div className="headerGradient">
-        <HeaderBar title="Your Library" left={{ label: "Where am I", onPress: props.onWhereAmI }} right={{ label: "Open command palette", onPress: props.onCommandPalette }} />
+        <HeaderBar title="Your Library" right={{ label: "Open command palette", onPress: props.onCommandPalette }} />
       </div>
       <div className="screenInner">
+        <section aria-label="Pinned" style={{ marginTop: -6 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+            <div className="sectionTitle" style={{ margin: 0, fontSize: 19 }}>
+              Pinned
+            </div>
+            <div className="muted">{props.landmarks.length} / 6</div>
+          </div>
+          {props.landmarks.length === 0 ? (
+            <div className="muted" style={{ marginTop: 8 }}>
+              Pin items for quick access.
+            </div>
+          ) : (
+            <div style={{ display: "grid", gap: 2, marginTop: 8 }}>
+              {props.landmarks.map((lm, idx) => (
+                <div key={lm.id} className="row" role="group" aria-label={`Pinned item ${idx + 1}: ${lm.label}`}>
+                  <div className="thumb" aria-hidden="true" style={{ position: "relative" }}>
+                    <span style={{ position: "absolute", left: 2, top: 2, fontSize: 12, color: "rgba(255,255,255,0.8)" }}>📌</span>
+                  </div>
+                  <div>
+                    <div className="title">{lm.label}</div>
+                    <div className="subtitle">{lm.type}</div>
+                  </div>
+                  <button type="button" className="ghostBtn" aria-label={`Remove ${lm.label}`} onClick={() => props.onRemoveLandmark(lm.id)}>
+                    <Icon name="close" size={16} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+
         <div aria-label="Library filters">
           <div className="pillRow" role="tablist" aria-label="Library filter tabs">
             {filterOptions.map((opt, idx) => (

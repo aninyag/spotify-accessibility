@@ -7,11 +7,11 @@ import { NowScreen } from "./screens/NowScreen";
 import { SearchScreen } from "./screens/SearchScreen";
 import { LibraryScreen } from "./screens/LibraryScreen";
 import { DiscoverScreen } from "./screens/DiscoverScreen";
-import { SupportScreen } from "./screens/SupportScreen";
 import { useLocalStorageState } from "./useLocalStorageState";
 import { CommandPalette } from "./overlays/CommandPalette";
 import { WhereAmIToast } from "./overlays/WhereAmIToast";
 import { Icon } from "./components/Icon";
+import { SettingsSheet } from "./overlays/SettingsSheet";
 
 type Settings = {
   voiceFeedback: boolean;
@@ -26,9 +26,12 @@ function rateToNumber(r: Settings["voiceRate"]) {
 }
 
 export function App() {
-  const [tab, setTab] = React.useState<TabId>("discover");
+  const [tab, setTab] = React.useState<TabId>("home");
+  const [nowPlayingOpen, setNowPlayingOpen] = React.useState(false);
   const [commandOpen, setCommandOpen] = React.useState(false);
   const [whereAmIOpen, setWhereAmIOpen] = React.useState(false);
+  const [settingsOpen, setSettingsOpen] = React.useState(false);
+  const swipeStartRef = React.useRef<{ y: number; x: number; active: boolean } | null>(null);
 
   const [settings, setSettings] = useLocalStorageState<Settings>("sa.settings", {
     voiceFeedback: true,
@@ -109,12 +112,13 @@ export function App() {
 
   const onTabChange = (t: TabId) => {
     setTab(t);
+    setNowPlayingOpen(false);
   };
 
   const addLandmark = (lm: Landmark) => {
     setLandmarks((prev) => {
       const next = prev.some((x) => x.id === lm.id) ? prev : [...prev, lm].slice(0, 6);
-      speak(`${lm.label} added to landmarks.`, { enabled: ttsEnabled, rate: ttsRate, priority: "interrupt" });
+      speak(`${lm.label} pinned.`, { enabled: ttsEnabled, rate: ttsRate, priority: "interrupt" });
       return next;
     });
   };
@@ -123,7 +127,7 @@ export function App() {
     setLandmarks((prev) => {
       const removed = prev.find((x) => x.id === id);
       const next = prev.filter((x) => x.id !== id);
-      if (removed) speak(`${removed.label} removed from landmarks.`, { enabled: ttsEnabled, rate: ttsRate, priority: "interrupt" });
+      if (removed) speak(`${removed.label} unpinned.`, { enabled: ttsEnabled, rate: ttsRate, priority: "interrupt" });
       return next;
     });
   };
@@ -135,6 +139,7 @@ export function App() {
     }
     if (lm.payload.kind === "search") {
       setTab("search");
+      setNowPlayingOpen(false);
       speak(`Search ${lm.payload.query}`, { enabled: ttsEnabled, rate: ttsRate, priority: "interrupt" });
       return;
     }
@@ -142,14 +147,13 @@ export function App() {
   };
 
   const whereAmIText = React.useMemo(() => {
-    if (tab === "now") {
+    if (nowPlayingOpen) {
       return `Now screen. ${isPlaying ? "Playing" : "Paused"} "${track.title}" by ${track.artist}. ${Math.max(0, track.durationSec - currentTime)} seconds remaining. Queue has ${mockQueue.length} songs. Press Control K for commands.`;
     }
     if (tab === "search") return "Search screen. Press Control K for commands. Type to search.";
     if (tab === "library") return "Library screen. Viewing playlists. Press Control K for commands.";
-    if (tab === "discover") return "Discover screen. Press Control K for commands.";
-    return "Support screen. Manage settings and landmarks. Press Control K for commands.";
-  }, [tab, isPlaying, track.title, track.artist, track.durationSec, currentTime]);
+    return "Home screen. Press Control K for commands.";
+  }, [tab, nowPlayingOpen, isPlaying, track.title, track.artist, track.durationSec, currentTime]);
 
   React.useEffect(() => {
     if (!whereAmIOpen) return;
@@ -170,8 +174,28 @@ export function App() {
           </div>
         </div>
 
-        <main className="screen" role="tabpanel" aria-label="Spotify content">
-          {tab === "now" ? (
+        <main
+          className="screen"
+          role="tabpanel"
+          aria-label="Spotify content"
+          onTouchStart={(e) => {
+            const t = e.touches[0];
+            if (!t) return;
+            // Primary entry: swipe down from top to open command palette.
+            swipeStartRef.current = { y: t.clientY, x: t.clientX, active: t.clientY < 100 };
+          }}
+          onTouchEnd={(e) => {
+            const start = swipeStartRef.current;
+            swipeStartRef.current = null;
+            if (!start?.active) return;
+            const t = e.changedTouches[0];
+            if (!t) return;
+            const dy = t.clientY - start.y;
+            const dx = t.clientX - start.x;
+            if (dy > 60 && Math.abs(dx) < 60) setCommandOpen(true);
+          }}
+        >
+          {nowPlayingOpen ? (
             <NowScreen
               track={track}
               isPlaying={isPlaying}
@@ -216,7 +240,6 @@ export function App() {
                 speak(`Seek ${Math.floor(t / 60)} minutes ${Math.floor(t % 60)} seconds`, { enabled: ttsEnabled, rate: ttsRate, priority: "interrupt" });
               }}
               onCommandPalette={() => setCommandOpen(true)}
-              onWhereAmI={() => setWhereAmIOpen(true)}
               onLandmarkPress={navigateToLandmark}
               onLandmarkRemove={(id) => removeLandmark(id)}
               onAddLandmark={() =>
@@ -231,22 +254,22 @@ export function App() {
           ) : tab === "search" ? (
             <SearchScreen
               onCommandPalette={() => setCommandOpen(true)}
-              onWhereAmI={() => setWhereAmIOpen(true)}
               tts={{ enabled: ttsEnabled, rate: ttsRate }}
               onAddLandmark={addLandmark}
             />
           ) : tab === "library" ? (
-            <LibraryScreen onCommandPalette={() => setCommandOpen(true)} onWhereAmI={() => setWhereAmIOpen(true)} tts={{ enabled: ttsEnabled, rate: ttsRate }} onAddLandmark={addLandmark} />
-          ) : tab === "discover" ? (
-            <DiscoverScreen onCommandPalette={() => setCommandOpen(true)} onWhereAmI={() => setWhereAmIOpen(true)} tts={{ enabled: ttsEnabled, rate: ttsRate }} />
-          ) : (
-            <SupportScreen
-              settings={settings}
-              onSettingsChange={setSettings}
+            <LibraryScreen
+              onCommandPalette={() => setCommandOpen(true)}
+              tts={{ enabled: ttsEnabled, rate: ttsRate }}
+              onAddLandmark={addLandmark}
               landmarks={landmarks}
               onRemoveLandmark={removeLandmark}
+            />
+          ) : (
+            <DiscoverScreen
               onCommandPalette={() => setCommandOpen(true)}
-              onWhereAmI={() => setWhereAmIOpen(true)}
+              onSettings={() => setSettingsOpen(true)}
+              tts={{ enabled: ttsEnabled, rate: ttsRate }}
             />
           )}
         </main>
@@ -257,7 +280,7 @@ export function App() {
             type="button"
             style={{ border: "none", background: "transparent", textAlign: "left", padding: 0, minHeight: 0 }}
             aria-label={`Now playing ${track.title} by ${track.artist}`}
-            onClick={() => onTabChange("now")}
+            onClick={() => setNowPlayingOpen(true)}
           >
             <div className="miniTitle">{track.title}</div>
             <div className="miniMeta">BEATSPILL+</div>
@@ -296,13 +319,20 @@ export function App() {
               setIsPlaying((p) => !p);
               speak(isPlaying ? "Paused" : "Playing", { enabled: ttsEnabled, rate: ttsRate, priority: "interrupt" });
             }
-            if (cmd.kind === "whereAmI") setWhereAmIOpen(true);
             if (cmd.kind === "landmark") navigateToLandmark(cmd.landmark);
           }}
           tts={{ enabled: ttsEnabled, rate: ttsRate }}
         />
 
         <WhereAmIToast open={whereAmIOpen} text={whereAmIText} />
+
+        <SettingsSheet
+          open={settingsOpen}
+          onClose={() => setSettingsOpen(false)}
+          settings={settings}
+          onSettingsChange={setSettings}
+          tts={{ enabled: ttsEnabled, rate: ttsRate }}
+        />
       </div>
     </div>
   );

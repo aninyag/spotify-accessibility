@@ -19,7 +19,6 @@ export function NowScreen(props: {
   onRepeatToggle: () => void;
   onSeek: (timeSec: number) => void;
   onCommandPalette: () => void;
-  onWhereAmI: () => void;
   onLandmarkPress: (lm: Landmark) => void;
   onLandmarkRemove: (id: string) => void;
   onAddLandmark: () => void;
@@ -36,7 +35,6 @@ export function NowScreen(props: {
         <HeaderBar
           title="Now Playing"
           right={{ label: "Open command palette", onPress: props.onCommandPalette }}
-          left={{ label: "Where am I", onPress: props.onWhereAmI }}
         />
       </div>
       <div className="screenInner">
@@ -44,12 +42,12 @@ export function NowScreen(props: {
           <div
             aria-hidden="true"
             style={{
-              width: "85%",
-              maxWidth: 340,
+              width: "100%",
+              maxWidth: 361,
               aspectRatio: "1 / 1",
               borderRadius: 4,
               background: "#2a2a2a",
-              margin: "4px auto 16px",
+              margin: "4px 0 16px",
               display: "grid",
               placeItems: "center",
               color: "#B3B3B3",
@@ -171,61 +169,34 @@ export function NowScreen(props: {
               Add pinned items for quick access. Right-click any item to add.
             </div>
           ) : (
-            <div
-              style={{
-                marginTop: 12,
-                display: "flex",
-                gap: 12,
-                overflowX: "auto",
-                paddingBottom: 6,
-              }}
-            >
+            <div style={{ display: "grid", gap: 2, marginTop: 10 }}>
               {props.landmarks.map((lm, idx) => (
                 <button
                   key={lm.id}
                   type="button"
-                  aria-label={`Pinned ${idx + 1}. ${lm.label}. ${lm.type}. Tap to open.`}
+                  className="row"
+                  aria-label={`Pinned item ${idx + 1}: ${lm.label}. ${lm.type}. Tap to open.`}
                   onClick={() => props.onLandmarkPress(lm)}
                   onContextMenu={(e) => {
                     e.preventDefault();
                     props.onLandmarkRemove(lm.id);
                   }}
-                  style={{
-                    minWidth: 92,
-                    background: "transparent",
-                    border: "none",
-                    padding: 0,
-                    textAlign: "left",
-                    color: "white",
-                  }}
+                  style={{ textAlign: "left" }}
                 >
-                  <div
-                    aria-hidden="true"
-                    style={{
-                      width: 84,
-                      height: 84,
-                      borderRadius: 6,
-                      background: "rgba(255,255,255,0.08)",
-                      border: "1px solid rgba(255,255,255,0.12)",
-                      display: "grid",
-                      placeItems: "center",
-                      color: "rgba(255,255,255,0.75)",
-                      fontSize: 11,
-                    }}
-                  >
-                    Pinned
+                  <div className="thumb" aria-hidden="true" style={{ position: "relative" }}>
+                    <span style={{ position: "absolute", left: 2, top: 2, fontSize: 12, color: "rgba(255,255,255,0.8)" }}>📌</span>
                   </div>
-                  <div style={{ fontWeight: 700, fontSize: 13, marginTop: 8, maxWidth: 84, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                    {lm.label}
+                  <div>
+                    <div className="title">{lm.label}</div>
+                    <div className="subtitle">{lm.type}</div>
                   </div>
-                  <div className="muted" style={{ fontSize: 11, marginTop: 4, maxWidth: 84, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                    {lm.type}
+                  <div aria-hidden="true" style={{ width: 46, display: "grid", placeItems: "center", color: "rgba(255,255,255,0.7)" }}>
+                    <Icon name="chevronRight" size={18} />
                   </div>
                 </button>
               ))}
             </div>
           )}
-          <div className="hint">Keyboard: Ctrl/⌘+K for Command Palette · Ctrl/⌘+W for “Where am I” · Space play/pause</div>
         </section>
       </div>
     </>
@@ -245,7 +216,7 @@ function ControlButton(props: {
       aria-label={props.label}
       onClick={props.onPress}
       style={{
-        minHeight: props.big ? 64 : 48,
+        minHeight: props.big ? 64 : 56,
         borderRadius: props.big ? 999 : 8,
         borderColor: props.big ? "transparent" : "transparent",
         background: props.big ? "white" : "transparent",

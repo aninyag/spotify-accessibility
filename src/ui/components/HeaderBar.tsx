@@ -1,16 +1,20 @@
-import { Icon } from "./Icon";
+import { Icon, type IconName } from "./Icon";
 
 export function HeaderBar(props: {
   title: string;
-  left?: { label: string; onPress: () => void };
-  right?: { label: string; onPress: () => void };
+  left?: { kind: "icon"; label: string; onPress: () => void; icon?: IconName } | { kind: "avatar"; label: string };
+  right?: { label: string; onPress: () => void; icon?: IconName };
 }) {
   return (
     <div className="header">
       {props.left ? (
-        <button className="iconBtn" type="button" aria-label={props.left.label} onClick={props.left.onPress}>
-          <Icon name="ring" size={22} />
-        </button>
+        props.left.kind === "avatar" ? (
+          <div aria-label={props.left.label} style={{ width: 44, height: 44, borderRadius: 999, background: "rgba(255,255,255,0.14)" }} />
+        ) : (
+          <button className="iconBtn" type="button" aria-label={props.left.label} onClick={props.left.onPress}>
+            <Icon name={props.left.icon ?? "ring"} size={22} />
+          </button>
+        )
       ) : (
         <div aria-hidden="true" style={{ width: 48, height: 48 }} />
       )}
@@ -19,7 +23,7 @@ export function HeaderBar(props: {
       </div>
       {props.right ? (
         <button className="iconBtn" type="button" aria-label={props.right.label} onClick={props.right.onPress}>
-          <Icon name="overflow" size={22} />
+          <Icon name={props.right.icon ?? "overflow"} size={22} />
         </button>
       ) : (
         <div aria-hidden="true" style={{ width: 48, height: 48 }} />
