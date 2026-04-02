@@ -1,4 +1,5 @@
 import * as React from "react";
+import { AxisEntryCard } from "../components/AxisEntryCard";
 import type { ContextTarget, Landmark, Track } from "../types";
 import { Icon } from "../components/Icon";
 import { LongPressable } from "../components/LongPressable";
@@ -36,6 +37,9 @@ function DiscoverTopChrome<T extends string>(props: {
   speechSupported: boolean;
   searchInputId: string;
   profileNotifyDot?: boolean;
+  /** When set with `showCommandPaletteTrigger`, restores header mic behavior (command palette), separate from search voice-to-text. */
+  onCommandPalette?: () => void;
+  showCommandPaletteTrigger?: boolean;
 }) {
   return (
     <div className="headerPlain axisHomeSimpleTop">
@@ -65,6 +69,17 @@ function DiscoverTopChrome<T extends string>(props: {
             </button>
           ))}
         </div>
+        {props.showCommandPaletteTrigger && props.onCommandPalette ? (
+          <button
+            type="button"
+            className="iconBtn axisHomeHeaderCommandBtn"
+            aria-label="Open command palette"
+            onClick={props.onCommandPalette}
+            data-command-palette-trigger="true"
+          >
+            <Icon name="mic" size={22} />
+          </button>
+        ) : null}
       </div>
 
       <div className="axisHomeSearchShell">
@@ -146,6 +161,7 @@ export function DiscoverScreen(props: {
   onOpenContext: (target: ContextTarget) => void;
   onOpenProfile: () => void;
   axisEnabled: boolean;
+  onStartAxisTutorial: () => void;
   landmarks: Landmark[];
   onExecutePinned: (lm: Landmark) => void;
   onPinnedLongPress: (lm: Landmark) => void;
@@ -178,6 +194,8 @@ export function DiscoverScreen(props: {
           speechListening={speechListening}
           speechSupported={speechSupported}
           searchInputId="axis-home-search"
+          onCommandPalette={props.onCommandPalette}
+          showCommandPaletteTrigger
         />
 
         <div className="screenInner">
@@ -280,6 +298,8 @@ export function DiscoverScreen(props: {
             })}
           </div>
         </section>
+
+        <AxisEntryCard onStartTutorial={props.onStartAxisTutorial} />
       </div>
     </>
   );

@@ -1698,6 +1698,12 @@ input[type="range"]::-moz-range-thumb {
   display: none;
 }
 
+.axisHomeHeaderCommandBtn {
+  flex-shrink: 0;
+  margin-left: 2px;
+  color: var(--text-primary);
+}
+
 .axisHomeMainTab {
   flex-shrink: 0;
   padding: 8px 12px;

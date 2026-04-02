@@ -588,6 +588,7 @@ export function App() {
               onOpenContext={openContext}
               onOpenProfile={() => setProfileMenuOpen(true)}
               axisEnabled={axisEnabled}
+              onStartAxisTutorial={() => setAxisTutorialOpen(true)}
               landmarks={landmarks}
               onExecutePinned={executePinned}
               onPinnedLongPress={(lm) => openContext({ landmark: lm, menuVariant: "pinned-management" })}
