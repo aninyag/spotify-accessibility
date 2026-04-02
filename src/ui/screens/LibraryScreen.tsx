@@ -1,14 +1,11 @@
 import * as React from "react";
 import { HeaderBar } from "../components/HeaderBar";
 import { ListRow } from "../components/ListRow";
-import type { Landmark } from "../types";
+import type { ContextTarget, Landmark } from "../types";
 import { Icon } from "../components/Icon";
 
 const filterOptions = ["Playlists", "Albums", "Artists", "Podcasts", "Downloads"] as const;
 type Filter = (typeof filterOptions)[number];
-
-const sortOptions = ["Recently Played", "Recently Added", "Alphabetical"] as const;
-type Sort = (typeof sortOptions)[number];
 
 type LibraryItem = { id: string; title: string; subtitle: string; type: Filter };
 
@@ -21,10 +18,10 @@ const mockLibrary: LibraryItem[] = [
 
 export function LibraryScreen(props: {
   onCommandPalette: () => void;
-  tts: { enabled: boolean; rate: number };
-  onAddLandmark: (lm: Landmark) => void;
   landmarks: Landmark[];
-  onRemoveLandmark: (id: string) => void;
+  onOpenContext: (target: ContextTarget) => void;
+  onLandmarkPress: (lm: Landmark) => void;
+  pinnedFlashId: string | null;
 }) {
   const [filter, setFilter] = React.useState<Filter>("Playlists");
 
@@ -44,6 +41,28 @@ export function LibraryScreen(props: {
         />
       </div>
       <div className="screenInner">
+        {props.landmarks.length > 0 ? (
+          <section aria-label="Pinned">
+            <div className="sectionHeader" style={{ marginTop: 0 }}>
+              Pinned
+            </div>
+            <div style={{ display: "grid", gap: 2, marginTop: 8 }}>
+              {props.landmarks.map((lm, idx) => (
+                <ListRow
+                  key={lm.id}
+                  title={lm.label}
+                  subtitle={lm.type}
+                  ariaLabel={`Pinned ${idx + 1}: ${lm.label}. Long-press for options.`}
+                  onPress={() => props.onLandmarkPress(lm)}
+                  onPlayPress={() => {}}
+                  onLongPress={() => props.onOpenContext({ landmark: lm })}
+                  highlight={props.pinnedFlashId === lm.id}
+                />
+              ))}
+            </div>
+          </section>
+        ) : null}
+
         <div aria-label="Library filters">
           <div className="pillRow" role="tablist" aria-label="Library filter tabs" style={{ gap: 10 }}>
             <button type="button" className="iconBtn" aria-label="Filters" style={{ width: 44, height: 44 }}>
@@ -69,8 +88,12 @@ export function LibraryScreen(props: {
 
         <div aria-label="Sort row" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 6 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <div aria-hidden="true" style={{ color: "#b3b3b3" }}>⇅</div>
-            <div className="rowPrimary" style={{ color: "#b3b3b3" }}>Recents</div>
+            <div aria-hidden="true" style={{ color: "#b3b3b3" }}>
+              ⇅
+            </div>
+            <div className="rowPrimary" style={{ color: "#b3b3b3" }}>
+              Recents
+            </div>
           </div>
           <button type="button" className="iconBtn" aria-label="Grid view" style={{ width: 44, height: 44 }}>
             <Icon name="library" size={20} />
@@ -88,11 +111,14 @@ export function LibraryScreen(props: {
                 onPress={() => {}}
                 onPlayPress={() => {}}
                 onLongPress={() =>
-                  props.onAddLandmark({
-                    id: `lm-${Date.now()}`,
-                    label: it.title,
-                    type: "playlist",
-                    payload: { kind: "stub", ref: it.id },
+                  props.onOpenContext({
+                    landmark: {
+                      id: `lm-lib-${it.id}`,
+                      label: it.title,
+                      type: "playlist",
+                      payload: { kind: "stub", ref: it.id },
+                    },
+                    artistName: "Various artists",
                   })
                 }
               />
@@ -103,4 +129,3 @@ export function LibraryScreen(props: {
     </>
   );
 }
-

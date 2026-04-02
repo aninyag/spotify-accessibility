@@ -11,7 +11,7 @@ export function ContextMenuSheet(props: {
 
   return (
     <div
-      className="bottomSheetBackdrop"
+      className="bottomSheetBackdrop bottomSheetBackdropElevated"
       role="dialog"
       aria-modal="true"
       aria-label={props.ariaLabel}

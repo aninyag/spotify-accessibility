@@ -1,6 +1,8 @@
 import * as React from "react";
 import { HeaderBar } from "../components/HeaderBar";
+import type { ContextTarget } from "../types";
 import { Icon } from "../components/Icon";
+import { LongPressable } from "../components/LongPressable";
 
 type Shortcut = { id: string; title: string; artKind: "cover" | "gradient" };
 
@@ -17,7 +19,7 @@ const shortcuts: Shortcut[] = [
   { id: "sc8", title: "Workout", artKind: "cover" },
 ];
 
-export function DiscoverScreen(props: { onCommandPalette: () => void }) {
+export function DiscoverScreen(props: { onCommandPalette: () => void; onOpenContext: (target: ContextTarget) => void }) {
   const [chip, setChip] = React.useState<(typeof chips)[number]>("All");
 
   return (
@@ -56,13 +58,22 @@ export function DiscoverScreen(props: { onCommandPalette: () => void }) {
         <section aria-label="Shortcuts">
           <div style={{ display: "grid", gap: 8 }}>
             {shortcuts.map((s, idx) => (
-              <button
+              <LongPressable
                 key={s.id}
-                type="button"
-                className="homeShortcutRow"
                 role="button"
-                aria-label={s.title}
-                onClick={() => {}}
+                className="homeShortcutRow"
+                ariaLabel={`${s.title}. Long-press for options.`}
+                onLongPress={() =>
+                  props.onOpenContext({
+                    landmark: {
+                      id: `lm-home-${s.id}`,
+                      label: s.title,
+                      type: "playlist",
+                      payload: { kind: "stub", ref: s.id },
+                    },
+                    artistName: "Spotify",
+                  })
+                }
               >
                 <div
                   className="homeShortcutArt"
@@ -79,15 +90,13 @@ export function DiscoverScreen(props: { onCommandPalette: () => void }) {
                 ) : (
                   <div aria-hidden="true" style={{ width: 24, height: 24 }} />
                 )}
-              </button>
+              </LongPressable>
             ))}
           </div>
         </section>
 
         <section aria-label="Albums featuring songs you like">
-          <div style={{ fontSize: 26, fontWeight: 700, lineHeight: "32px", marginTop: 10 }}>
-            Albums featuring songs you like
-          </div>
+          <div style={{ fontSize: 26, fontWeight: 700, lineHeight: "32px", marginTop: 10 }}>Albums featuring songs you like</div>
           <div className="muted" style={{ marginTop: 6, fontSize: 13, fontWeight: 400 }}>
             Various artists · 5 days ago · 2 min
           </div>
@@ -96,4 +105,3 @@ export function DiscoverScreen(props: { onCommandPalette: () => void }) {
     </>
   );
 }
-

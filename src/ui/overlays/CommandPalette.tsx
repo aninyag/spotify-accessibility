@@ -1,40 +1,133 @@
 import * as React from "react";
-import type { Landmark, TabId, Track } from "../types";
+import type { ContextTarget, Landmark, TabId, Track } from "../types";
 import { speak } from "../tts";
 import { Icon } from "../components/Icon";
+import { useLongPress } from "../useLongPress";
+import type { PaletteSearchHit } from "../paletteSearch";
+import { filterPaletteSearch } from "../paletteSearch";
 
-type Command =
+export type Command =
   | { kind: "nav"; tab: TabId; label: string }
   | { kind: "playPause"; label: string }
   | { kind: "skip"; label: string }
   | { kind: "addToQueue"; label: string }
-  | { kind: "landmark"; landmark: Landmark; label: string };
+  | { kind: "like"; label: string }
+  | { kind: "landmark"; landmark: Landmark; label: string }
+  | { kind: "playPaletteResult"; hit: PaletteSearchHit }
+  | { kind: "playLikedSongs" }
+  | { kind: "resumeLast" }
+  | { kind: "goToArtist" };
+
+function PinnedPaletteRow(props: {
+  lm: Landmark;
+  flash: boolean;
+  onActivate: () => void;
+  onLongPress: () => void;
+}) {
+  const lp = useLongPress(props.onLongPress);
+  return (
+    <button
+      type="button"
+      className={`spotifyRow${props.flash ? " paletteRowFlash" : ""}`}
+      role="button"
+      aria-label={`${props.lm.label}, pinned`}
+      onClick={(e) => {
+        if (lp.consumeLongPressClick()) {
+          e.preventDefault();
+          return;
+        }
+        props.onActivate();
+      }}
+      onPointerDown={lp.onPointerDown}
+      onPointerUp={lp.onPointerUp}
+      onPointerCancel={lp.onPointerCancel}
+      onPointerLeave={lp.onPointerLeave}
+      onContextMenu={(e) => {
+        e.preventDefault();
+        props.onLongPress();
+      }}
+    >
+      <div className="thumb" aria-hidden="true" />
+      <div>
+        <div className="rowPrimary">{props.lm.label}</div>
+        <div className="rowSecondary">{props.lm.type}</div>
+      </div>
+      <div aria-hidden="true" style={{ width: 48, display: "grid", placeItems: "center", color: "#b3b3b3" }}>
+        <Icon name="pin" size={18} />
+      </div>
+    </button>
+  );
+}
+
+function SearchHitRow(props: {
+  hit: PaletteSearchHit;
+  onPlay: () => void;
+  onLongPress: () => void;
+}) {
+  const lp = useLongPress(props.onLongPress);
+  return (
+    <button
+      type="button"
+      className="spotifyRow"
+      role="button"
+      aria-label={`${props.hit.title}. ${props.hit.subtitle}. Tap to play. Long-press to pin.`}
+      onClick={(e) => {
+        if (lp.consumeLongPressClick()) {
+          e.preventDefault();
+          return;
+        }
+        props.onPlay();
+      }}
+      onPointerDown={lp.onPointerDown}
+      onPointerUp={lp.onPointerUp}
+      onPointerCancel={lp.onPointerCancel}
+      onPointerLeave={lp.onPointerLeave}
+      onContextMenu={(e) => {
+        e.preventDefault();
+        props.onLongPress();
+      }}
+    >
+      <div className="thumb" aria-hidden="true" style={{ background: "#1e3264" }} />
+      <div>
+        <div className="rowPrimary">{props.hit.title}</div>
+        <div className="rowSecondary">{props.hit.subtitle}</div>
+      </div>
+      <div aria-hidden="true" style={{ width: 48, display: "grid", placeItems: "center", color: "#b3b3b3" }}>
+        <Icon name="play" size={18} />
+      </div>
+    </button>
+  );
+}
 
 export function CommandPalette(props: {
   open: boolean;
   onClose: () => void;
   onCommand: (cmd: Command) => void;
-  context: { tab: TabId; track: Track; isPlaying: boolean };
+  context: { tab: TabId; track: Track; isPlaying: boolean; trackLiked: boolean };
   landmarks: Landmark[];
   recentActions: string[];
+  onPinnedLongPress: (lm: Landmark) => void;
+  onOpenContext: (target: ContextTarget) => void;
+  pinnedFlashId: string | null;
+  paletteHintSeen: boolean;
+  onPaletteHintDismiss: () => void;
   tts: { enabled: boolean; rate: number };
 }) {
-  const voiceBtnRef = React.useRef<HTMLButtonElement | null>(null);
+  const searchRef = React.useRef<HTMLInputElement | null>(null);
   const [listening, setListening] = React.useState(false);
-  const lastActiveRef = React.useRef<HTMLElement | null>(null);
+  const [searchQuery, setSearchQuery] = React.useState("");
   const sheetRef = React.useRef<HTMLDivElement | null>(null);
 
   React.useEffect(() => {
     if (!props.open) return;
-    lastActiveRef.current = (document.activeElement as HTMLElement) ?? null;
     setListening(false);
-    const id = window.setTimeout(() => voiceBtnRef.current?.focus(), 0);
+    setSearchQuery("");
+    const id = window.setTimeout(() => searchRef.current?.focus(), 0);
     return () => window.clearTimeout(id);
   }, [props.open]);
 
   React.useEffect(() => {
     if (props.open) return;
-    // Return focus to the header pill that opened it (stable focus target).
     const trigger = document.querySelector<HTMLElement>('[data-command-palette-trigger="true"]');
     trigger?.focus?.();
   }, [props.open]);
@@ -78,6 +171,18 @@ export function CommandPalette(props: {
 
   const runPinned = (lm: Landmark) => run({ kind: "landmark", landmark: lm, label: `Go to ${lm.label}` });
 
+  const likeLabel = props.context.trackLiked ? "Remove like" : "Like this song";
+  const searchHits = filterPaletteSearch(searchQuery);
+  const showFirstHint = !props.paletteHintSeen;
+
+  const dismissHint = () => props.onPaletteHintDismiss();
+
+  const onVoiceTap = () => {
+    if (showFirstHint) dismissHint();
+    setListening(true);
+    speak("Listening…", { enabled: props.tts.enabled, rate: props.tts.rate, priority: "interrupt" });
+  };
+
   return (
     <div
       className="bottomSheetBackdrop"
@@ -91,15 +196,149 @@ export function CommandPalette(props: {
       <div ref={sheetRef} className="bottomSheet" role="document">
         <div className="bottomSheetHandle" aria-hidden="true" />
 
+        {showFirstHint ? (
+          <div className="paletteFirstHint" role="region" aria-label="Getting started">
+            <div className="paletteFirstHintText">Try saying: play your liked songs</div>
+            <div className="paletteFirstHintActions">
+              <button type="button" className="paletteHintChip" onClick={() => setSearchQuery("jazz")}>
+                Try typing: jazz
+              </button>
+              <button type="button" className="paletteHintChip paletteHintChipMuted" onClick={dismissHint}>
+                Got it
+              </button>
+            </div>
+          </div>
+        ) : null}
+
+        <label className="paletteSearchLabel" htmlFor="palette-search">
+          Find music &amp; actions
+        </label>
+        <input
+          ref={searchRef}
+          id="palette-search"
+          type="search"
+          className="paletteSearchInput"
+          placeholder="Play liked songs or type jazz…"
+          value={searchQuery}
+          onChange={(e) => {
+            setSearchQuery(e.target.value);
+            if (showFirstHint && e.target.value.length > 0) dismissHint();
+          }}
+          aria-label="Search in command palette"
+          autoComplete="off"
+        />
+
+        {searchHits.length > 0 ? (
+          <section aria-label="Results" style={{ marginTop: 12 }}>
+            <div className="sectionHeader" style={{ marginTop: 0 }}>
+              Results
+            </div>
+            <div style={{ display: "grid", gap: 2, marginTop: 8 }}>
+              {searchHits.map((hit) => (
+                <SearchHitRow
+                  key={hit.id}
+                  hit={hit}
+                  onPlay={() => run({ kind: "playPaletteResult", hit })}
+                  onLongPress={() =>
+                    props.onOpenContext({
+                      landmark: hit.landmark,
+                      queueTrack: hit.playTrack,
+                      artistName: hit.playTrack.artist,
+                    })
+                  }
+                />
+              ))}
+            </div>
+          </section>
+        ) : null}
+
+        <section aria-label="Quick actions for current context" style={{ marginTop: 16 }}>
+          <div className="sectionHeader" style={{ marginTop: 0 }}>
+            Quick actions
+          </div>
+          <div style={{ display: "grid", gap: 2, marginTop: 8 }}>
+            {props.context.isPlaying ? (
+              <>
+                <button
+                  type="button"
+                  className="spotifyRow"
+                  role="button"
+                  aria-label={likeLabel}
+                  onClick={() => run({ kind: "like", label: likeLabel })}
+                >
+                  <div className="thumb" aria-hidden="true" style={{ display: "grid", placeItems: "center" }}>
+                    <Icon name="heart" size={18} />
+                  </div>
+                  <div>
+                    <div className="rowPrimary">{likeLabel}</div>
+                    <div className="rowSecondary">{props.context.track.title}</div>
+                  </div>
+                  <div aria-hidden="true" style={{ width: 48, display: "grid", placeItems: "center", color: "#b3b3b3" }}>
+                    <Icon name="chevronRight" size={18} />
+                  </div>
+                </button>
+                <button type="button" className="spotifyRow" role="button" aria-label="Add to queue" onClick={() => run({ kind: "addToQueue", label: "Add to queue" })}>
+                  <div className="thumb" aria-hidden="true" style={{ display: "grid", placeItems: "center" }}>
+                    <Icon name="plus" size={18} />
+                  </div>
+                  <div>
+                    <div className="rowPrimary">Add to queue</div>
+                    <div className="rowSecondary">{props.context.track.title}</div>
+                  </div>
+                  <div aria-hidden="true" style={{ width: 48, display: "grid", placeItems: "center", color: "#b3b3b3" }}>
+                    <Icon name="chevronRight" size={18} />
+                  </div>
+                </button>
+                <button type="button" className="spotifyRow" role="button" aria-label="Go to artist" onClick={() => run({ kind: "goToArtist" })}>
+                  <div className="thumb" aria-hidden="true" style={{ display: "grid", placeItems: "center" }}>
+                    <Icon name="search" size={18} />
+                  </div>
+                  <div>
+                    <div className="rowPrimary">Go to artist</div>
+                    <div className="rowSecondary">{props.context.track.artist}</div>
+                  </div>
+                  <div aria-hidden="true" style={{ width: 48, display: "grid", placeItems: "center", color: "#b3b3b3" }}>
+                    <Icon name="chevronRight" size={18} />
+                  </div>
+                </button>
+              </>
+            ) : (
+              <>
+                <button type="button" className="spotifyRow" role="button" aria-label="Play liked songs" onClick={() => run({ kind: "playLikedSongs" })}>
+                  <div className="thumb" aria-hidden="true" style={{ display: "grid", placeItems: "center" }}>
+                    <Icon name="heart" size={18} />
+                  </div>
+                  <div>
+                    <div className="rowPrimary">Play liked songs</div>
+                    <div className="rowSecondary">Your library</div>
+                  </div>
+                  <div aria-hidden="true" style={{ width: 48, display: "grid", placeItems: "center", color: "#b3b3b3" }}>
+                    <Icon name="chevronRight" size={18} />
+                  </div>
+                </button>
+                <button type="button" className="spotifyRow" role="button" aria-label="Resume last track" onClick={() => run({ kind: "resumeLast" })}>
+                  <div className="thumb" aria-hidden="true" style={{ display: "grid", placeItems: "center" }}>
+                    <Icon name="play" size={18} />
+                  </div>
+                  <div>
+                    <div className="rowPrimary">Resume last track</div>
+                    <div className="rowSecondary">{props.context.track.title}</div>
+                  </div>
+                  <div aria-hidden="true" style={{ width: 48, display: "grid", placeItems: "center", color: "#b3b3b3" }}>
+                    <Icon name="chevronRight" size={18} />
+                  </div>
+                </button>
+              </>
+            )}
+          </div>
+        </section>
+
         <button
-          ref={voiceBtnRef}
           type="button"
           className="voicePrimary"
+          style={{ marginTop: 14 }}
           aria-label="Voice input, tap to speak a command"
-          onClick={() => {
-            setListening(true);
-            speak("Listening…", { enabled: props.tts.enabled, rate: props.tts.rate, priority: "interrupt" });
-          }}
+          onClick={onVoiceTap}
         >
           <Icon name="mic" size={20} /> <span className="voicePlaceholder">Say something…</span>
         </button>
@@ -111,23 +350,13 @@ export function CommandPalette(props: {
           <div className="sectionHeader">Pinned</div>
           <div style={{ display: "grid", gap: 2, marginTop: 8 }}>
             {props.landmarks.slice(0, 6).map((lm) => (
-              <button
+              <PinnedPaletteRow
                 key={lm.id}
-                type="button"
-                className="spotifyRow"
-                role="button"
-                aria-label={`${lm.label}, pinned`}
-                onClick={() => runPinned(lm)}
-              >
-                <div className="thumb" aria-hidden="true" />
-                <div>
-                  <div className="rowPrimary">{lm.label}</div>
-                  <div className="rowSecondary">{lm.type}</div>
-                </div>
-                <div aria-hidden="true" style={{ width: 48, display: "grid", placeItems: "center", color: "#b3b3b3" }}>
-                  <Icon name="pin" size={18} />
-                </div>
-              </button>
+                lm={lm}
+                flash={props.pinnedFlashId === lm.id}
+                onActivate={() => runPinned(lm)}
+                onLongPress={() => props.onPinnedLongPress(lm)}
+              />
             ))}
           </div>
         </section>
@@ -147,52 +376,7 @@ export function CommandPalette(props: {
             ))}
           </div>
         </section>
-
-        <section aria-label="Quick actions">
-          <div className="sectionHeader">Quick actions</div>
-          <div style={{ display: "grid", gap: 2, marginTop: 8 }}>
-            <button type="button" className="spotifyRow" role="button" aria-label={props.context.isPlaying ? "Pause" : "Play"} onClick={() => run({ kind: "playPause", label: props.context.isPlaying ? "Pause" : "Play" })}>
-              <div className="thumb" aria-hidden="true" style={{ display: "grid", placeItems: "center" }}>
-                <Icon name={props.context.isPlaying ? "pause" : "play"} size={18} />
-              </div>
-              <div>
-                <div className="rowPrimary">{props.context.isPlaying ? "Pause" : "Play"}</div>
-                <div className="rowSecondary">Playback</div>
-              </div>
-              <div aria-hidden="true" style={{ width: 48, display: "grid", placeItems: "center", color: "#b3b3b3" }}>
-                <Icon name="chevronRight" size={18} />
-              </div>
-            </button>
-
-            <button type="button" className="spotifyRow" role="button" aria-label="Skip" onClick={() => run({ kind: "skip", label: "Skip" })}>
-              <div className="thumb" aria-hidden="true" style={{ display: "grid", placeItems: "center" }}>
-                <Icon name="next" size={18} />
-              </div>
-              <div>
-                <div className="rowPrimary">Skip</div>
-                <div className="rowSecondary">Playback</div>
-              </div>
-              <div aria-hidden="true" style={{ width: 48, display: "grid", placeItems: "center", color: "#b3b3b3" }}>
-                <Icon name="chevronRight" size={18} />
-              </div>
-            </button>
-
-            <button type="button" className="spotifyRow" role="button" aria-label="Add to queue" onClick={() => run({ kind: "addToQueue", label: "Add to queue" })}>
-              <div className="thumb" aria-hidden="true" style={{ display: "grid", placeItems: "center" }}>
-                <Icon name="plus" size={18} />
-              </div>
-              <div>
-                <div className="rowPrimary">Add to queue</div>
-                <div className="rowSecondary">Playback</div>
-              </div>
-              <div aria-hidden="true" style={{ width: 48, display: "grid", placeItems: "center", color: "#b3b3b3" }}>
-                <Icon name="chevronRight" size={18} />
-              </div>
-            </button>
-          </div>
-        </section>
       </div>
     </div>
   );
 }
-

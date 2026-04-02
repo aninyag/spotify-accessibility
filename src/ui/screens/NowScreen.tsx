@@ -1,8 +1,10 @@
 import * as React from "react";
-import type { Landmark, RepeatMode, Track } from "../types";
+import type { ContextTarget, Landmark, RepeatMode, Track } from "../types";
 import { HeaderBar } from "../components/HeaderBar";
 import { formatTime } from "../a11y";
 import { Icon } from "../components/Icon";
+import { ListRow, trackAriaLabel } from "../components/ListRow";
+import { LongPressable } from "../components/LongPressable";
 
 export function NowScreen(props: {
   track: Track;
@@ -12,29 +14,45 @@ export function NowScreen(props: {
   currentTimeSec: number;
   queue: Track[];
   landmarks: Landmark[];
+  trackLiked: boolean;
+  onToggleLike: () => void;
+  onBack: () => void;
   onTogglePlay: () => void;
-  onPrevious: () => void;
   onNext: () => void;
+  onPrevious: () => void;
   onShuffleToggle: () => void;
   onRepeatToggle: () => void;
   onSeek: (timeSec: number) => void;
   onCommandPalette: () => void;
   onLandmarkPress: (lm: Landmark) => void;
-  onLandmarkRemove: (id: string) => void;
-  onAddLandmark: () => void;
+  onOpenContext: (target: ContextTarget) => void;
 }) {
   const total = props.track.durationSec;
   const current = Math.min(total, Math.max(0, props.currentTimeSec));
   const remaining = Math.max(0, total - current);
 
   const queueNext = props.queue.find((t) => t.id !== props.track.id) ?? props.queue[0];
+  const qIdx = props.queue.findIndex((t) => t.id === props.track.id);
+  const upcoming =
+    qIdx >= 0 ? props.queue.slice(qIdx + 1, qIdx + 4) : props.queue.filter((t) => t.id !== props.track.id).slice(0, 3);
+
+  const nowPlayingContext = (): ContextTarget => ({
+    landmark: {
+      id: `lm-track-${props.track.id}`,
+      label: props.track.title,
+      type: "album",
+      payload: { kind: "stub", ref: props.track.id },
+    },
+    queueTrack: props.track,
+    artistName: props.track.artist,
+  });
 
   return (
     <>
       <div className="headerGradient">
         <HeaderBar
           title="Now Playing"
-          left={{ kind: "icon", label: "Back", onPress: () => {}, icon: "chevronLeft" }}
+          left={{ kind: "icon", label: "Back", onPress: props.onBack, icon: "chevronLeft" }}
           onCommandPalette={props.onCommandPalette}
         />
       </div>
@@ -56,31 +74,53 @@ export function NowScreen(props: {
             Album Art
           </div>
 
-          <div style={{ textAlign: "left" }}>
-            <div style={{ fontSize: 22, fontWeight: 700, lineHeight: "28px" }} role="heading" aria-level={1} tabIndex={-1}>
-              {props.track.title}
+          <LongPressable
+            ariaLabel={`${props.track.title}. Long-press for more options.`}
+            onLongPress={() => props.onOpenContext(nowPlayingContext())}
+          >
+            <div style={{ textAlign: "left" }}>
+              <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
+                <div style={{ minWidth: 0, flex: 1 }}>
+                  <div style={{ fontSize: 22, fontWeight: 700, lineHeight: "28px" }} role="heading" aria-level={1} tabIndex={-1}>
+                    {props.track.title}
+                  </div>
+                  <button
+                    type="button"
+                    className="textBtn"
+                    style={{ marginTop: 4, minHeight: 28, padding: 0 }}
+                    aria-label={`Go to artist: ${props.track.artist}`}
+                  >
+                    <span style={{ fontSize: 16, fontWeight: 400, color: "#B3B3B3" }}>{props.track.artist}</span>
+                  </button>
+                </div>
+                <button
+                  type="button"
+                  className="iconBtn"
+                  aria-label={props.trackLiked ? "Remove like" : "Like"}
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    props.onToggleLike();
+                  }}
+                  style={{ color: props.trackLiked ? "#1DB954" : "#B3B3B3", flexShrink: 0 }}
+                >
+                  <Icon name="heart" size={26} />
+                </button>
+              </div>
+              {props.track.album ? (
+                <button
+                  type="button"
+                  className="textBtn textBtnMuted"
+                  style={{ display: "block", width: "100%", minHeight: 24, padding: 0 }}
+                  aria-label={`Go to album: ${props.track.album}`}
+                >
+                  <span className="muted" style={{ fontSize: 13, fontWeight: 400 }}>
+                    {props.track.album}
+                  </span>
+                </button>
+              ) : null}
             </div>
-            <button
-              type="button"
-              className="textBtn"
-              style={{ marginTop: 4, minHeight: 28, padding: 0 }}
-              aria-label={`Go to artist: ${props.track.artist}`}
-            >
-              <span style={{ fontSize: 16, fontWeight: 400, color: "#B3B3B3" }}>{props.track.artist}</span>
-            </button>
-            {props.track.album ? (
-              <button
-                type="button"
-                className="textBtn textBtnMuted"
-                style={{ display: "block", width: "100%", minHeight: 24, padding: 0 }}
-                aria-label={`Go to album: ${props.track.album}`}
-              >
-                <span className="muted" style={{ fontSize: 13, fontWeight: 400 }}>
-                  {props.track.album}
-                </span>
-              </button>
-            ) : null}
-          </div>
+          </LongPressable>
         </section>
 
         <section aria-label="Progress">
@@ -105,29 +145,21 @@ export function NowScreen(props: {
 
         <section aria-label="Playback controls">
           <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 6 }}>
-          <ControlButton
-            label={`Shuffle, toggle button, ${props.shuffleEnabled ? "on" : "off"}`}
-            active={props.shuffleEnabled}
-            onPress={props.onShuffleToggle}
-          >
-            <Icon name="shuffle" size={22} />
-          </ControlButton>
-          <ControlButton label="Previous, button" onPress={props.onPrevious}>
-            <Icon name="previous" size={22} />
-          </ControlButton>
-          <ControlButton
-            label={props.isPlaying ? "Pause, button" : "Play, button"}
-            onPress={props.onTogglePlay}
-            big
-          >
-            <Icon name={props.isPlaying ? "pause" : "play"} size={24} />
-          </ControlButton>
-          <ControlButton label="Next, button" onPress={props.onNext}>
-            <Icon name="next" size={22} />
-          </ControlButton>
-          <ControlButton label={`Repeat, toggle button, ${props.repeatMode}`} active={props.repeatMode !== "off"} onPress={props.onRepeatToggle}>
-            <Icon name={props.repeatMode === "one" ? "repeatOne" : "repeat"} size={22} />
-          </ControlButton>
+            <ControlButton label={`Shuffle, toggle button, ${props.shuffleEnabled ? "on" : "off"}`} active={props.shuffleEnabled} onPress={props.onShuffleToggle}>
+              <Icon name="shuffle" size={22} />
+            </ControlButton>
+            <ControlButton label="Previous, button" onPress={props.onPrevious}>
+              <Icon name="previous" size={22} />
+            </ControlButton>
+            <ControlButton label={props.isPlaying ? "Pause, button" : "Play, button"} onPress={props.onTogglePlay} big>
+              <Icon name={props.isPlaying ? "pause" : "play"} size={24} />
+            </ControlButton>
+            <ControlButton label="Next, button" onPress={props.onNext}>
+              <Icon name="next" size={22} />
+            </ControlButton>
+            <ControlButton label={`Repeat, toggle button, ${props.repeatMode}`} active={props.repeatMode !== "off"} onPress={props.onRepeatToggle}>
+              <Icon name={props.repeatMode === "one" ? "repeatOne" : "repeat"} size={22} />
+            </ControlButton>
           </div>
           <div className="muted" style={{ display: "flex", justifyContent: "space-between", marginTop: 8, fontSize: 12 }}>
             <span>Shuffle</span>
@@ -140,59 +172,65 @@ export function NowScreen(props: {
 
         <section aria-label="Queue preview">
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
-          <div>
-            <div className="sectionHeader" style={{ marginTop: 0 }}>Queue</div>
-            <div className="muted" style={{ fontSize: 14, marginTop: 4 }}>
-              Up next: “{queueNext?.title ?? "—"}” — {queueNext?.artist ?? ""}
+            <div>
+              <div className="sectionHeader" style={{ marginTop: 0 }}>
+                Queue
+              </div>
+              <div className="muted" style={{ fontSize: 14, marginTop: 4 }}>
+                Up next: “{queueNext?.title ?? "—"}” — {queueNext?.artist ?? ""}
+              </div>
+              <div className="muted" style={{ fontSize: 14, marginTop: 2 }}>
+                {props.queue.length} songs
+              </div>
             </div>
-            <div className="muted" style={{ fontSize: 14, marginTop: 2 }}>
-              {props.queue.length} songs
+            <button type="button" className="ghostBtn" aria-label="Open queue" onClick={props.onCommandPalette}>
+              <Icon name="chevronRight" size={18} />
+            </button>
+          </div>
+          {upcoming.length > 0 ? (
+            <div style={{ marginTop: 10, display: "grid", gap: 2 }}>
+              {upcoming.map((t) => (
+                <ListRow
+                  key={t.id}
+                  title={t.title}
+                  subtitle={t.artist}
+                  ariaLabel={trackAriaLabel(t)}
+                  onPress={() => {}}
+                  onPlayPress={() => {}}
+                  onLongPress={() =>
+                    props.onOpenContext({
+                      landmark: {
+                        id: `lm-queue-${t.id}`,
+                        label: t.title,
+                        type: "album",
+                        payload: { kind: "stub", ref: t.id },
+                      },
+                      queueTrack: t,
+                      artistName: t.artist,
+                    })
+                  }
+                />
+              ))}
             </div>
-          </div>
-          <button type="button" className="ghostBtn" aria-label="Open queue" onClick={props.onCommandPalette}>
-            <Icon name="chevronRight" size={18} />
-          </button>
-          </div>
+          ) : null}
         </section>
 
         <section aria-label="Pinned">
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <div style={{ fontWeight: 700 }}>Pinned</div>
-          <button type="button" className="ghostBtn" aria-label="Add current item to pinned" onClick={props.onAddLandmark}>
-            <Icon name="plus" size={16} /> Add
-          </button>
-          </div>
+          <div style={{ fontWeight: 700, marginBottom: 8 }}>Pinned</div>
 
           {props.landmarks.length === 0 ? (
-            <div className="muted" style={{ marginTop: 10 }}>
-              Add pinned items for quick access. Right-click any item to add.
-            </div>
+            <div className="muted" style={{ marginTop: 10 }}>Long-press any song, playlist, or shortcut to pin it.</div>
           ) : (
             <div style={{ display: "grid", gap: 2, marginTop: 10 }}>
               {props.landmarks.map((lm, idx) => (
-                <button
+                <ListRow
                   key={lm.id}
-                  type="button"
-                  className="row"
-                  aria-label={`Pinned item ${idx + 1}: ${lm.label}. ${lm.type}. Tap to open.`}
-                  onClick={() => props.onLandmarkPress(lm)}
-                  onContextMenu={(e) => {
-                    e.preventDefault();
-                    props.onLandmarkRemove(lm.id);
-                  }}
-                  style={{ textAlign: "left" }}
-                >
-                  <div className="thumb" aria-hidden="true" style={{ position: "relative" }}>
-                    <span style={{ position: "absolute", left: 2, top: 2, fontSize: 12, color: "rgba(255,255,255,0.8)" }}>📌</span>
-                  </div>
-                  <div>
-                    <div className="title">{lm.label}</div>
-                    <div className="subtitle">{lm.type}</div>
-                  </div>
-                  <div aria-hidden="true" style={{ width: 46, display: "grid", placeItems: "center", color: "rgba(255,255,255,0.7)" }}>
-                    <Icon name="chevronRight" size={18} />
-                  </div>
-                </button>
+                  title={lm.label}
+                  subtitle={lm.type}
+                  ariaLabel={`Pinned item ${idx + 1}: ${lm.label}. ${lm.type}. Tap to open.`}
+                  onPress={() => props.onLandmarkPress(lm)}
+                  onLongPress={() => props.onOpenContext({ landmark: lm })}
+                />
               ))}
             </div>
           )}
@@ -202,13 +240,7 @@ export function NowScreen(props: {
   );
 }
 
-function ControlButton(props: {
-  label: string;
-  onPress: () => void;
-  active?: boolean;
-  big?: boolean;
-  children: React.ReactNode;
-}) {
+function ControlButton(props: { label: string; onPress: () => void; active?: boolean; big?: boolean; children: React.ReactNode }) {
   return (
     <button
       type="button"
@@ -230,4 +262,3 @@ function ControlButton(props: {
     </button>
   );
 }
-

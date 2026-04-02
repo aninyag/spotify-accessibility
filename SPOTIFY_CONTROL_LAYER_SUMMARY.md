@@ -98,35 +98,30 @@ Files:
 
 Implemented:
 - Removed swipe-down gesture as an entry (conflicts with VoiceOver gestures)
-- Removed keyboard shortcut entry (Ctrl/⌘+K) for opening the palette
+- No keyboard shortcut opens the palette (Escape closes it)
 - Added a **standard Spotify-style header icon button** (mic) on the right side of every header
   - `aria-label="Open command palette"`
-  - Focus return after closing palette targets this icon
+  - `data-command-palette-trigger="true"` for focus return after close
+- Inside the Command Palette, the large green voice control uses `aria-label="Voice input, tap to speak a command"`; pinned rows use `"{name}, pinned"` and `role="button"` where applicable
 
 Files:
 - `src/ui/components/HeaderBar.tsx`
 - `src/ui/overlays/CommandPalette.tsx`
 - `src/ui/App.tsx`
 
-### 4) Home: remove invented features, move toward Spotify-native structure
+### 4) Home: Spotify-native structure without a shortcut grid
 
-**Goal**: stop “new app” vibes; match Spotify Home’s structure.
+**Goal**: stop “new app” vibes; match Spotify Home’s rhythm while avoiding oversized grids that break proportions.
 
 Implemented:
-- Home header uses a greeting (“Good morning/afternoon/evening”).
-- Home content avoids invented “systems” and uses Spotify-native patterns:
-  - **Recently played** rendered as **full-width list rows** (no grids)
-  - **Made for you** horizontal row of cards (Spotify-native)
-  - **Recommended** list rows
-
-Update:
-- Home is now refit to match the current Spotify Home screenshot structure:
-  - **Chips row**: All / Music / Podcasts / Audiobooks
-  - **2-column shortcuts grid** (56pt tiles)
-  - Next section header rhythm (“Albums featuring songs you like”)
+- **Header**: `headerPlain`, empty title, profile avatar on the left, mic icon on the right (same entry point as other tabs).
+- **Chips row**: All / Music / Podcasts / Audiobooks (tablist; selected chip uses Spotify green `#1DB954`).
+- **Shortcuts**: **single-column list** of full-width rows (`.homeShortcutRow`) — **no 2-column grid**. Each row is 56pt tall with 56×56 tile art on the left, title (`homeShortcutTitle`, 12px/600) with ellipsis, optional overflow affordance on the first row; row background `#282828`, 8px corner radius on the row; art uses left-edge radii to match the row.
+- **Below**: a sample section block (“Albums featuring songs you like”) with neutral placeholder subtitle text.
 
 Files:
 - `src/ui/screens/DiscoverScreen.tsx`
+- `src/ui/styles.css` (`.homeShortcutRow`, `.homeShortcutArt`, `.homeShortcutTitle`, `.homeShortcutOverflow`)
 
 ### 5) Remove Support as a destination
 
@@ -207,6 +202,8 @@ Implemented:
 - Tap targets improved:
   - `.miniIcon` → 44×44
   - Now controls non-primary → min height 56
+  - Command Palette primary voice control: `.voicePrimary` height **56px**
+- Home chips and bottom nav tuned for density (e.g. bottom tab buttons use a column flex layout so labels are not clipped).
 - Album art container no longer uses centered “auto” margins; it respects padding-based layout.
 - Bottom sheet overlays are constrained to the device frame (render inside `.app`).
 
@@ -218,14 +215,12 @@ Implemented:
 - Removed brand-like/unique mini-player meta text in favor of neutral (“Now playing”).
 
 Files:
-- `src/ui/screens/DiscoverScreen.tsx`
-- `src/ui/mockData.ts`
-- `src/ui/App.tsx`
-
-Files:
 - `index.html`
 - `src/ui/styles.css`
+- `src/ui/screens/DiscoverScreen.tsx`
 - `src/ui/screens/NowScreen.tsx`
+- `src/ui/mockData.ts`
+- `src/ui/App.tsx`
 
 ---
 
@@ -242,19 +237,22 @@ Files:
 
 ## Known follow-ups (for “pixel perfect” + “real app smooth”)
 
-These are not blockers for spec compliance, but they’re the most likely sources of “proportions feel off” feedback:
+These are not blockers for spec compliance, but they’re the most likely sources of further polish:
 
-1) **Mirror current Spotify layouts more closely**
-   - Update Search and Library screens to match the current Spotify screenshot structures (chips, browse tiles, icon clusters).
+1) **Micro-radii and spacing**
+   - Reference UI sometimes uses **~4px** corner radius on small tile art inside a row whose outer radius is slightly larger; tune `homeShortcutArt` / row radii to match a chosen screenshot pixel-for-pixel.
 
 2) **Mini-player proportions**
-   - Match Spotify’s mini-player: typography, spacing, and trailing controls layout (still within the iPhone 16 Pro frame).
+   - Fine-tune typography, spacing, and trailing controls against a current Spotify capture (still within the iPhone 16 Pro frame).
 
 3) **Replace stub visuals that read “prototype”**
-   - Placeholder album art and placeholder thumbnails should become Spotify-like skeletons (subtle shimmer, correct radii)
+   - Placeholder album art and thumbnails could use Spotify-like skeletons (subtle shimmer, exact radii).
 
 4) **Recent actions fidelity**
    - Persist and shape recent actions as Spotify-style rows that reflect real actions (Liked, Added to playlist, Queued).
+
+5) **Dev-only “Where am I”**
+   - **Ctrl/⌘+W** still opens an internal Where Am I toast for development; it is not part of the product chrome. Optional: align toast copy with actual shortcuts (e.g. no outdated “Control K” wording).
 
 ---
 

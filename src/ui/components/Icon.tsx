@@ -23,6 +23,7 @@ export type IconName =
   | "close"
   | "overflow"
   | "heart"
+  | "share"
   | "plus"
   | "speaker";
 
@@ -156,6 +157,20 @@ function Paths({ name }: { name: IconName }) {
           d="M12 20s-7-4.4-9.2-8.2C1.2 9.2 2.4 6.6 5 5.6c1.9-.7 3.8-.2 5 1.2 1.2-1.4 3.1-1.9 5-1.2 2.6 1 3.8 3.6 2.2 6.2C19 15.6 12 20 12 20z"
           fill="currentColor"
         />
+      );
+    case "share":
+      return (
+        <>
+          <path
+            d="M10 13v-3l8-3v10l-8-3z"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinejoin="round"
+            fill="none"
+          />
+          <circle cx="6" cy="8" r="2" fill="currentColor" />
+          <circle cx="6" cy="16" r="2" fill="currentColor" />
+        </>
       );
     case "plus":
       return (

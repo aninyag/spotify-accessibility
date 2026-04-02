@@ -1,5 +1,6 @@
 import type { Track } from "../types";
 import { Icon } from "./Icon";
+import { useLongPress } from "../useLongPress";
 
 export function ListRow(props: {
   title: string;
@@ -10,18 +11,27 @@ export function ListRow(props: {
   onLongPress?: () => void;
   ariaLabel: string;
   thumbText?: string;
+  /** Brief highlight when an item was just pinned (instant feedback). */
+  highlight?: boolean;
 }) {
-  // Note: "long press" isn’t native on web; we map it to context menu for prototype.
+  const lp = useLongPress(props.onLongPress);
   return (
     <div
-      className="row"
+      className={`row${props.highlight ? " rowHighlight" : ""}`}
       role="button"
       tabIndex={0}
       aria-label={props.ariaLabel}
-      onClick={props.onPress}
+      onClick={(e) => {
+        if (lp.consumeLongPressClick()) return;
+        props.onPress();
+      }}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") props.onPress();
       }}
+      onPointerDown={lp.onPointerDown}
+      onPointerUp={lp.onPointerUp}
+      onPointerCancel={lp.onPointerCancel}
+      onPointerLeave={lp.onPointerLeave}
       onContextMenu={(e) => {
         if (!props.onLongPress) return;
         e.preventDefault();
@@ -58,7 +68,13 @@ export function ListRow(props: {
         ) : null}
       </div>
       {props.onPlayPress ? (
-        <button className="playBtn" type="button" aria-label={`Play ${props.title}`} onClick={(e) => (e.stopPropagation(), props.onPlayPress?.())}>
+        <button
+          className="playBtn"
+          type="button"
+          aria-label={`Play ${props.title}`}
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={(e) => (e.stopPropagation(), props.onPlayPress?.())}
+        >
           <Icon name="play" size={18} />
         </button>
       ) : (

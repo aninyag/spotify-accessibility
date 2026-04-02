@@ -26,3 +26,12 @@ export type Landmark = {
   payload: { kind: "screen"; tab: TabId } | { kind: "search"; query: string } | { kind: "stub"; ref: string };
 };
 
+/** Row a context menu is opened from (pin/unpin + playback targets share one model). */
+export type ContextTarget = {
+  landmark: Landmark;
+  /** When set, “Add to queue” inserts this track; otherwise a stub row is queued from the landmark label. */
+  queueTrack?: Track;
+  /** Shown / used for “Go to artist”. */
+  artistName?: string;
+};
+
