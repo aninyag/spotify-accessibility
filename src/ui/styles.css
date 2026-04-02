@@ -223,6 +223,10 @@ input:focus-visible {
   line-height: 28px;
 }
 
+.headerTitle:empty {
+  display: none;
+}
+
 .iconBtn {
   width: 44px;
   height: 44px;
