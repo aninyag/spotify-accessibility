@@ -33,7 +33,7 @@ export function DiscoverScreen(props: { onCommandPalette: () => void; onWhereAmI
   return (
     <>
       <div className="headerGradient">
-        <HeaderBar title="Discover" left={{ label: "Where am I", onPress: props.onWhereAmI }} right={{ label: "Open command palette", onPress: props.onCommandPalette }} />
+        <HeaderBar title="Home" left={{ label: "Where am I", onPress: props.onWhereAmI }} right={{ label: "Open command palette", onPress: props.onCommandPalette }} />
       </div>
       <div className="screenInner">
         <button type="button" className="cta" aria-label="Play Something New" onClick={playSomethingNew}>

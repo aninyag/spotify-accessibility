@@ -44,7 +44,7 @@ export function SearchScreen(props: {
   return (
     <>
       <div className="headerGradient">
-        <HeaderBar title="IV Mode" left={{ label: "Where am I", onPress: props.onWhereAmI }} right={{ label: "Open command palette", onPress: props.onCommandPalette }} />
+        <HeaderBar title="Search" left={{ label: "Where am I", onPress: props.onWhereAmI }} right={{ label: "Open command palette", onPress: props.onCommandPalette }} />
         <div className="searchBarWrap" style={{ marginTop: 6 }}>
           <div className="searchIcon" aria-hidden="true" style={{ display: "grid", placeItems: "center" }}>
             <Icon name="search" size={18} />

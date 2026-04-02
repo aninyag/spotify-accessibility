@@ -158,17 +158,17 @@ export function NowScreen(props: {
           </div>
         </section>
 
-        <section aria-label="Your landmarks">
+        <section aria-label="Pinned">
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <div style={{ fontWeight: 700 }}>Your Landmarks</div>
-          <button type="button" className="ghostBtn" aria-label="Add current item to landmarks" onClick={props.onAddLandmark}>
+          <div style={{ fontWeight: 700 }}>Pinned</div>
+          <button type="button" className="ghostBtn" aria-label="Add current item to pinned" onClick={props.onAddLandmark}>
             <Icon name="plus" size={16} /> Add
           </button>
           </div>
 
           {props.landmarks.length === 0 ? (
             <div className="muted" style={{ marginTop: 10 }}>
-              Add landmarks for quick access. Right-click any item to add.
+              Add pinned items for quick access. Right-click any item to add.
             </div>
           ) : (
             <div
@@ -184,7 +184,7 @@ export function NowScreen(props: {
                 <button
                   key={lm.id}
                   type="button"
-                  aria-label={`Landmark ${idx + 1}. ${lm.label}. ${lm.type}. Tap to open.`}
+                  aria-label={`Pinned ${idx + 1}. ${lm.label}. ${lm.type}. Tap to open.`}
                   onClick={() => props.onLandmarkPress(lm)}
                   onContextMenu={(e) => {
                     e.preventDefault();
@@ -213,7 +213,7 @@ export function NowScreen(props: {
                       fontSize: 11,
                     }}
                   >
-                    Landmark
+                    Pinned
                   </div>
                   <div style={{ fontWeight: 700, fontSize: 13, marginTop: 8, maxWidth: 84, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                     {lm.label}

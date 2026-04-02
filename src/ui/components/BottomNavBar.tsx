@@ -2,16 +2,15 @@ import type { TabId } from "../types";
 import { Icon, type IconName } from "./Icon";
 
 const tabs: Array<{ id: TabId; label: string; icon: IconName }> = [
-  { id: "now", label: "Home", icon: "home" },
+  { id: "discover", label: "Home", icon: "home" },
   { id: "search", label: "Search", icon: "search" },
   { id: "library", label: "Your Library", icon: "library" },
-  { id: "discover", label: "IV Mode", icon: "compass" },
-  { id: "support", label: "Support", icon: "help" },
+  { id: "now", label: "Control", icon: "compass" },
 ];
 
 export function BottomNavBar(props: { currentTab: TabId; onTabChange: (t: TabId) => void }) {
   return (
-    <nav className="bottomNav" aria-label="Accessible Mode navigation">
+    <nav className="bottomNav" aria-label="Spotify navigation">
       {tabs.map((t, idx) => (
         <button
           key={t.id}

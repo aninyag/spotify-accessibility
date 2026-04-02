@@ -40,10 +40,10 @@ export function CommandPalette(props: {
 
   const allCommands = React.useMemo<Command[]>(() => {
     const nav: Command[] = [
-      { kind: "nav", tab: "now", label: "Go to Now" },
+      { kind: "nav", tab: "discover", label: "Go to Home" },
       { kind: "nav", tab: "search", label: "Go to Search" },
       { kind: "nav", tab: "library", label: "Go to Library" },
-      { kind: "nav", tab: "discover", label: "Go to Discover" },
+      { kind: "nav", tab: "now", label: "Go to Now Playing" },
       { kind: "nav", tab: "support", label: "Go to Support" },
     ];
 

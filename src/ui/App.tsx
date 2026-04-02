@@ -26,7 +26,7 @@ function rateToNumber(r: Settings["voiceRate"]) {
 }
 
 export function App() {
-  const [tab, setTab] = React.useState<TabId>("now");
+  const [tab, setTab] = React.useState<TabId>("discover");
   const [commandOpen, setCommandOpen] = React.useState(false);
   const [whereAmIOpen, setWhereAmIOpen] = React.useState(false);
 
@@ -109,17 +109,6 @@ export function App() {
 
   const onTabChange = (t: TabId) => {
     setTab(t);
-    const announce =
-      t === "now"
-        ? `Now playing: ${track.title} by ${track.artist}`
-        : t === "search"
-          ? "Search. Tap the microphone to speak, or type below."
-          : t === "library"
-            ? "Library. Viewing playlists."
-            : t === "discover"
-              ? "Discover. Tap Play Something New to get a recommendation."
-              : "Support screen. Find help, change settings, or manage landmarks.";
-    speak(announce, { enabled: ttsEnabled, rate: ttsRate, priority: "queue" });
   };
 
   const addLandmark = (lm: Landmark) => {
@@ -181,7 +170,7 @@ export function App() {
           </div>
         </div>
 
-        <main className="screen" role="tabpanel" aria-label="Accessible Mode content">
+        <main className="screen" role="tabpanel" aria-label="Spotify content">
           {tab === "now" ? (
             <NowScreen
               track={track}

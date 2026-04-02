@@ -95,14 +95,14 @@ export function SupportScreen(props: {
         />
         </section>
 
-        <section aria-label="Manage landmarks">
+        <section aria-label="Manage pinned">
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <div className="sectionTitle" style={{ margin: 0, fontSize: 19 }}>Manage Landmarks</div>
+            <div className="sectionTitle" style={{ margin: 0, fontSize: 19 }}>Manage Pinned</div>
             <div className="muted">{props.landmarks.length} / 6</div>
           </div>
           <div style={{ display: "grid", gap: 10, marginTop: 12 }}>
             {props.landmarks.length === 0 ? (
-              <div className="muted">No landmarks yet.</div>
+              <div className="muted">No pinned items yet.</div>
             ) : (
               props.landmarks.map((lm, idx) => (
                 <div key={lm.id} className="row" role="group" aria-label={`Landmark ${idx + 1}: ${lm.label}`}>

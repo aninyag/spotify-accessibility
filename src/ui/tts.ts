@@ -16,6 +16,8 @@ function canUseTts() {
 export function speak(text: string, opts: SpeakOpts) {
   if (!opts.enabled) return;
   if (!canUseTts()) return;
+  const safeToSpeak = /listening|didn'?t catch|try again|voice input/i.test(text);
+  if (!safeToSpeak) return;
 
   const synth = window.speechSynthesis;
   const u = new SpeechSynthesisUtterance(text);
