@@ -249,6 +249,7 @@ export function Icon({ name, size = 22, title, className }: Props) {
       role="img"
       aria-label={ariaLabel}
       focusable="false"
+      style={{ pointerEvents: "none" }}
     >
       <Paths name={name} />
     </svg>

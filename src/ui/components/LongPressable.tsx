@@ -18,8 +18,12 @@ export function LongPressable(props: {
       className={props.className}
       style={props.style}
       aria-label={props.ariaLabel}
-      onClick={() => {
-        if (lp.consumeLongPressClick()) return;
+      onClick={(e) => {
+        if (lp.consumeLongPressClick()) {
+          e.preventDefault();
+          e.stopPropagation();
+          return;
+        }
         props.onClick?.();
       }}
       onKeyDown={(e) => {
@@ -29,7 +33,6 @@ export function LongPressable(props: {
       onPointerDown={lp.onPointerDown}
       onPointerUp={lp.onPointerUp}
       onPointerCancel={lp.onPointerCancel}
-      onPointerLeave={lp.onPointerLeave}
       onContextMenu={(e) => {
         if (!props.onLongPress) return;
         e.preventDefault();

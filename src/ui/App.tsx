@@ -268,15 +268,6 @@ export function App() {
   return (
     <div className="appShell">
       <div className="app">
-        <div className="statusBar" aria-hidden="true">
-          <div className="statusTime">1:20</div>
-          <div className="statusRight">
-            <div className="statusDot" />
-            <div className="statusDot" />
-            <div className="statusBattery" />
-          </div>
-        </div>
-
         <main className="screen" role="tabpanel" aria-label="Spotify content">
           {pinError ? (
             <div className="pinErrorBanner" role="alert">

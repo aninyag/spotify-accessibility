@@ -103,69 +103,7 @@ input:focus-visible {
   overflow: hidden;
   position: relative;
   display: grid;
-  grid-template-rows: 44px 1fr auto auto;
-}
-
-.statusBar {
-  position: relative;
-  font-family: var(--font-system);
-  background: transparent;
-}
-
-.statusTime {
-  position: absolute;
-  left: 26px;
-  top: 14px;
-  font-size: 15px;
-  font-weight: 600;
-  line-height: 20px;
-}
-
-.statusRight {
-  position: absolute;
-  right: 14px;
-  top: 15px;
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-
-.statusDot {
-  width: 8px;
-  height: 8px;
-  border-radius: 999px;
-  background: white;
-  opacity: 0.8;
-}
-
-.statusBattery {
-  width: 24px;
-  height: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.7);
-  border-radius: 3px;
-  position: relative;
-}
-
-.statusBattery::before {
-  content: "";
-  position: absolute;
-  left: 1px;
-  top: 1px;
-  height: 8px;
-  width: 15px;
-  background: white;
-  border-radius: 2px;
-}
-
-.statusBattery::after {
-  content: "";
-  position: absolute;
-  right: -3px;
-  top: 3px;
-  width: 2px;
-  height: 4px;
-  border-radius: 1px;
-  background: rgba(255, 255, 255, 0.8);
+  grid-template-rows: 1fr auto auto auto;
 }
 
 .screen {
@@ -379,6 +317,8 @@ input:focus-visible {
   padding: 0 16px;
   margin: 0 -16px;
   background: var(--bg-elevated);
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .thumb {
@@ -701,11 +641,18 @@ input:focus-visible {
 }
 
 .bottomSheet {
-  height: 85%;
+  height: 92%;
+  max-height: 92%;
   background: #121212;
   padding: 12px 16px 20px;
   transform: translateY(100%);
   animation: sheetUp 300ms ease-out forwards;
+}
+
+.bottomSheetCompact {
+  height: auto;
+  max-height: 85%;
+  min-height: 0;
 }
 
 @keyframes sheetUp {
@@ -723,6 +670,38 @@ input:focus-visible {
   border-radius: 999px;
   background: #ffffff26;
   margin: 0 auto 12px;
+}
+
+.paletteTopBar {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 32px;
+  margin-bottom: 4px;
+}
+
+.paletteTopBar .bottomSheetHandle {
+  margin: 0 auto;
+}
+
+.paletteDoneBtn {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 700;
+  padding: 10px 4px 10px 16px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.paletteDoneBtn:active {
+  opacity: 0.75;
 }
 
 .voicePrimary {
@@ -772,6 +751,8 @@ input:focus-visible {
   background: transparent;
   border: none;
   text-align: left;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
   color: white;
 }
 

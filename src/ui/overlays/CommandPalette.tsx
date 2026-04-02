@@ -34,6 +34,7 @@ function PinnedPaletteRow(props: {
       onClick={(e) => {
         if (lp.consumeLongPressClick()) {
           e.preventDefault();
+          e.stopPropagation();
           return;
         }
         props.onActivate();
@@ -41,7 +42,6 @@ function PinnedPaletteRow(props: {
       onPointerDown={lp.onPointerDown}
       onPointerUp={lp.onPointerUp}
       onPointerCancel={lp.onPointerCancel}
-      onPointerLeave={lp.onPointerLeave}
       onContextMenu={(e) => {
         e.preventDefault();
         props.onLongPress();
@@ -74,6 +74,7 @@ function SearchHitRow(props: {
       onClick={(e) => {
         if (lp.consumeLongPressClick()) {
           e.preventDefault();
+          e.stopPropagation();
           return;
         }
         props.onPlay();
@@ -81,7 +82,6 @@ function SearchHitRow(props: {
       onPointerDown={lp.onPointerDown}
       onPointerUp={lp.onPointerUp}
       onPointerCancel={lp.onPointerCancel}
-      onPointerLeave={lp.onPointerLeave}
       onContextMenu={(e) => {
         e.preventDefault();
         props.onLongPress();
@@ -190,12 +190,26 @@ export function CommandPalette(props: {
       role="dialog"
       aria-modal="true"
       aria-label="Command palette"
+      onPointerDown={(e) => {
+        if (e.target === e.currentTarget) props.onClose();
+      }}
       onMouseDown={(e) => {
         if (e.target === e.currentTarget) props.onClose();
       }}
     >
-      <div ref={sheetRef} className="bottomSheet" role="document">
-        <div className="bottomSheetHandle" aria-hidden="true" />
+      <div
+        ref={sheetRef}
+        className="bottomSheet"
+        role="document"
+        onPointerDown={(e) => e.stopPropagation()}
+        onMouseDown={(e) => e.stopPropagation()}
+      >
+        <div className="paletteTopBar">
+          <div className="bottomSheetHandle" aria-hidden="true" />
+          <button type="button" className="paletteDoneBtn" onClick={() => props.onClose()} aria-label="Close command palette">
+            Done
+          </button>
+        </div>
 
         {showFirstHint ? (
           <div className="paletteFirstHint" role="region" aria-label="Getting started">

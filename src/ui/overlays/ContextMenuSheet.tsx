@@ -15,12 +15,25 @@ export function ContextMenuSheet(props: {
       role="dialog"
       aria-modal="true"
       aria-label={props.ariaLabel}
+      onPointerDown={(e) => {
+        if (e.target === e.currentTarget) props.onClose();
+      }}
       onMouseDown={(e) => {
         if (e.target === e.currentTarget) props.onClose();
       }}
     >
-      <div className="bottomSheet" role="document">
-        <div className="bottomSheetHandle" aria-hidden="true" />
+      <div
+        className="bottomSheet bottomSheetCompact"
+        role="document"
+        onPointerDown={(e) => e.stopPropagation()}
+        onMouseDown={(e) => e.stopPropagation()}
+      >
+        <div className="paletteTopBar">
+          <div className="bottomSheetHandle" aria-hidden="true" />
+          <button type="button" className="paletteDoneBtn" onClick={() => props.onClose()} aria-label="Close menu">
+            Done
+          </button>
+        </div>
         <div style={{ display: "grid", gap: 2 }}>
           {props.items.map((it) => (
             <button
@@ -51,4 +64,3 @@ export function ContextMenuSheet(props: {
     </div>
   );
 }
-

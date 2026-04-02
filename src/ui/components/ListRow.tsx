@@ -22,7 +22,11 @@ export function ListRow(props: {
       tabIndex={0}
       aria-label={props.ariaLabel}
       onClick={(e) => {
-        if (lp.consumeLongPressClick()) return;
+        if (lp.consumeLongPressClick()) {
+          e.preventDefault();
+          e.stopPropagation();
+          return;
+        }
         props.onPress();
       }}
       onKeyDown={(e) => {
@@ -31,7 +35,6 @@ export function ListRow(props: {
       onPointerDown={lp.onPointerDown}
       onPointerUp={lp.onPointerUp}
       onPointerCancel={lp.onPointerCancel}
-      onPointerLeave={lp.onPointerLeave}
       onContextMenu={(e) => {
         if (!props.onLongPress) return;
         e.preventDefault();
