@@ -61,7 +61,8 @@ export function resolvePinnedLandmark(
     if (s) return s;
   }
   if (lm.payload.kind === "screen") {
-    const s = list.find((x) => x.payload.kind === "screen" && x.payload.tab === lm.payload.tab);
+    const screenTab = lm.payload.tab;
+    const s = list.find((x) => x.payload.kind === "screen" && x.payload.tab === screenTab);
     if (s) return s;
   }
 
