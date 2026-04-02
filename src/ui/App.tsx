@@ -11,7 +11,7 @@ import { useLocalStorageState } from "./useLocalStorageState";
 import { CommandPalette } from "./overlays/CommandPalette";
 import { WhereAmIToast } from "./overlays/WhereAmIToast";
 import { Icon } from "./components/Icon";
-import { SettingsSheet } from "./overlays/SettingsSheet";
+import { ContextMenuSheet } from "./overlays/ContextMenuSheet";
 
 type Settings = {
   voiceFeedback: boolean;
@@ -30,8 +30,10 @@ export function App() {
   const [nowPlayingOpen, setNowPlayingOpen] = React.useState(false);
   const [commandOpen, setCommandOpen] = React.useState(false);
   const [whereAmIOpen, setWhereAmIOpen] = React.useState(false);
-  const [settingsOpen, setSettingsOpen] = React.useState(false);
-  const swipeStartRef = React.useRef<{ y: number; x: number; active: boolean } | null>(null);
+  const [contextOpen, setContextOpen] = React.useState(false);
+  const [contextItem, setContextItem] = React.useState<Landmark | null>(null);
+  const [pinError, setPinError] = React.useState(false);
+  const [recentActions, setRecentActions] = React.useState<string[]>([]);
 
   const [settings, setSettings] = useLocalStorageState<Settings>("sa.settings", {
     voiceFeedback: true,
@@ -53,11 +55,6 @@ export function App() {
 
   React.useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
-        e.preventDefault();
-        setCommandOpen(true);
-        return;
-      }
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "w") {
         e.preventDefault();
         setWhereAmIOpen(true);
@@ -69,13 +66,11 @@ export function App() {
         if (active && (active.tagName === "INPUT" || (active as HTMLElement).isContentEditable)) return;
         e.preventDefault();
         setIsPlaying((p) => !p);
-        speak(isPlaying ? "Paused" : "Playing", { enabled: ttsEnabled, rate: ttsRate, priority: "interrupt" });
       }
       if (e.key === "ArrowRight") {
         setTrack((prev) => {
           const idx = mockQueue.findIndex((t) => t.id === prev.id);
           const next = mockQueue[Math.min(mockQueue.length - 1, Math.max(0, idx + 1))] ?? prev;
-          speak(`Next: ${next.title} by ${next.artist}`, { enabled: ttsEnabled, rate: ttsRate, priority: "interrupt" });
           setCurrentTime(0);
           return next;
         });
@@ -84,7 +79,6 @@ export function App() {
         setTrack((prev) => {
           const idx = mockQueue.findIndex((t) => t.id === prev.id);
           const next = mockQueue[Math.max(0, idx - 1)] ?? prev;
-          speak(`Previous: ${next.title} by ${next.artist}`, { enabled: ttsEnabled, rate: ttsRate, priority: "interrupt" });
           setCurrentTime(0);
           return next;
         });
@@ -117,8 +111,15 @@ export function App() {
 
   const addLandmark = (lm: Landmark) => {
     setLandmarks((prev) => {
-      const next = prev.some((x) => x.id === lm.id) ? prev : [...prev, lm].slice(0, 6);
-      speak(`${lm.label} pinned.`, { enabled: ttsEnabled, rate: ttsRate, priority: "interrupt" });
+      setPinError(false);
+      if (prev.some((x) => x.id === lm.id)) return prev;
+      if (prev.length >= 6) {
+        setPinError(true);
+        speak("Remove a pinned item to add more", { enabled: ttsEnabled, rate: ttsRate, priority: "interrupt" });
+        return prev;
+      }
+      const next = [...prev, lm];
+      setRecentActions((a) => [`Pinned: ${lm.label}`, ...a].slice(0, 3));
       return next;
     });
   };
@@ -127,7 +128,7 @@ export function App() {
     setLandmarks((prev) => {
       const removed = prev.find((x) => x.id === id);
       const next = prev.filter((x) => x.id !== id);
-      if (removed) speak(`${removed.label} unpinned.`, { enabled: ttsEnabled, rate: ttsRate, priority: "interrupt" });
+      if (removed) setRecentActions((a) => [`Unpinned: ${removed.label}`, ...a].slice(0, 3));
       return next;
     });
   };
@@ -140,10 +141,8 @@ export function App() {
     if (lm.payload.kind === "search") {
       setTab("search");
       setNowPlayingOpen(false);
-      speak(`Search ${lm.payload.query}`, { enabled: ttsEnabled, rate: ttsRate, priority: "interrupt" });
       return;
     }
-    speak(`Opening ${lm.label}`, { enabled: ttsEnabled, rate: ttsRate, priority: "interrupt" });
   };
 
   const whereAmIText = React.useMemo(() => {
@@ -157,7 +156,6 @@ export function App() {
 
   React.useEffect(() => {
     if (!whereAmIOpen) return;
-    speak(whereAmIText, { enabled: ttsEnabled, rate: ttsRate, priority: "interrupt" });
     const id = window.setTimeout(() => setWhereAmIOpen(false), 4500);
     return () => window.clearTimeout(id);
   }, [whereAmIOpen, whereAmIText, ttsEnabled, ttsRate]);
@@ -178,22 +176,6 @@ export function App() {
           className="screen"
           role="tabpanel"
           aria-label="Spotify content"
-          onTouchStart={(e) => {
-            const t = e.touches[0];
-            if (!t) return;
-            // Primary entry: swipe down from top to open command palette.
-            swipeStartRef.current = { y: t.clientY, x: t.clientX, active: t.clientY < 100 };
-          }}
-          onTouchEnd={(e) => {
-            const start = swipeStartRef.current;
-            swipeStartRef.current = null;
-            if (!start?.active) return;
-            const t = e.changedTouches[0];
-            if (!t) return;
-            const dy = t.clientY - start.y;
-            const dx = t.clientX - start.x;
-            if (dy > 60 && Math.abs(dx) < 60) setCommandOpen(true);
-          }}
         >
           {nowPlayingOpen ? (
             <NowScreen
@@ -206,38 +188,28 @@ export function App() {
               landmarks={landmarks}
               onTogglePlay={() => {
                 setIsPlaying((p) => !p);
-                speak(isPlaying ? "Paused" : "Playing", { enabled: ttsEnabled, rate: ttsRate, priority: "interrupt" });
               }}
               onNext={() => {
                 const idx = mockQueue.findIndex((t) => t.id === track.id);
                 const next = mockQueue[Math.min(mockQueue.length - 1, Math.max(0, idx + 1))] ?? track;
                 setTrack(next);
                 setCurrentTime(0);
-                speak(`Next: ${next.title} by ${next.artist}`, { enabled: ttsEnabled, rate: ttsRate, priority: "interrupt" });
               }}
               onPrevious={() => {
                 const idx = mockQueue.findIndex((t) => t.id === track.id);
                 const prev = mockQueue[Math.max(0, idx - 1)] ?? track;
                 setTrack(prev);
                 setCurrentTime(0);
-                speak(`Previous: ${prev.title} by ${prev.artist}`, { enabled: ttsEnabled, rate: ttsRate, priority: "interrupt" });
               }}
               onShuffleToggle={() => {
                 setShuffle((s) => !s);
-                speak(!shuffle ? "Shuffle on" : "Shuffle off", { enabled: ttsEnabled, rate: ttsRate, priority: "interrupt" });
               }}
               onRepeatToggle={() => {
                 const next: RepeatMode = repeat === "off" ? "all" : repeat === "all" ? "one" : "off";
                 setRepeat(next);
-                speak(next === "all" ? "Repeat all" : next === "one" ? "Repeat one" : "Repeat off", {
-                  enabled: ttsEnabled,
-                  rate: ttsRate,
-                  priority: "interrupt",
-                });
               }}
               onSeek={(t) => {
                 setCurrentTime(t);
-                speak(`Seek ${Math.floor(t / 60)} minutes ${Math.floor(t % 60)} seconds`, { enabled: ttsEnabled, rate: ttsRate, priority: "interrupt" });
               }}
               onCommandPalette={() => setCommandOpen(true)}
               onLandmarkPress={navigateToLandmark}
@@ -255,21 +227,25 @@ export function App() {
             <SearchScreen
               onCommandPalette={() => setCommandOpen(true)}
               tts={{ enabled: ttsEnabled, rate: ttsRate }}
-              onAddLandmark={addLandmark}
+              onAddLandmark={(lm) => {
+                setContextItem(lm);
+                setContextOpen(true);
+              }}
             />
           ) : tab === "library" ? (
             <LibraryScreen
               onCommandPalette={() => setCommandOpen(true)}
               tts={{ enabled: ttsEnabled, rate: ttsRate }}
-              onAddLandmark={addLandmark}
+              onAddLandmark={(lm) => {
+                setContextItem(lm);
+                setContextOpen(true);
+              }}
               landmarks={landmarks}
               onRemoveLandmark={removeLandmark}
             />
           ) : (
             <DiscoverScreen
               onCommandPalette={() => setCommandOpen(true)}
-              onSettings={() => setSettingsOpen(true)}
-              tts={{ enabled: ttsEnabled, rate: ttsRate }}
             />
           )}
         </main>
@@ -312,12 +288,24 @@ export function App() {
           onClose={() => setCommandOpen(false)}
           context={{ tab, track, isPlaying }}
           landmarks={landmarks}
+          recentActions={recentActions}
           onCommand={(cmd) => {
             // Keep it small for MVP; this grows into full spec.
             if (cmd.kind === "nav") onTabChange(cmd.tab);
             if (cmd.kind === "playPause") {
               setIsPlaying((p) => !p);
-              speak(isPlaying ? "Paused" : "Playing", { enabled: ttsEnabled, rate: ttsRate, priority: "interrupt" });
+              setRecentActions((a) => [`${isPlaying ? "Paused" : "Played"}: ${track.title}`, ...a].slice(0, 3));
+            }
+            if (cmd.kind === "skip") {
+              const idx = mockQueue.findIndex((t) => t.id === track.id);
+              const next = mockQueue[Math.min(mockQueue.length - 1, Math.max(0, idx + 1))] ?? track;
+              setTrack(next);
+              setCurrentTime(0);
+              setRecentActions((a) => [`Skipped: ${next.title}`, ...a].slice(0, 3));
+            }
+            if (cmd.kind === "addToQueue") {
+              // MVP stub: no-op until queue mutation is implemented.
+              setRecentActions((a) => [`Added to queue: ${track.title}`, ...a].slice(0, 3));
             }
             if (cmd.kind === "landmark") navigateToLandmark(cmd.landmark);
           }}
@@ -326,12 +314,26 @@ export function App() {
 
         <WhereAmIToast open={whereAmIOpen} text={whereAmIText} />
 
-        <SettingsSheet
-          open={settingsOpen}
-          onClose={() => setSettingsOpen(false)}
-          settings={settings}
-          onSettingsChange={setSettings}
-          tts={{ enabled: ttsEnabled, rate: ttsRate }}
+        <ContextMenuSheet
+          open={contextOpen}
+          onClose={() => setContextOpen(false)}
+          ariaLabel="Context menu"
+          items={
+            contextItem
+              ? [
+                  {
+                    key: "pin",
+                    label: landmarks.some((x) => x.id === contextItem.id) ? "Unpin" : "Pin",
+                    icon: <Icon name="pin" size={18} />,
+                    onSelect: () => {
+                      const already = landmarks.some((x) => x.id === contextItem.id);
+                      if (already) removeLandmark(contextItem.id);
+                      else addLandmark(contextItem);
+                    },
+                  },
+                ]
+              : []
+          }
         />
       </div>
     </div>

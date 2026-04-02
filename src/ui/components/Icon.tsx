@@ -8,6 +8,7 @@ export type IconName =
   | "next"
   | "repeat"
   | "repeatOne"
+  | "pin"
   | "home"
   | "search"
   | "library"
@@ -95,6 +96,13 @@ function Paths({ name }: { name: IconName }) {
           />
           <path d="M12.2 10.1h-1.1l-1 1 .9.9.6-.6V16h1.3v-5.9z" fill="currentColor" />
         </>
+      );
+    case "pin":
+      return (
+        <path
+          d="M14.8 3.6l5.6 5.6-1.4 1.4-1.2-1.2-2 2V14l-2 2v5l-2-2-2 2v-5l-2-2v-2.6l-2-2-1.2 1.2-1.4-1.4 5.6-5.6 1.4 1.4-1.2 1.2 2 2h2.6l2-2-1.2-1.2 1.4-1.4z"
+          fill="currentColor"
+        />
       );
     case "previous":
       return (

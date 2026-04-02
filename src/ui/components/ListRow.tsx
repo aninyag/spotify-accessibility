@@ -32,7 +32,7 @@ export function ListRow(props: {
         {props.thumbText ?? "♪"}
       </div>
       <div>
-        <div className="title">{props.title}</div>
+        <div className="rowPrimary">{props.title}</div>
         {props.subtitle ? (
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 3 }}>
             {props.explicit ? (
@@ -53,7 +53,7 @@ export function ListRow(props: {
                 E
               </div>
             ) : null}
-            <div className="subtitle">{props.subtitle}</div>
+            <div className="rowSecondary">{props.subtitle}</div>
           </div>
         ) : null}
       </div>

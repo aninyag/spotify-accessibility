@@ -3,7 +3,6 @@ import { HeaderBar } from "../components/HeaderBar";
 import { ListRow, trackAriaLabel } from "../components/ListRow";
 import type { Landmark } from "../types";
 import type { Track } from "../types";
-import { speak } from "../tts";
 import { Icon } from "../components/Icon";
 
 const filterOptions = ["All", "Songs", "Artists", "Albums", "Playlists", "Podcasts"] as const;
@@ -36,14 +35,12 @@ export function SearchScreen(props: {
     const q = query.trim();
     if (!q) return;
     setRecents((prev) => [q, ...prev.filter((x) => x.toLowerCase() !== q.toLowerCase())].slice(0, 10));
-    speak(`Searching for ${q}`, { enabled: props.tts.enabled, rate: props.tts.rate, priority: "interrupt" });
-    speak(`${results.length} results for ${q}`, { enabled: props.tts.enabled, rate: props.tts.rate, priority: "queue" });
   };
 
   return (
     <>
       <div className="headerGradient">
-        <HeaderBar title="Search" right={{ label: "Open command palette", onPress: props.onCommandPalette }} />
+        <HeaderBar title="Search" onCommandPalette={props.onCommandPalette} />
         <div className="searchBarWrap" style={{ marginTop: 6 }}>
           <div className="searchIcon" aria-hidden="true" style={{ display: "grid", placeItems: "center" }}>
             <Icon name="search" size={18} />
@@ -62,7 +59,7 @@ export function SearchScreen(props: {
           <button
             type="button"
             aria-label="Voice search. Tap to speak."
-            onClick={() => speak("Listening... (prototype stub)", { enabled: props.tts.enabled, rate: props.tts.rate, priority: "interrupt" })}
+            onClick={() => {}}
             style={{ border: "none", background: "transparent", color: "black", minHeight: 19, padding: 0 }}
           >
             <Icon name="mic" size={18} />
@@ -95,14 +92,14 @@ export function SearchScreen(props: {
           type="button"
           className="cta"
           aria-label="Voice search. Tap to speak."
-          onClick={() => speak("Listening... (prototype stub)", { enabled: props.tts.enabled, rate: props.tts.rate, priority: "interrupt" })}
+          onClick={() => {}}
         >
           <Icon name="mic" size={18} /> Tap to speak
         </button>
 
         {!showResults ? (
           <section aria-label="Category cards">
-            <div className="sectionTitle">Top Songs</div>
+            <div className="sectionHeader">Top songs</div>
             <div className="pillRow" role="tablist" aria-label="Top songs filters" style={{ gap: 24 }}>
               {["All", "Pop", "HipHop"].map((name, idx) => (
                 <button
@@ -135,13 +132,16 @@ export function SearchScreen(props: {
                     thumbText="♪"
                     onPress={() => {
                       setQuery(r);
-                      speak(`Searching for ${r}`, { enabled: props.tts.enabled, rate: props.tts.rate, priority: "interrupt" });
                     }}
                     onLongPress={() => {
-                      setRecents((prev) => prev.filter((x) => x !== r));
-                      speak(`Removed ${r} from recents`, { enabled: props.tts.enabled, rate: props.tts.rate, priority: "interrupt" });
+                      props.onAddLandmark({
+                        id: `lm-${Date.now()}`,
+                        label: `Search: ${r}`,
+                        type: "search",
+                        payload: { kind: "search", query: r },
+                      });
                     }}
-                    onPlayPress={() => speak(`Playing ${r}`, { enabled: props.tts.enabled, rate: props.tts.rate, priority: "interrupt" })}
+                    onPlayPress={() => {}}
                   />
                 ))
               )}
@@ -150,7 +150,7 @@ export function SearchScreen(props: {
         ) : (
           <section aria-label="Results list">
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-              <div className="sectionTitle" style={{ margin: 0, fontSize: 19 }}>Results for “{query.trim()}”</div>
+              <div className="sectionHeader" style={{ marginTop: 0 }}>Results for “{query.trim()}”</div>
               <div className="muted">{results.length}</div>
             </div>
             <div style={{ display: "grid", gap: 2, marginTop: 8 }}>
@@ -160,8 +160,8 @@ export function SearchScreen(props: {
                   title={t.title}
                   subtitle={`${t.artist} · ${filter}`}
                   ariaLabel={trackAriaLabel({ ...t, durationSec: t.durationSec || 180 })}
-                  onPress={() => speak(`Opening ${t.title}`, { enabled: props.tts.enabled, rate: props.tts.rate, priority: "interrupt" })}
-                  onPlayPress={() => speak(`Playing ${t.title} by ${t.artist}`, { enabled: props.tts.enabled, rate: props.tts.rate, priority: "interrupt" })}
+                  onPress={() => {}}
+                  onPlayPress={() => {}}
                   onLongPress={() =>
                     props.onAddLandmark({
                       id: `lm-${Date.now()}`,
@@ -182,7 +182,6 @@ export function SearchScreen(props: {
                 className="ghostBtn"
                 onClick={() => {
                   setQuery("");
-                  speak("Cleared search", { enabled: props.tts.enabled, rate: props.tts.rate, priority: "interrupt" });
                 }}
                 aria-label="Clear search"
               >

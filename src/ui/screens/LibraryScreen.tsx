@@ -2,7 +2,6 @@ import * as React from "react";
 import { HeaderBar } from "../components/HeaderBar";
 import { ListRow } from "../components/ListRow";
 import type { Landmark } from "../types";
-import { speak } from "../tts";
 import { Icon } from "../components/Icon";
 
 const filterOptions = ["Playlists", "Albums", "Artists", "Podcasts", "Downloads"] as const;
@@ -36,14 +35,12 @@ export function LibraryScreen(props: {
   return (
     <>
       <div className="headerGradient">
-        <HeaderBar title="Your Library" right={{ label: "Open command palette", onPress: props.onCommandPalette }} />
+        <HeaderBar title="Your Library" onCommandPalette={props.onCommandPalette} />
       </div>
       <div className="screenInner">
         <section aria-label="Pinned" style={{ marginTop: -6 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-            <div className="sectionTitle" style={{ margin: 0, fontSize: 19 }}>
-              Pinned
-            </div>
+            <div className="sectionHeader" style={{ marginTop: 0 }}>Pinned</div>
             <div className="muted">{props.landmarks.length} / 6</div>
           </div>
           {props.landmarks.length === 0 ? (
@@ -82,7 +79,6 @@ export function LibraryScreen(props: {
                 aria-label={`${opt}. Tab. ${idx + 1} of ${filterOptions.length}. ${filter === opt ? "Selected" : "Not selected"}.`}
                 onClick={() => {
                   setFilter(opt);
-                  speak(`Viewing ${opt}`, { enabled: props.tts.enabled, rate: props.tts.rate, priority: "queue" });
                 }}
               >
                 {opt}
@@ -105,7 +101,6 @@ export function LibraryScreen(props: {
                   const idx = sortOptions.indexOf(sort);
                   const next = sortOptions[(idx + 1) % sortOptions.length];
                   setSort(next);
-                  speak(`Sort ${next}`, { enabled: props.tts.enabled, rate: props.tts.rate, priority: "interrupt" });
                 }}
               >
                 {sort} ▼
@@ -117,7 +112,6 @@ export function LibraryScreen(props: {
               aria-label={`Toggle ${ascending ? "ascending" : "descending"}`}
               onClick={() => {
                 setAscending((a) => !a);
-                speak(ascending ? "Descending" : "Ascending", { enabled: props.tts.enabled, rate: props.tts.rate, priority: "interrupt" });
               }}
             >
               <Icon name="overflow" size={18} />
@@ -126,7 +120,7 @@ export function LibraryScreen(props: {
         </div>
 
         <section aria-label="Library list">
-          <div className="sectionTitle" style={{ margin: 0, fontSize: 19 }}>Recently played</div>
+          <div className="sectionHeader" style={{ marginTop: 0 }}>Recently played</div>
           <div className="muted">{items.length} {filter}</div>
           <div style={{ display: "grid", gap: 2, marginTop: 4 }}>
             {items.map((it) => (
@@ -135,8 +129,8 @@ export function LibraryScreen(props: {
                 title={it.title}
                 subtitle={it.subtitle}
                 ariaLabel={`${it.title}. ${it.subtitle}. Tap to open.`}
-                onPress={() => speak(`Opening ${it.title}`, { enabled: props.tts.enabled, rate: props.tts.rate, priority: "interrupt" })}
-                onPlayPress={() => speak(`Playing ${it.title}`, { enabled: props.tts.enabled, rate: props.tts.rate, priority: "interrupt" })}
+                onPress={() => {}}
+                onPlayPress={() => {}}
                 onLongPress={() =>
                   props.onAddLandmark({
                     id: `lm-${Date.now()}`,

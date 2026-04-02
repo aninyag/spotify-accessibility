@@ -19,8 +19,8 @@
   --overlay-bg: rgba(18, 18, 18, 0.7);
   --border: rgba(255, 255, 255, 0.12);
   --focus: #57b65f;
-  --font-primary: "Avenir Next", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-  --font-secondary: "Open Sans", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --font-primary: "Circular Std", "Circular", -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-secondary: "Circular Std", "Circular", -apple-system, BlinkMacSystemFont, sans-serif;
   --font-system: "SF Pro Text", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
 }
 
@@ -65,6 +65,23 @@ button:focus-visible,
 input:focus-visible {
   outline: 3px solid var(--focus);
   outline-offset: 2px;
+}
+
+.commandPill {
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: transparent;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  justify-self: end;
+  color: white;
+}
+
+.commandPill:active {
+  transform: scale(0.96);
+  opacity: 0.9;
 }
 
 .ghostBtn {
@@ -198,7 +215,7 @@ input:focus-visible {
 
 .headerTitle {
   text-align: left;
-  font-size: 19px;
+  font-size: 22px;
   font-weight: 700;
   line-height: 28px;
 }
@@ -228,14 +245,6 @@ input:focus-visible {
   padding: 0;
 }
 
-.sectionTitle {
-  color: white;
-  font-size: 19px;
-  font-weight: 700;
-  line-height: 28px;
-  margin-bottom: 2px;
-}
-
 .searchBarWrap {
   display: flex;
   align-items: center;
@@ -255,8 +264,8 @@ input:focus-visible {
   flex: 1;
   color: black;
   font-family: var(--font-secondary);
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 16px;
+  font-weight: 400;
 }
 
 .searchMic {
@@ -281,8 +290,8 @@ input:focus-visible {
   background: var(--chip-inactive);
   border: none;
   font-family: var(--font-secondary);
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 13px;
+  font-weight: 400;
   transition: transform 140ms ease, opacity 140ms ease, filter 140ms ease;
 }
 
@@ -314,22 +323,6 @@ input:focus-visible {
   display: grid;
   place-items: center;
   user-select: none;
-}
-
-.title {
-  font-family: var(--font-secondary);
-  font-size: 16px;
-  font-weight: 600;
-  color: white;
-  line-height: 20px;
-}
-
-.subtitle {
-  margin-top: 3px;
-  color: var(--text-secondary);
-  font-family: var(--font-secondary);
-  font-size: 13px;
-  font-weight: 600;
 }
 
 .playBtn {
@@ -394,8 +387,9 @@ input:focus-visible {
 .miniPlayer {
   margin: 0 6px;
   height: 59px;
-  border-radius: 12px;
-  background: var(--now-playing-bg);
+  border-top: 1px solid #282828;
+  border-radius: 0 0 12px 12px;
+  background: #181818;
   padding: 0 16px;
   display: grid;
   grid-template-columns: 37px 1fr auto;
@@ -508,7 +502,8 @@ input:focus-visible {
 
 .navLabel {
   color: var(--text-nav);
-  font-size: 11px;
+  font-size: 10px;
+  font-weight: 400;
   line-height: 14px;
 }
 
@@ -516,47 +511,103 @@ input:focus-visible {
   color: var(--text-secondary);
 }
 
-.overlayBackdrop {
+.bottomSheetBackdrop {
   position: fixed;
   inset: 0;
   display: grid;
-  place-items: start center;
-  background: var(--overlay-bg);
-  padding-top: 40px;
+  align-items: end;
+  justify-items: stretch;
+  background: rgba(0, 0, 0, 0.45);
 }
 
-.overlayBackdrop {
-  padding-top: 0;
+.bottomSheet {
+  height: 85%;
+  background: #121212;
+  padding: 12px 16px 20px;
+  transform: translateY(100%);
+  animation: sheetUp 300ms ease-out forwards;
 }
 
-.overlay {
-  width: 100%;
-  background: var(--bg-elevated);
-  border-radius: 0 0 12px 12px;
-  padding: 16px;
-}
-
-.overlay {
-  transform: translateY(-16px);
-  opacity: 0;
-  animation: sheetDown 180ms ease-out forwards;
-}
-
-@keyframes sheetDown {
+@keyframes sheetUp {
   from {
-    transform: translateY(-18px);
-    opacity: 0;
+    transform: translateY(100%);
   }
   to {
     transform: translateY(0);
-    opacity: 1;
   }
 }
 
-.overlayTitle {
-  margin: 0 0 12px;
-  font-size: 16px;
+.bottomSheetHandle {
+  width: 36px;
+  height: 4px;
+  border-radius: 999px;
+  background: #ffffff26;
+  margin: 0 auto 12px;
+}
+
+.voicePrimary {
+  width: 100%;
+  height: 56px;
+  border-radius: 8px;
+  background: #1db954;
+  color: black;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 16px;
   font-weight: 700;
+}
+
+.voicePlaceholder {
+  color: rgba(0, 0, 0, 0.75);
+  font-weight: 700;
+}
+
+.srLive {
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+.sectionHeader {
+  margin-top: 24px;
+  padding-left: 16px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #b3b3b3;
+}
+
+.spotifyRow {
+  height: 56px;
+  width: calc(100% + 32px);
+  margin: 0 -16px;
+  padding: 0 16px;
+  display: grid;
+  grid-template-columns: 48px 1fr 48px;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  border: none;
+  text-align: left;
+  color: white;
+}
+
+.rowPrimary {
+  font-size: 16px;
+  font-weight: 400;
+  color: #ffffff;
+  line-height: 20px;
+}
+
+.rowSecondary {
+  font-size: 13px;
+  font-weight: 400;
+  color: #b3b3b3;
+  line-height: 16px;
+  margin-top: 2px;
 }
 
 .hint {
@@ -647,10 +698,9 @@ input[type="range"]::-moz-range-thumb {
   .tabBtn {
     transition: none !important;
   }
-  .overlay {
+  .bottomSheet {
     animation: none !important;
     transform: none !important;
-    opacity: 1 !important;
   }
 }
 

@@ -34,7 +34,7 @@ export function NowScreen(props: {
       <div className="headerGradient">
         <HeaderBar
           title="Now Playing"
-          right={{ label: "Open command palette", onPress: props.onCommandPalette }}
+          onCommandPalette={props.onCommandPalette}
         />
       </div>
       <div className="screenInner">
