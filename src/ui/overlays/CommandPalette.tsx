@@ -32,7 +32,11 @@ function PinnedPaletteRow(props: {
       role="button"
       aria-label={`${props.lm.label}, pinned`}
       onClick={(e) => {
-        if (lp.consumeLongPressClick()) {
+        // #region agent log
+        const consumed = lp.consumeLongPressClick();
+        fetch('http://127.0.0.1:7826/ingest/c3338a86-bb45-4dda-9c3f-85734d912ba1',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'e7b35d'},body:JSON.stringify({sessionId:'e7b35d',location:'PinnedPaletteRow:onClick',message:'PinnedPaletteRow clicked',data:{consumed,lmLabel:props.lm.label},timestamp:Date.now(),hypothesisId:'B'})}).catch(()=>{});
+        // #endregion
+        if (consumed) {
           e.preventDefault();
           e.stopPropagation();
           return;
@@ -199,11 +203,17 @@ export function CommandPalette(props: {
   if (!props.open) return null;
 
   const run = (cmd: Command) => {
+    // #region agent log
+    fetch('http://127.0.0.1:7826/ingest/c3338a86-bb45-4dda-9c3f-85734d912ba1',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'e7b35d'},body:JSON.stringify({sessionId:'e7b35d',location:'CommandPalette.tsx:run',message:'run() called',data:{cmdKind:cmd.kind},timestamp:Date.now(),hypothesisId:'A'})}).catch(()=>{});
+    // #endregion
     props.onCommand(cmd);
     props.onClose();
   };
 
   const runPinned = (lm: Landmark) => {
+    // #region agent log
+    fetch('http://127.0.0.1:7826/ingest/c3338a86-bb45-4dda-9c3f-85734d912ba1',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'e7b35d'},body:JSON.stringify({sessionId:'e7b35d',location:'CommandPalette.tsx:runPinned',message:'runPinned() called',data:{lmId:lm.id,lmLabel:lm.label,payloadKind:lm.payload.kind},timestamp:Date.now(),hypothesisId:'E'})}).catch(()=>{});
+    // #endregion
     props.onExecutePinned(lm);
     props.onClose();
   };
@@ -315,7 +325,7 @@ export function CommandPalette(props: {
                   className="spotifyRow"
                   role="button"
                   aria-label={likeLabel}
-                  onClick={() => run({ kind: "like", label: likeLabel })}
+                  onClick={() => { fetch('http://127.0.0.1:7826/ingest/c3338a86-bb45-4dda-9c3f-85734d912ba1',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'e7b35d'},body:JSON.stringify({sessionId:'e7b35d',location:'CommandPalette:quickAction',message:'Quick action Like clicked',data:{likeLabel},timestamp:Date.now(),hypothesisId:'A'})}).catch(()=>{}); run({ kind: "like", label: likeLabel }); }}
                 >
                   <div className="thumb" aria-hidden="true" style={{ display: "grid", placeItems: "center" }}>
                     <Icon name="heart" size={18} />
