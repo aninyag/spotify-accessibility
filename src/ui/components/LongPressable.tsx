@@ -16,7 +16,7 @@ export function LongPressable(props: {
       role={props.role}
       tabIndex={props.onClick || props.onLongPress ? 0 : undefined}
       className={props.className}
-      style={props.style}
+      style={{ touchAction: "manipulation", WebkitTapHighlightColor: "transparent", ...props.style }}
       aria-label={props.ariaLabel}
       onClick={(e) => {
         if (lp.consumeLongPressClick()) {
@@ -30,9 +30,14 @@ export function LongPressable(props: {
         if (!props.onClick) return;
         if (e.key === "Enter" || e.key === " ") props.onClick();
       }}
-      onPointerDown={lp.onPointerDown}
-      onPointerUp={lp.onPointerUp}
-      onPointerCancel={lp.onPointerCancel}
+      onTouchStart={lp.onTouchStart}
+      onTouchMove={lp.onTouchMove}
+      onTouchEnd={lp.onTouchEnd}
+      onTouchCancel={lp.onTouchCancel}
+      onMouseDown={lp.onMouseDown}
+      onMouseMove={lp.onMouseMove}
+      onMouseUp={lp.onMouseUp}
+      onMouseLeave={lp.onMouseLeave}
       onContextMenu={(e) => {
         if (!props.onLongPress) return;
         e.preventDefault();

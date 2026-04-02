@@ -97,7 +97,8 @@ export function NowScreen(props: {
                   type="button"
                   className="iconBtn"
                   aria-label={props.trackLiked ? "Remove like" : "Like"}
-                  onPointerDown={(e) => e.stopPropagation()}
+                  onTouchStart={(e) => e.stopPropagation()}
+                  onMouseDown={(e) => e.stopPropagation()}
                   onClick={(e) => {
                     e.stopPropagation();
                     props.onToggleLike();

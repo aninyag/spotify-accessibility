@@ -39,9 +39,14 @@ function PinnedPaletteRow(props: {
         }
         props.onActivate();
       }}
-      onPointerDown={lp.onPointerDown}
-      onPointerUp={lp.onPointerUp}
-      onPointerCancel={lp.onPointerCancel}
+      onTouchStart={lp.onTouchStart}
+      onTouchMove={lp.onTouchMove}
+      onTouchEnd={lp.onTouchEnd}
+      onTouchCancel={lp.onTouchCancel}
+      onMouseDown={lp.onMouseDown}
+      onMouseMove={lp.onMouseMove}
+      onMouseUp={lp.onMouseUp}
+      onMouseLeave={lp.onMouseLeave}
       onContextMenu={(e) => {
         e.preventDefault();
         props.onLongPress();
@@ -79,9 +84,14 @@ function SearchHitRow(props: {
         }
         props.onPlay();
       }}
-      onPointerDown={lp.onPointerDown}
-      onPointerUp={lp.onPointerUp}
-      onPointerCancel={lp.onPointerCancel}
+      onTouchStart={lp.onTouchStart}
+      onTouchMove={lp.onTouchMove}
+      onTouchEnd={lp.onTouchEnd}
+      onTouchCancel={lp.onTouchCancel}
+      onMouseDown={lp.onMouseDown}
+      onMouseMove={lp.onMouseMove}
+      onMouseUp={lp.onMouseUp}
+      onMouseLeave={lp.onMouseLeave}
       onContextMenu={(e) => {
         e.preventDefault();
         props.onLongPress();

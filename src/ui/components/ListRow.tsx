@@ -32,9 +32,14 @@ export function ListRow(props: {
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") props.onPress();
       }}
-      onPointerDown={lp.onPointerDown}
-      onPointerUp={lp.onPointerUp}
-      onPointerCancel={lp.onPointerCancel}
+      onTouchStart={lp.onTouchStart}
+      onTouchMove={lp.onTouchMove}
+      onTouchEnd={lp.onTouchEnd}
+      onTouchCancel={lp.onTouchCancel}
+      onMouseDown={lp.onMouseDown}
+      onMouseMove={lp.onMouseMove}
+      onMouseUp={lp.onMouseUp}
+      onMouseLeave={lp.onMouseLeave}
       onContextMenu={(e) => {
         if (!props.onLongPress) return;
         e.preventDefault();
@@ -75,7 +80,8 @@ export function ListRow(props: {
           className="playBtn"
           type="button"
           aria-label={`Play ${props.title}`}
-          onPointerDown={(e) => e.stopPropagation()}
+          onTouchStart={(e) => e.stopPropagation()}
+          onMouseDown={(e) => e.stopPropagation()}
           onClick={(e) => (e.stopPropagation(), props.onPlayPress?.())}
         >
           <Icon name="play" size={18} />
