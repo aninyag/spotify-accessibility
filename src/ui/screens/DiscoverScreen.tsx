@@ -4,7 +4,7 @@ import type { ContextTarget, Landmark, Track } from "../types";
 import { Icon } from "../components/Icon";
 import { LongPressable } from "../components/LongPressable";
 import { useLongPress } from "../useLongPress";
-import { axisLocalPng, axisTileFallback, homeLocalPng } from "../axisMedia";
+import { axisLocalPng, axisTileFallback, AXIS_PROFILE_PHOTO_URL, homeLocalPng, ON_REPEAT_COVER_URL } from "../axisMedia";
 import { axisHomeTopSongRows } from "../mockData";
 import { ResilientImg } from "../components/ResilientImg";
 import { useAxisSearchSpeech } from "../useAxisSearchSpeech";
@@ -384,7 +384,7 @@ export function DiscoverScreen(props: {
                 >
                   <div className="homeShortcutArt homeShortcutArtImage" aria-hidden="true">
                     <ResilientImg
-                      primarySrc={homeLocalPng(tile.thumbFile)}
+                      primarySrc={tile.title === "On Repeat" ? ON_REPEAT_COVER_URL : homeLocalPng(tile.thumbFile)}
                       fallbackSrc={axisTileFallback(tile.fallbackSeed, 112)}
                       alt=""
                       className="homeTileThumbImg"

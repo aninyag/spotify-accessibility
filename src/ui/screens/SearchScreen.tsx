@@ -7,6 +7,7 @@ import { ListRow, trackAriaLabel } from "../components/ListRow";
 import { LongPressable } from "../components/LongPressable";
 import type { Track } from "../types";
 import { browseStubTracks } from "../mockData";
+import { AXIS_PROFILE_PHOTO_URL } from "../axisMedia";
 
 const browseTiles = [
   { id: "music", label: "Music", color: "#E9147B" },
@@ -42,7 +43,12 @@ export function SearchScreen(props: {
       <div className="headerPlain">
         <HeaderBar
           title="Search"
-          left={{ kind: "avatar", label: "Open profile", onPress: props.onOpenProfile }}
+          left={{
+            kind: "avatar",
+            label: "Open profile",
+            onPress: props.onOpenProfile,
+            imageSrc: AXIS_PROFILE_PHOTO_URL,
+          }}
           rightIcons={[{ icon: "camera", label: "Camera", onPress: () => {} }]}
           onCommandPalette={props.onCommandPalette}
           showAxisMic={props.axisEnabled}

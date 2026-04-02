@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "sync-assets": "bash scripts/sync-demo-assets.sh"
   },
   "dependencies": {
     "react": "^19.1.1",

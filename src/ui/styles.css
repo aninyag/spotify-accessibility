@@ -1503,6 +1503,12 @@ input[type="range"]::-moz-range-thumb {
   flex-shrink: 0;
 }
 
+.profileMenuAvatarPhoto {
+  background-size: cover;
+  background-position: center top;
+  background-repeat: no-repeat;
+}
+
 .profileMenuInfo {
   flex: 1;
   min-width: 0;

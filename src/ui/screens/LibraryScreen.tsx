@@ -3,6 +3,7 @@ import { HeaderBar } from "../components/HeaderBar";
 import { ListRow } from "../components/ListRow";
 import type { ContextTarget, Landmark } from "../types";
 import { Icon } from "../components/Icon";
+import { AXIS_PROFILE_PHOTO_URL, ON_REPEAT_COVER_URL } from "../axisMedia";
 
 const filterOptions = ["Playlists", "Albums", "Artists", "Podcasts", "Downloads"] as const;
 type Filter = (typeof filterOptions)[number];
@@ -11,6 +12,7 @@ type LibraryItem = { id: string; title: string; subtitle: string; type: Filter }
 
 const mockLibrary: LibraryItem[] = [
   { id: "p1", title: "Liked Songs", subtitle: "324 songs", type: "Playlists" },
+  { id: "p-on-repeat", title: "On Repeat", subtitle: "Songs you love · By Spotify", type: "Playlists" },
   { id: "p2", title: "Chill Vibes", subtitle: "47 songs · By you", type: "Playlists" },
   { id: "p3", title: "Workout Mix", subtitle: "89 songs · By Spotify", type: "Playlists" },
   { id: "p4", title: "Jazz Classics", subtitle: "156 songs · By you", type: "Playlists" },
@@ -41,7 +43,12 @@ export function LibraryScreen(props: {
       <div className="headerPlain">
         <HeaderBar
           title="Your Library"
-          left={{ kind: "avatar", label: "Open profile", onPress: props.onOpenProfile }}
+          left={{
+            kind: "avatar",
+            label: "Open profile",
+            onPress: props.onOpenProfile,
+            imageSrc: AXIS_PROFILE_PHOTO_URL,
+          }}
           rightIcons={[
             { icon: "search", label: "Search", onPress: () => {} },
             { icon: "plusCircle", label: "Create", onPress: () => {} },
@@ -164,6 +171,7 @@ export function LibraryScreen(props: {
                 key={it.id}
                 title={it.title}
                 subtitle={it.subtitle}
+                thumbSrc={it.id === "p-on-repeat" ? ON_REPEAT_COVER_URL : undefined}
                 ariaLabel={`${it.title}. ${it.subtitle}. Tap to open.`}
                 onPress={() => {}}
                 onLongPress={() =>

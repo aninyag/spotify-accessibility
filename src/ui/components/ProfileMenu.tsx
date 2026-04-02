@@ -1,6 +1,7 @@
 import * as React from "react";
 import { Icon, type IconName } from "./Icon";
 import { Toggle } from "./Toggle";
+import { AXIS_PROFILE_PHOTO_URL } from "../axisMedia";
 
 function ProfileMenuItem(props: {
   icon: IconName;
@@ -49,7 +50,11 @@ export function ProfileMenu(props: {
       />
       <div className="profileMenuPanel" role="dialog" aria-modal="true" aria-label="Profile menu">
         <div className="profileMenuHeader">
-          <div className="profileMenuAvatar" aria-hidden="true" />
+          <div
+            className="profileMenuAvatar profileMenuAvatarPhoto"
+            style={{ backgroundImage: `url(${AXIS_PROFILE_PHOTO_URL})` }}
+            aria-hidden="true"
+          />
           <div className="profileMenuInfo">
             <div className="profileMenuName">{name}</div>
             <button type="button" className="profileMenuLink">
