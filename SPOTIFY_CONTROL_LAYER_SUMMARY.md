@@ -119,6 +119,12 @@ Implemented:
   - **Made for you** horizontal row of cards (Spotify-native)
   - **Recommended** list rows
 
+Update:
+- Home is now refit to match the current Spotify Home screenshot structure:
+  - **Chips row**: All / Music / Podcasts / Audiobooks
+  - **2-column shortcuts grid** (56pt tiles)
+  - Next section header rhythm (“Albums featuring songs you like”)
+
 Files:
 - `src/ui/screens/DiscoverScreen.tsx`
 
@@ -190,6 +196,7 @@ Implemented:
 Implemented:
 - `index.html` title changed to **Spotify** (removes “Accessible Mode” label).
 - Header height reduced (`.headerGradient`).
+- Header layout fixed to prevent truncation: `.header { grid-template-columns: auto 1fr auto; }`
 - Typography switched to Spotify-like stack and locked scale:
   - Font stack: `"Circular Std", "Circular", -apple-system, BlinkMacSystemFont, sans-serif`
   - Header title: 22pt/700
@@ -202,6 +209,18 @@ Implemented:
   - Now controls non-primary → min height 56
 - Album art container no longer uses centered “auto” margins; it respects padding-based layout.
 - Bottom sheet overlays are constrained to the device frame (render inside `.app`).
+
+### 10) Dummy content only (no personal/real data)
+
+Implemented:
+- Replaced any real-world titles/names in Home shortcuts and section subtitles with neutral placeholders.
+- Updated default pinned content to generic queries (e.g. “Search: chill”).
+- Removed brand-like/unique mini-player meta text in favor of neutral (“Now playing”).
+
+Files:
+- `src/ui/screens/DiscoverScreen.tsx`
+- `src/ui/mockData.ts`
+- `src/ui/App.tsx`
 
 Files:
 - `index.html`

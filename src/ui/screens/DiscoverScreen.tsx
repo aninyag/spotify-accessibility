@@ -66,11 +66,12 @@ export function DiscoverScreen(props: { onCommandPalette: () => void }) {
                   borderRadius: 8,
                   background: "#2A2A2A",
                   display: "grid",
-                  gridTemplateColumns: "56px 1fr 24px",
+                  gridTemplateColumns: "56px 1fr",
                   alignItems: "center",
                   gap: 10,
-                  paddingRight: 8,
                   textAlign: "left",
+                  position: "relative",
+                  overflow: "hidden",
                 }}
               >
                 <div
@@ -82,16 +83,37 @@ export function DiscoverScreen(props: { onCommandPalette: () => void }) {
                     background: s.artKind === "gradient" ? "linear-gradient(135deg, #6B2AE8, #111)" : "#262626",
                   }}
                 />
-                <div style={{ fontSize: 14, fontWeight: 700, color: "white", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                <div
+                  style={{
+                    fontSize: 14,
+                    fontWeight: 700,
+                    color: "white",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                    paddingRight: idx === 0 ? 28 : 12,
+                  }}
+                >
                   {s.title}
                 </div>
                 {idx === 0 ? (
-                  <div aria-hidden="true" style={{ width: 24, display: "grid", placeItems: "center", color: "#1DB954" }}>
+                  <div
+                    aria-hidden="true"
+                    style={{
+                      position: "absolute",
+                      right: 10,
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      width: 24,
+                      height: 24,
+                      display: "grid",
+                      placeItems: "center",
+                      color: "#1DB954",
+                    }}
+                  >
                     <Icon name="overflow" size={18} />
                   </div>
-                ) : (
-                  <div aria-hidden="true" style={{ width: 24 }} />
-                )}
+                ) : null}
               </button>
             ))}
           </div>
