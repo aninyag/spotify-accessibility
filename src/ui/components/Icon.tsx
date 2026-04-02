@@ -14,6 +14,7 @@ export type IconName =
   | "compass"
   | "help"
   | "mic"
+  | "ring"
   | "chevronRight"
   | "close"
   | "overflow"
@@ -169,6 +170,8 @@ function Paths({ name }: { name: IconName }) {
           <path d="M12 16v3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
         </>
       );
+    case "ring":
+      return <circle cx="12" cy="12" r="8.5" stroke="currentColor" strokeWidth="2" fill="none" opacity="0.9" />;
     case "speaker":
       return (
         <>

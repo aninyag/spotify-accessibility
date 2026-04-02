@@ -11,6 +11,7 @@ import { SupportScreen } from "./screens/SupportScreen";
 import { useLocalStorageState } from "./useLocalStorageState";
 import { CommandPalette } from "./overlays/CommandPalette";
 import { WhereAmIToast } from "./overlays/WhereAmIToast";
+import { Icon } from "./components/Icon";
 
 type Settings = {
   voiceFeedback: boolean;
@@ -274,7 +275,9 @@ export function App() {
           </button>
           <div className="miniControls">
             <button className="miniIcon" type="button" aria-label={isPlaying ? "Pause" : "Play"} onClick={() => setIsPlaying((p) => !p)}>
-              {isPlaying ? "❚❚" : "▶"}
+              <span style={{ color: "var(--spotify-green)" }}>
+                <Icon name={isPlaying ? "pause" : "play"} size={18} />
+              </span>
             </button>
             <button className="miniIcon" type="button" aria-label="Next" onClick={() => {
               const idx = mockQueue.findIndex((t) => t.id === track.id);
@@ -282,7 +285,7 @@ export function App() {
               setTrack(next);
               setCurrentTime(0);
             }}>
-              ⏭
+              <Icon name="next" size={18} />
             </button>
           </div>
         </div>

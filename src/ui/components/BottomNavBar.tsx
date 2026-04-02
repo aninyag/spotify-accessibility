@@ -23,7 +23,7 @@ export function BottomNavBar(props: { currentTab: TabId; onTabChange: (t: TabId)
           onClick={() => props.onTabChange(t.id)}
         >
           <div className="navIcon" aria-hidden="true">
-            <Icon name={t.icon} size={24} />
+            <Icon name={t.icon} size={22} />
           </div>
           <div className="navLabel">{t.label}</div>
         </button>

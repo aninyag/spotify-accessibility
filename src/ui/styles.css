@@ -45,6 +45,12 @@ body {
 a,
 button,
 input {
+  -webkit-tap-highlight-color: transparent;
+}
+
+a,
+button,
+input {
   font: inherit;
   color: inherit;
 }
@@ -110,7 +116,7 @@ input:focus-visible {
 .statusTime {
   position: absolute;
   left: 26px;
-  top: 12px;
+  top: 14px;
   font-size: 15px;
   font-weight: 600;
   line-height: 20px;
@@ -166,18 +172,23 @@ input:focus-visible {
 .screen {
   overflow-y: auto;
   overflow-x: hidden;
-  padding-bottom: 8px;
+  padding-bottom: 12px;
 }
 
 .screenInner {
   padding: 0 16px 12px;
   display: grid;
-  gap: 14px;
+  gap: 24px;
 }
 
 .headerGradient {
+  height: 239px;
   padding: 10px 16px 12px;
   background: radial-gradient(ellipse 89.12% 89.12% at 17.33% -4.18%, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%), var(--bg-elevated);
+  backdrop-filter: blur(100px);
+  display: grid;
+  align-content: start;
+  gap: 10px;
 }
 
 .header {
@@ -202,7 +213,12 @@ input:focus-visible {
   color: var(--text-primary);
   display: grid;
   place-items: center;
-  font-size: 18px;
+  transition: transform 140ms ease, opacity 140ms ease, background-color 140ms ease;
+}
+
+.iconBtn:active {
+  transform: scale(0.96);
+  opacity: 0.9;
 }
 
 .card {
@@ -260,7 +276,7 @@ input:focus-visible {
 .pill {
   white-space: nowrap;
   height: 35px;
-  padding: 8px 18px;
+  padding: 10px 36px 9px 36px;
   min-height: unset;
   border-radius: 40px;
   background: var(--chip-inactive);
@@ -268,6 +284,12 @@ input:focus-visible {
   font-family: var(--font-secondary);
   font-size: 12px;
   font-weight: 600;
+  transition: transform 140ms ease, opacity 140ms ease, filter 140ms ease;
+}
+
+.pill:active {
+  transform: scale(0.985);
+  opacity: 0.92;
 }
 
 .pill[aria-selected="true"] {
@@ -279,13 +301,15 @@ input:focus-visible {
   grid-template-columns: 48px 1fr 46px;
   align-items: center;
   gap: 8px;
-  padding: 16px 0;
+  padding: 16px;
+  margin: 0 -16px;
+  background: var(--bg-elevated);
 }
 
 .thumb {
   width: 48px;
   height: 48px;
-  border-radius: 2px;
+  border-radius: 0;
   background: #262626;
   color: var(--text-secondary);
   display: grid;
@@ -321,10 +345,19 @@ input:focus-visible {
   place-items: center;
 }
 
+.playBtn {
+  transition: transform 140ms ease, opacity 140ms ease;
+}
+
+.playBtn:active {
+  transform: scale(0.97);
+  opacity: 0.92;
+}
+
 .cta {
   min-height: 56px;
   border: none;
-  border-radius: 500px;
+  border-radius: 6px;
   background: var(--spotify-green);
   color: black;
   font-family: var(--font-secondary);
@@ -335,6 +368,15 @@ input:focus-visible {
   align-items: center;
   justify-content: center;
   gap: 10px;
+}
+
+.cta {
+  transition: transform 160ms ease, filter 160ms ease, opacity 160ms ease;
+}
+
+.cta:active {
+  transform: scale(0.985);
+  filter: brightness(0.98);
 }
 
 .field {
@@ -355,11 +397,11 @@ input:focus-visible {
   height: 59px;
   border-radius: 12px;
   background: var(--now-playing-bg);
-  padding: 0 12px;
+  padding: 0 16px;
   display: grid;
   grid-template-columns: 37px 1fr auto;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
 
 .miniThumb {
@@ -396,6 +438,15 @@ input:focus-visible {
   place-items: center;
 }
 
+.miniIcon {
+  transition: transform 140ms ease, opacity 140ms ease;
+}
+
+.miniIcon:active {
+  transform: scale(0.96);
+  opacity: 0.9;
+}
+
 .miniProgress {
   height: 4px;
   border-radius: 4px;
@@ -417,12 +468,28 @@ input:focus-visible {
   grid-template-columns: repeat(5, 1fr);
 }
 
+.bottomNav {
+  height: calc(64px + env(safe-area-inset-bottom));
+  padding: 8px 6px env(safe-area-inset-bottom);
+  align-items: center;
+}
+
 .tabBtn {
   min-height: 58px;
   border: none;
   background: transparent;
   display: grid;
   place-items: center;
+}
+
+.tabBtn {
+  min-height: 64px;
+  transition: transform 140ms ease, opacity 140ms ease;
+}
+
+.tabBtn:active {
+  transform: scale(0.985);
+  opacity: 0.9;
 }
 
 .tabBtn[aria-selected="true"] .navIcon {
@@ -458,11 +525,32 @@ input:focus-visible {
   padding-top: 40px;
 }
 
+.overlayBackdrop {
+  padding-top: 0;
+}
+
 .overlay {
   width: min(428px, calc(100% - 24px));
   background: var(--bg-elevated);
   border-radius: 0 0 12px 12px;
   padding: 16px;
+}
+
+.overlay {
+  transform: translateY(-16px);
+  opacity: 0;
+  animation: sheetDown 180ms ease-out forwards;
+}
+
+@keyframes sheetDown {
+  from {
+    transform: translateY(-18px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 
 .overlayTitle {
@@ -548,5 +636,21 @@ input[type="range"]::-moz-range-thumb {
 
 .toggleSwitchOn .toggleThumb {
   transform: translateX(20px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .iconBtn,
+  .pill,
+  .playBtn,
+  .cta,
+  .miniIcon,
+  .tabBtn {
+    transition: none !important;
+  }
+  .overlay {
+    animation: none !important;
+    transform: none !important;
+    opacity: 1 !important;
+  }
 }
 
