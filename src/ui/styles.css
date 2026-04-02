@@ -920,10 +920,10 @@ input[type="range"]::-moz-range-thumb {
 }
 
 .toastContainer {
-  position: fixed;
+  position: absolute;
+  left: 16px;
+  right: 16px;
   bottom: 112px;
-  left: max(0px, calc(50vw - 196.5px + 16px));
-  width: min(361px, calc(100vw - 32px));
   z-index: 2500;
   display: flex;
   flex-direction: column;
@@ -1209,7 +1209,7 @@ input[type="range"]::-moz-range-thumb {
 }
 
 .axisTutorialOverlay {
-  position: fixed;
+  position: absolute;
   inset: 0;
   background: #000000;
   z-index: 3000;
@@ -1253,6 +1253,10 @@ input[type="range"]::-moz-range-thumb {
 }
 
 .axisTutorialSlide {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
   animation: axisSlideIn 0.4s ease-out;
 }
 
@@ -1280,24 +1284,29 @@ input[type="range"]::-moz-range-thumb {
 }
 
 .axisTutorialTitle {
+  align-self: stretch;
   font-size: 26px;
   font-weight: 700;
   color: white;
   margin: 0 0 14px 0;
   line-height: 1.2;
+  text-align: center;
 }
 
 .axisTutorialDescription {
+  align-self: stretch;
   font-size: 16px;
   font-weight: 400;
   color: #b3b3b3;
   line-height: 1.5;
   margin: 0 0 20px 0;
+  text-align: center;
 }
 
 .axisTutorialExamples {
   display: flex;
   flex-direction: column;
+  align-self: stretch;
   gap: 8px;
   margin-bottom: 20px;
   width: 100%;
@@ -1313,10 +1322,12 @@ input[type="range"]::-moz-range-thumb {
 }
 
 .axisTutorialSubtext {
+  align-self: stretch;
   font-size: 14px;
   color: #6a6a6a;
   line-height: 1.4;
   margin: 0;
+  text-align: center;
 }
 
 .axisTutorialActions {
@@ -1365,18 +1376,19 @@ input[type="range"]::-moz-range-thumb {
 }
 
 .profileMenuBackdrop {
-  position: fixed;
+  position: absolute;
   inset: 0;
   background: rgba(0, 0, 0, 0.5);
   z-index: 2000;
 }
 
 .profileMenuPanel {
-  position: fixed;
+  position: absolute;
   top: 0;
   left: 0;
   bottom: 0;
-  width: min(360px, 88vw);
+  width: min(320px, 88%);
+  max-width: 100%;
   background: #121212;
   z-index: 2001;
   overflow-y: auto;

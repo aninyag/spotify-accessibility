@@ -6,6 +6,7 @@ import { Icon } from "../components/Icon";
 import { ListRow, trackAriaLabel } from "../components/ListRow";
 import { LongPressable } from "../components/LongPressable";
 import type { Track } from "../types";
+import { browseStubTracks } from "../mockData";
 
 const browseTiles = [
   { id: "music", label: "Music", color: "#E9147B" },
@@ -17,12 +18,6 @@ const browseTiles = [
 const videoRails = ["Throwback Thursday", "just hits", "All out 2000s"] as const;
 const episodeRails = ["New releases", "For you", "Trending"] as const;
 
-const topSongs: Track[] = [
-  { id: "s1", title: "Song title one", artist: "Artist A", durationSec: 210 },
-  { id: "s2", title: "Song title two", artist: "Artist B", durationSec: 198 },
-  { id: "s3", title: "Song title three", artist: "Artist C", durationSec: 225 },
-];
-
 export function SearchScreen(props: {
   onCommandPalette: () => void;
   onOpenContext: (target: ContextTarget) => void;
@@ -30,8 +25,17 @@ export function SearchScreen(props: {
   landmarks: Landmark[];
   axisEnabled: boolean;
   onOpenProfile: () => void;
+  /** When set (e.g. from a pinned search), fills the search field once. */
+  searchSeed?: string;
+  onSearchSeedConsumed?: () => void;
 }) {
   const [query, setQuery] = React.useState("");
+
+  React.useEffect(() => {
+    if (props.searchSeed === undefined || props.searchSeed === "") return;
+    setQuery(props.searchSeed);
+    props.onSearchSeedConsumed?.();
+  }, [props.searchSeed, props.onSearchSeedConsumed]);
 
   return (
     <>
@@ -91,7 +95,7 @@ export function SearchScreen(props: {
         <section aria-label="Songs you may know">
           <div className="sectionHeader">Songs</div>
           <div style={{ display: "grid", gap: 2, marginTop: 12 }}>
-            {topSongs.map((t) => {
+            {browseStubTracks.map((t) => {
               const ctx: ContextTarget = {
                 landmark: {
                   id: `lm-search-${t.id}`,

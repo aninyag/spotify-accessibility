@@ -1,11 +1,14 @@
 import * as React from "react";
 import { BottomNavBar } from "./components/BottomNavBar";
 import type { AppAction, ContextTarget, Landmark, RepeatMode, TabId, Track } from "./types";
-import { mockNowPlaying, mockQueue } from "./mockData";
+import { MAX_PINNED_SHORTCUTS } from "./constants";
+import { allKnownTracks, mockNowPlaying, mockQueue } from "./mockData";
+import { browseStubSearchLabel, resolveStubToTrack } from "./stubResolve";
 import { NowScreen } from "./screens/NowScreen";
 import { SearchScreen } from "./screens/SearchScreen";
 import { LibraryScreen } from "./screens/LibraryScreen";
 import { DiscoverScreen } from "./screens/DiscoverScreen";
+import { ArtistScreen } from "./screens/ArtistScreen";
 import { useLocalStorageState } from "./useLocalStorageState";
 import { CommandPalette, type Command } from "./overlays/CommandPalette";
 import { WhereAmIToast } from "./overlays/WhereAmIToast";
@@ -37,7 +40,6 @@ export function App() {
   const [contextOpen, setContextOpen] = React.useState(false);
   const [contextTarget, setContextTarget] = React.useState<ContextTarget | null>(null);
   const [toasts, setToasts] = React.useState<AppToast[]>([]);
-  const [recentActions, setRecentActions] = React.useState<string[]>([]);
   const [queue, setQueue] = React.useState<Track[]>(() => mockQueue.map((t) => ({ ...t })));
   const [likedTrackIds, setLikedTrackIds] = React.useState<string[]>([]);
   const [pinnedFlashId, setPinnedFlashId] = React.useState<string | null>(null);
@@ -49,9 +51,14 @@ export function App() {
   });
 
   const [landmarks, setLandmarks] = useLocalStorageState<Landmark[]>("sa.landmarks", []);
+  React.useEffect(() => {
+    setLandmarks((p) => (p.length > MAX_PINNED_SHORTCUTS ? p.slice(0, MAX_PINNED_SHORTCUTS) : p));
+  }, [setLandmarks]);
   const [axisSettings, setAxisSettings] = useLocalStorageState<AxisSettings>("sa.axis", defaultAxisSettings);
   const [profileMenuOpen, setProfileMenuOpen] = React.useState(false);
   const [axisTutorialOpen, setAxisTutorialOpen] = React.useState(false);
+  const [artistDetailName, setArtistDetailName] = React.useState<string | null>(null);
+  const [searchSeed, setSearchSeed] = React.useState<string | undefined>(undefined);
 
   const [track, setTrack] = React.useState<Track>(mockNowPlaying);
   const [isPlaying, setIsPlaying] = React.useState(false);
@@ -98,13 +105,11 @@ export function App() {
           setTrack(action.payload);
           setIsPlaying(true);
           setCurrentTime(0);
-          setRecentActions((a) => [`Now playing: ${action.payload.title}`, ...a].slice(0, 3));
           break;
         }
         case "ADD_TO_QUEUE": {
           const instance: Track = { ...action.payload, id: `${action.payload.id}-q-${Date.now()}` };
           setQueue((q) => [...q, instance]);
-          setRecentActions((a) => [`Added to queue: ${action.payload.title}`, ...a].slice(0, 3));
           pushToast({ type: "success", message: `Added to queue: ${action.payload.title}` });
           break;
         }
@@ -117,9 +122,12 @@ export function App() {
               }, 0);
               return prev;
             }
-            if (prev.length >= 6) {
+            if (prev.length >= MAX_PINNED_SHORTCUTS) {
               window.setTimeout(() => {
-                pushToast({ type: "error", message: "Maximum 6 pinned items. Remove one first." });
+                pushToast({
+                  type: "error",
+                  message: `Maximum ${MAX_PINNED_SHORTCUTS} pinned shortcuts. Remove one first.`,
+                });
               }, 0);
               return prev;
             }
@@ -130,7 +138,6 @@ export function App() {
             window.setTimeout(() => {
               pushToast({ type: "success", message: `Pinned: ${lm.label}` });
             }, 0);
-            setRecentActions((a) => [`Pinned: ${lm.label}`, ...a].slice(0, 3));
             return [...prev, lm];
           });
           break;
@@ -142,7 +149,6 @@ export function App() {
               window.setTimeout(() => {
                 pushToast({ type: "success", message: `Removed: ${removed.label}` });
               }, 0);
-              setRecentActions((a) => [`Unpinned: ${removed.label}`, ...a].slice(0, 3));
             }
             return prev.filter((x) => x.id !== action.payload.id);
           });
@@ -152,7 +158,6 @@ export function App() {
           setLandmarks((prev) =>
             prev.map((p) => (p.id === action.payload.id ? { ...p, label: action.payload.label } : p)),
           );
-          setRecentActions((a) => [`Renamed to: ${action.payload.label}`, ...a].slice(0, 3));
           break;
         }
         case "MOVE_PINNED": {
@@ -180,14 +185,11 @@ export function App() {
     [dispatch],
   );
 
-  const toggleLike = React.useCallback((trackId: string, title: string) => {
-    let msg = "";
+  const toggleLike = React.useCallback((trackId: string, _title: string) => {
     setLikedTrackIds((prev) => {
       const has = prev.includes(trackId);
-      msg = `${has ? "Removed like" : "Liked"}: ${title}`;
       return has ? prev.filter((x) => x !== trackId) : [...prev, trackId];
     });
-    setRecentActions((a) => [msg, ...a].slice(0, 3));
   }, []);
 
   React.useEffect(() => {
@@ -220,6 +222,7 @@ export function App() {
         });
       }
       if (e.key === "Escape") {
+        setArtistDetailName((prev) => (prev ? null : prev));
         setCommandOpen(false);
         setProfileMenuOpen(false);
         setAxisTutorialOpen(false);
@@ -241,41 +244,70 @@ export function App() {
     return () => window.clearInterval(id);
   }, [isPlaying, track.durationSec]);
 
-  const onTabChange = (t: TabId) => {
+  const onTabChange = React.useCallback((t: TabId) => {
+    setArtistDetailName(null);
     setTab(t);
     setNowPlayingOpen(false);
-  };
+  }, []);
+
+  const clearSearchSeed = React.useCallback(() => setSearchSeed(undefined), []);
 
   const executePinned = React.useCallback(
     (lm: Landmark) => {
       if (lm.payload.kind === "action") {
+        setArtistDetailName(null);
         dispatch({ type: lm.payload.action, payload: lm.payload.target });
         return;
       }
       if (lm.payload.kind === "screen") {
+        setArtistDetailName(null);
         setTab(lm.payload.tab);
         setNowPlayingOpen(false);
         return;
       }
       if (lm.payload.kind === "search") {
+        setArtistDetailName(null);
+        setSearchSeed(lm.payload.query);
         setTab("search");
         setNowPlayingOpen(false);
         return;
       }
+      if (lm.payload.kind === "stub") {
+        setArtistDetailName(null);
+        const ref = lm.payload.ref;
+        const browseLabel = browseStubSearchLabel(ref);
+        if (browseLabel) {
+          setSearchSeed(browseLabel);
+          setTab("search");
+          setNowPlayingOpen(false);
+          return;
+        }
+        const resolved = resolveStubToTrack(ref, queue);
+        if (resolved) {
+          dispatch({ type: "PLAY", payload: resolved });
+          return;
+        }
+        pushToast({ type: "info", message: `Opening ${lm.label}` });
+        setTab("library");
+        setNowPlayingOpen(false);
+        return;
+      }
+      setArtistDetailName(null);
       setTab("library");
       setNowPlayingOpen(false);
     },
-    [dispatch],
+    [dispatch, queue, pushToast],
   );
 
   const whereAmIText = React.useMemo(() => {
     if (nowPlayingOpen) {
       return `Now screen. ${isPlaying ? "Playing" : "Paused"} "${track.title}" by ${track.artist}. ${Math.max(0, track.durationSec - currentTime)} seconds remaining. Queue has ${queue.length} songs.`;
     }
+    if (artistDetailName) return `Artist screen. Viewing ${artistDetailName}.`;
     if (tab === "search") return "Search screen. Type to search.";
     if (tab === "library") return "Library screen. Viewing playlists.";
     return "Home screen.";
-  }, [tab, nowPlayingOpen, isPlaying, track.title, track.artist, track.durationSec, currentTime, queue.length]);
+  }, [tab, nowPlayingOpen, artistDetailName, isPlaying, track.title, track.artist, track.durationSec, currentTime, queue.length]);
 
   React.useEffect(() => {
     if (!whereAmIOpen) return;
@@ -283,14 +315,10 @@ export function App() {
     return () => window.clearTimeout(id);
   }, [whereAmIOpen, whereAmIText, ttsEnabled, ttsRate]);
 
-  const goToArtistFromContext = React.useCallback(
-    (name: string) => {
-      setTab("search");
-      setNowPlayingOpen(false);
-      setRecentActions((a) => [`Go to artist: ${name}`, ...a].slice(0, 3));
-    },
-    [],
-  );
+  const goToArtistFromContext = React.useCallback((name: string) => {
+    setArtistDetailName(name);
+    setNowPlayingOpen(false);
+  }, []);
 
   // ── Context menu items ────────────────────────────────────────────────
 
@@ -328,9 +356,7 @@ export function App() {
         key: "share",
         label: "Share",
         icon: <Icon name="share" size={18} />,
-        onSelect: () => {
-          setRecentActions((a) => [`Shared: ${lm.label}`, ...a].slice(0, 3));
-        },
+        onSelect: () => {},
       },
     ];
 
@@ -432,14 +458,12 @@ export function App() {
       if (cmd.kind === "nav") onTabChange(cmd.tab);
       if (cmd.kind === "playPause") {
         setIsPlaying((p) => !p);
-        setRecentActions((a) => [`${isPlaying ? "Paused" : "Played"}: ${track.title}`, ...a].slice(0, 3));
       }
       if (cmd.kind === "skip") {
         const idx = queue.findIndex((t) => t.id === track.id);
         const next = queue[Math.min(queue.length - 1, Math.max(0, idx + 1))] ?? track;
         setTrack(next);
         setCurrentTime(0);
-        setRecentActions((a) => [`Skipped: ${next.title}`, ...a].slice(0, 3));
       }
       if (cmd.kind === "addToQueue") {
         dispatch({ type: "ADD_TO_QUEUE", payload: track });
@@ -449,35 +473,60 @@ export function App() {
       }
       if (cmd.kind === "landmark") executePinned(cmd.landmark);
       if (cmd.kind === "playPaletteResult") {
+        setArtistDetailName(null);
         dispatch({ type: "PLAY", payload: cmd.hit.playTrack });
       }
       if (cmd.kind === "playLikedSongs") {
-        const liked = queue.find((t) => likedTrackIds.includes(t.id));
-        if (liked) {
-          dispatch({ type: "PLAY", payload: liked });
-        } else {
-          setTab("library");
-          setNowPlayingOpen(false);
-          if (queue[0]) dispatch({ type: "PLAY", payload: queue[0] });
+        const catalog = allKnownTracks(queue);
+        const likedInQueue = queue.filter((t) => likedTrackIds.includes(t.id));
+        if (likedInQueue.length > 0) {
+          setArtistDetailName(null);
+          dispatch({ type: "PLAY", payload: likedInQueue[0] });
+          return;
         }
-        setRecentActions((a) => ["Playing liked songs", ...a].slice(0, 3));
+        const likedAny = catalog.find((t) => likedTrackIds.includes(t.id));
+        if (likedAny) {
+          setArtistDetailName(null);
+          dispatch({ type: "PLAY", payload: likedAny });
+          return;
+        }
+        onTabChange("library");
+        pushToast({
+          type: "info",
+          message: "Heart songs on any track to hear them here.",
+        });
       }
-      if (cmd.kind === "resumeLast") {
+      if (cmd.kind === "openNowPlaying") {
+        setArtistDetailName(null);
+        setNowPlayingOpen(true);
         setIsPlaying(true);
-        setRecentActions((a) => [`Resumed: ${track.title}`, ...a].slice(0, 3));
-      }
-      if (cmd.kind === "goToArtist") {
-        goToArtistFromContext(track.artist);
       }
     },
-    [queue, track, isPlaying, likedTrackIds, dispatch, executePinned, toggleLike, goToArtistFromContext],
+    [queue, track, likedTrackIds, dispatch, executePinned, toggleLike, pushToast, onTabChange],
   );
+
+  const artistTracks = React.useMemo(() => {
+    if (!artistDetailName) return [];
+    const needle = artistDetailName.toLowerCase();
+    return allKnownTracks(queue).filter((t) => t.artist.toLowerCase() === needle);
+  }, [artistDetailName, queue]);
 
   return (
     <div className="appShell">
       <div className="app">
         <main className="screen" role="tabpanel" aria-label="Spotify content">
-          {nowPlayingOpen ? (
+          {artistDetailName ? (
+            <ArtistScreen
+              artistName={artistDetailName}
+              tracks={artistTracks}
+              landmarks={landmarks}
+              axisEnabled={axisEnabled}
+              onBack={() => setArtistDetailName(null)}
+              onPlayTrack={playTrack}
+              onOpenContext={openContext}
+              onCommandPalette={openCommandPalette}
+            />
+          ) : nowPlayingOpen ? (
             <NowScreen
               track={track}
               isPlaying={isPlaying}
@@ -522,6 +571,8 @@ export function App() {
               landmarks={landmarks}
               axisEnabled={axisEnabled}
               onOpenProfile={() => setProfileMenuOpen(true)}
+              searchSeed={searchSeed}
+              onSearchSeedConsumed={clearSearchSeed}
             />
           ) : tab === "library" ? (
             <LibraryScreen
@@ -556,7 +607,10 @@ export function App() {
             type="button"
             style={{ border: "none", background: "transparent", textAlign: "left", padding: 0, minHeight: 0 }}
             aria-label={`Now playing ${track.title} by ${track.artist}`}
-            onClick={() => setNowPlayingOpen(true)}
+            onClick={() => {
+              setArtistDetailName(null);
+              setNowPlayingOpen(true);
+            }}
           >
             <div className="miniTitle">{track.title}</div>
             <div className="miniMeta">Now playing</div>
@@ -594,7 +648,6 @@ export function App() {
             onClose={() => setCommandOpen(false)}
             context={{ tab, track, isPlaying, trackLiked: likedTrackIds.includes(track.id) }}
             landmarks={landmarks}
-            recentActions={recentActions}
             pinnedFlashId={pinnedFlashId}
             onPinnedLongPress={(lm) =>
               openContext({ landmark: lm, menuVariant: "pinned-management" })

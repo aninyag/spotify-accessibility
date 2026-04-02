@@ -15,8 +15,7 @@ export type Command =
   | { kind: "landmark"; landmark: Landmark; label: string }
   | { kind: "playPaletteResult"; hit: PaletteSearchHit }
   | { kind: "playLikedSongs" }
-  | { kind: "resumeLast" }
-  | { kind: "goToArtist" };
+  | { kind: "openNowPlaying" };
 
 function PinnedPaletteRow(props: {
   lm: Landmark;
@@ -53,12 +52,11 @@ function PinnedPaletteRow(props: {
         props.onLongPress();
       }}
     >
-      <div className="thumb" aria-hidden="true">
+      <div className="thumb" aria-hidden="true" style={{ display: "grid", placeItems: "center" }}>
         <Icon name="pin" size={16} />
       </div>
       <div>
         <div className="rowPrimary">{props.lm.label}</div>
-        <div className="rowSecondary">{props.lm.type}</div>
       </div>
       <button
         type="button"
@@ -88,7 +86,7 @@ function SearchHitRow(props: {
       type="button"
       className="spotifyRow"
       role="button"
-      aria-label={`${props.hit.title}. ${props.hit.subtitle}. Tap to play. Long-press to pin.`}
+      aria-label={`${props.hit.title}. Tap to play. Long-press to pin.`}
       onClick={(e) => {
         if (lp.consumeLongPressClick()) {
           e.preventDefault();
@@ -113,7 +111,6 @@ function SearchHitRow(props: {
       <div className="thumb" aria-hidden="true" style={{ background: "#1e3264" }} />
       <div>
         <div className="rowPrimary">{props.hit.title}</div>
-        <div className="rowSecondary">{props.hit.subtitle}</div>
       </div>
       <button
         type="button"
@@ -138,7 +135,6 @@ export function CommandPalette(props: {
   onCommand: (cmd: Command) => void;
   context: { tab: TabId; track: Track; isPlaying: boolean; trackLiked: boolean };
   landmarks: Landmark[];
-  recentActions: string[];
   onPinnedLongPress: (lm: Landmark) => void;
   onOpenContext: (target: ContextTarget) => void;
   onExecutePinned: (lm: Landmark) => void;
@@ -304,10 +300,25 @@ export function CommandPalette(props: {
           </section>
         ) : null}
 
-        <section aria-label="Quick actions for current context" style={{ marginTop: 16 }}>
+        <section aria-label="Pinned" style={{ marginTop: 16 }}>
           <div className="sectionHeader" style={{ marginTop: 0 }}>
-            Quick actions
+            Pinned
           </div>
+          <div style={{ display: "grid", gap: 2, marginTop: 8 }}>
+            {props.landmarks.slice(0, 2).map((lm) => (
+              <PinnedPaletteRow
+                key={lm.id}
+                lm={lm}
+                flash={props.pinnedFlashId === lm.id}
+                onActivate={() => runPinned(lm)}
+                onLongPress={() => props.onPinnedLongPress(lm)}
+              />
+            ))}
+          </div>
+        </section>
+
+        <section aria-label="Quick actions for current context">
+          <div className="sectionHeader">Quick actions</div>
           <div style={{ display: "grid", gap: 2, marginTop: 8 }}>
             {props.context.isPlaying ? (
               <>
@@ -323,7 +334,6 @@ export function CommandPalette(props: {
                   </div>
                   <div>
                     <div className="rowPrimary">{likeLabel}</div>
-                    <div className="rowSecondary">{props.context.track.title}</div>
                   </div>
                   <div aria-hidden="true" style={{ width: 48, display: "grid", placeItems: "center", color: "#b3b3b3" }}>
                     <Icon name="chevronRight" size={18} />
@@ -335,19 +345,6 @@ export function CommandPalette(props: {
                   </div>
                   <div>
                     <div className="rowPrimary">Add to queue</div>
-                    <div className="rowSecondary">{props.context.track.title}</div>
-                  </div>
-                  <div aria-hidden="true" style={{ width: 48, display: "grid", placeItems: "center", color: "#b3b3b3" }}>
-                    <Icon name="chevronRight" size={18} />
-                  </div>
-                </button>
-                <button type="button" className="spotifyRow" role="button" aria-label="Go to artist" onClick={() => run({ kind: "goToArtist" })}>
-                  <div className="thumb" aria-hidden="true" style={{ display: "grid", placeItems: "center" }}>
-                    <Icon name="search" size={18} />
-                  </div>
-                  <div>
-                    <div className="rowPrimary">Go to artist</div>
-                    <div className="rowSecondary">{props.context.track.artist}</div>
                   </div>
                   <div aria-hidden="true" style={{ width: 48, display: "grid", placeItems: "center", color: "#b3b3b3" }}>
                     <Icon name="chevronRight" size={18} />
@@ -362,19 +359,17 @@ export function CommandPalette(props: {
                   </div>
                   <div>
                     <div className="rowPrimary">Play liked songs</div>
-                    <div className="rowSecondary">Your library</div>
                   </div>
                   <div aria-hidden="true" style={{ width: 48, display: "grid", placeItems: "center", color: "#b3b3b3" }}>
                     <Icon name="chevronRight" size={18} />
                   </div>
                 </button>
-                <button type="button" className="spotifyRow" role="button" aria-label="Resume last track" onClick={() => run({ kind: "resumeLast" })}>
+                <button type="button" className="spotifyRow" role="button" aria-label="Open Now playing" onClick={() => run({ kind: "openNowPlaying" })}>
                   <div className="thumb" aria-hidden="true" style={{ display: "grid", placeItems: "center" }}>
                     <Icon name="play" size={18} />
                   </div>
                   <div>
-                    <div className="rowPrimary">Resume last track</div>
-                    <div className="rowSecondary">{props.context.track.title}</div>
+                    <div className="rowPrimary">Open Now playing</div>
                   </div>
                   <div aria-hidden="true" style={{ width: 48, display: "grid", placeItems: "center", color: "#b3b3b3" }}>
                     <Icon name="chevronRight" size={18} />
@@ -397,37 +392,6 @@ export function CommandPalette(props: {
         <div className="srLive" aria-live="polite" aria-atomic="true">
           {listening ? "Listening" : ""}
         </div>
-
-        <section aria-label="Pinned">
-          <div className="sectionHeader">Pinned</div>
-          <div style={{ display: "grid", gap: 2, marginTop: 8 }}>
-            {props.landmarks.slice(0, 6).map((lm) => (
-              <PinnedPaletteRow
-                key={lm.id}
-                lm={lm}
-                flash={props.pinnedFlashId === lm.id}
-                onActivate={() => runPinned(lm)}
-                onLongPress={() => props.onPinnedLongPress(lm)}
-              />
-            ))}
-          </div>
-        </section>
-
-        <section aria-label="Recent actions">
-          <div className="sectionHeader">Recent actions</div>
-          <div style={{ display: "grid", gap: 2, marginTop: 8 }}>
-            {props.recentActions.slice(0, 3).map((a, idx) => (
-              <div key={`${a}-${idx}`} className="spotifyRow" role="group" aria-label={a}>
-                <div className="thumb" aria-hidden="true" />
-                <div>
-                  <div className="rowPrimary">{a}</div>
-                  <div className="rowSecondary">Recent</div>
-                </div>
-                <div aria-hidden="true" style={{ width: 48 }} />
-              </div>
-            ))}
-          </div>
-        </section>
       </div>
     </div>
   );

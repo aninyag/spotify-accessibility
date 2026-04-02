@@ -5,7 +5,7 @@ export function WhereAmIToast(props: { open: boolean; text: string }) {
       role="status"
       aria-live="polite"
       style={{
-        position: "fixed",
+        position: "absolute",
         left: "50%",
         bottom: 84,
         transform: "translateX(-50%)",
