@@ -1,5 +1,6 @@
 import * as React from "react";
 import { HeaderBar } from "../components/HeaderBar";
+import { AxisEntryCard } from "../components/AxisEntryCard";
 import type { ContextTarget } from "../types";
 import { Icon } from "../components/Icon";
 import { LongPressable } from "../components/LongPressable";
@@ -19,7 +20,21 @@ const shortcuts: Shortcut[] = [
   { id: "sc8", title: "Workout", artKind: "cover" },
 ];
 
-export function DiscoverScreen(props: { onCommandPalette: () => void; onOpenContext: (target: ContextTarget) => void }) {
+const recentPlayed = [
+  { id: "rp1", title: "Midnight pulse", subtitle: "Playlist · 2 hr ago" },
+  { id: "rp2", title: "Neon dreams", subtitle: "Album · Yesterday" },
+  { id: "rp3", title: "Lo-fi study", subtitle: "Radio · 3 days ago" },
+];
+
+export function DiscoverScreen(props: {
+  onCommandPalette: () => void;
+  onOpenContext: (target: ContextTarget) => void;
+  onOpenProfile: () => void;
+  axisEnabled: boolean;
+  showAxisEntryCard: boolean;
+  onStartAxisTutorial: () => void;
+  onDismissAxisCard: () => void;
+}) {
   const [chip, setChip] = React.useState<(typeof chips)[number]>("All");
 
   return (
@@ -27,8 +42,9 @@ export function DiscoverScreen(props: { onCommandPalette: () => void; onOpenCont
       <div className="headerPlain">
         <HeaderBar
           title=""
-          left={{ kind: "avatar", label: "Profile" }}
+          left={{ kind: "avatar", label: "Open profile", onPress: props.onOpenProfile }}
           onCommandPalette={props.onCommandPalette}
+          showAxisMic={props.axisEnabled}
         />
         <div className="pillRow" role="tablist" aria-label="Home chips" style={{ marginTop: 10, gap: 10 }}>
           {chips.map((c) => (
@@ -55,8 +71,59 @@ export function DiscoverScreen(props: { onCommandPalette: () => void; onOpenCont
         </div>
       </div>
       <div className="screenInner">
+        <section aria-label="Recently played">
+          <div className="sectionHeader" style={{ marginTop: 0 }}>
+            Recently played
+          </div>
+          <div style={{ display: "grid", gap: 8, marginTop: 8 }}>
+            {recentPlayed.map((r) => (
+              <button
+                key={r.id}
+                type="button"
+                className="homeRecentRow"
+                aria-label={`${r.title}. ${r.subtitle}`}
+              >
+                <div className="homeRecentArt" aria-hidden="true" />
+                <div style={{ textAlign: "left", minWidth: 0 }}>
+                  <div className="rowPrimary">{r.title}</div>
+                  <div className="rowSecondary">{r.subtitle}</div>
+                </div>
+                <div className="homeRecentChevron" aria-hidden="true">
+                  <Icon name="chevronRight" size={18} />
+                </div>
+              </button>
+            ))}
+          </div>
+        </section>
+
+        {props.showAxisEntryCard ? (
+          <AxisEntryCard onStartTutorial={props.onStartAxisTutorial} onDismiss={props.onDismissAxisCard} />
+        ) : null}
+
+        {props.axisEnabled ? (
+          <section aria-label="Axis quick actions">
+            <div className="sectionHeader">Quick actions</div>
+            <div className="axisQuickStrip">
+              <button
+                type="button"
+                className="axisQuickChip"
+                onClick={props.onCommandPalette}
+                aria-label="Open Axis controls"
+              >
+                <Icon name="mic" size={18} />
+                Axis controls
+              </button>
+              <button type="button" className="axisQuickChipMuted" aria-label="Library shortcut (demo)">
+                <Icon name="library" size={18} />
+                Library
+              </button>
+            </div>
+          </section>
+        ) : null}
+
         <section aria-label="Shortcuts">
-          <div style={{ display: "grid", gap: 8 }}>
+          <div className="sectionHeader">{props.axisEnabled ? "Shortcuts" : "Made for you"}</div>
+          <div style={{ display: "grid", gap: 8, marginTop: 8 }}>
             {shortcuts.map((s) => {
               const openCtx = () =>
                 props.onOpenContext({

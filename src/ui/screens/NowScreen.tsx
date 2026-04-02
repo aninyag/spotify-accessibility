@@ -28,6 +28,7 @@ export function NowScreen(props: {
   onPlayTrack: (t: Track) => void;
   onExecutePinned: (lm: Landmark) => void;
   onOpenContext: (target: ContextTarget) => void;
+  axisEnabled: boolean;
 }) {
   const total = props.track.durationSec;
   const current = Math.min(total, Math.max(0, props.currentTimeSec));
@@ -56,6 +57,7 @@ export function NowScreen(props: {
           title="Now Playing"
           left={{ kind: "icon", label: "Back", onPress: props.onBack, icon: "chevronLeft" }}
           onCommandPalette={props.onCommandPalette}
+          showAxisMic={props.axisEnabled}
         />
       </div>
       <div className="screenInner">
@@ -225,7 +227,7 @@ export function NowScreen(props: {
                     title={t.title}
                     subtitle={t.artist}
                     ariaLabel={trackAriaLabel(t)}
-                    pinnedShortcut={isContextPinned(ctx, props.landmarks)}
+                    pinnedShortcut={props.axisEnabled && isContextPinned(ctx, props.landmarks)}
                     onPress={() => props.onPlayTrack(t)}
                     onLongPress={() => props.onOpenContext(ctx)}
                   />
@@ -235,26 +237,28 @@ export function NowScreen(props: {
           ) : null}
         </section>
 
-        <section aria-label="Pinned">
-          <div style={{ fontWeight: 700, marginBottom: 8 }}>Pinned</div>
+        {props.axisEnabled ? (
+          <section aria-label="Pinned">
+            <div style={{ fontWeight: 700, marginBottom: 8 }}>Pinned</div>
 
-          {props.landmarks.length === 0 ? (
-            <div className="muted" style={{ marginTop: 10 }}>Tap ··· on any row to pin it here.</div>
-          ) : (
-            <div style={{ display: "grid", gap: 2, marginTop: 10 }}>
-              {props.landmarks.map((lm, idx) => (
-                <ListRow
-                  key={lm.id}
-                  title={lm.label}
-                  subtitle={lm.type}
-                  ariaLabel={`Pinned item ${idx + 1}: ${lm.label}. ${lm.type}. Tap to open.`}
-                  onPress={() => props.onExecutePinned(lm)}
-                  onLongPress={() => props.onOpenContext({ landmark: lm })}
-                />
-              ))}
-            </div>
-          )}
-        </section>
+            {props.landmarks.length === 0 ? (
+              <div className="muted" style={{ marginTop: 10 }}>Tap ··· on any row to pin it here.</div>
+            ) : (
+              <div style={{ display: "grid", gap: 2, marginTop: 10 }}>
+                {props.landmarks.map((lm, idx) => (
+                  <ListRow
+                    key={lm.id}
+                    title={lm.label}
+                    subtitle={lm.type}
+                    ariaLabel={`Pinned item ${idx + 1}: ${lm.label}. ${lm.type}. Tap to open.`}
+                    onPress={() => props.onExecutePinned(lm)}
+                    onLongPress={() => props.onOpenContext({ landmark: lm })}
+                  />
+                ))}
+              </div>
+            )}
+          </section>
+        ) : null}
       </div>
     </>
   );

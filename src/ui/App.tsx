@@ -13,6 +13,9 @@ import { Icon } from "./components/Icon";
 import { ContextMenuSheet } from "./overlays/ContextMenuSheet";
 import { ToastContainer, type AppToast } from "./components/ToastContainer";
 import { pinningWouldDuplicate, proposedPinId, resolvePinnedLandmark } from "./pinnedUtils";
+import { defaultAxisSettings, type AxisSettings } from "./axisSettings";
+import { AxisTutorial } from "./overlays/AxisTutorial";
+import { ProfileMenu } from "./components/ProfileMenu";
 
 type Settings = {
   voiceFeedback: boolean;
@@ -46,6 +49,9 @@ export function App() {
   });
 
   const [landmarks, setLandmarks] = useLocalStorageState<Landmark[]>("sa.landmarks", []);
+  const [axisSettings, setAxisSettings] = useLocalStorageState<AxisSettings>("sa.axis", defaultAxisSettings);
+  const [profileMenuOpen, setProfileMenuOpen] = React.useState(false);
+  const [axisTutorialOpen, setAxisTutorialOpen] = React.useState(false);
 
   const [track, setTrack] = React.useState<Track>(mockNowPlaying);
   const [isPlaying, setIsPlaying] = React.useState(false);
@@ -55,6 +61,15 @@ export function App() {
 
   const ttsEnabled = settings.voiceFeedback;
   const ttsRate = rateToNumber(settings.voiceRate);
+  const axisEnabled = axisSettings.isEnabled;
+
+  const openCommandPalette = React.useCallback(() => {
+    if (axisSettings.isEnabled) setCommandOpen(true);
+  }, [axisSettings.isEnabled]);
+
+  React.useEffect(() => {
+    if (!axisSettings.isEnabled) setCommandOpen(false);
+  }, [axisSettings.isEnabled]);
 
   const pushToast = React.useCallback((toast: Omit<AppToast, "id">) => {
     const id = `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
@@ -206,6 +221,8 @@ export function App() {
       }
       if (e.key === "Escape") {
         setCommandOpen(false);
+        setProfileMenuOpen(false);
+        setAxisTutorialOpen(false);
       }
     };
 
@@ -281,6 +298,46 @@ export function App() {
     if (!contextTarget) return [];
     const lm = contextTarget.landmark;
     const variant = contextTarget.menuVariant ?? "default";
+
+    const queueArtistShare: Array<{ key: string; label: string; icon: React.ReactNode; onSelect: () => void }> = [
+      {
+        key: "queue",
+        label: "Add to queue",
+        icon: <Icon name="plus" size={18} />,
+        onSelect: () => {
+          const t: Track =
+            contextTarget.queueTrack ?? {
+              id: `row-${lm.id}`,
+              title: lm.label,
+              artist: contextTarget.artistName ?? "Spotify",
+              durationSec: 200,
+            };
+          dispatch({ type: "ADD_TO_QUEUE", payload: t });
+        },
+      },
+      {
+        key: "artist",
+        label: "Go to artist",
+        icon: <Icon name="search" size={18} />,
+        onSelect: () => {
+          const name = contextTarget.artistName ?? lm.label;
+          goToArtistFromContext(name);
+        },
+      },
+      {
+        key: "share",
+        label: "Share",
+        icon: <Icon name="share" size={18} />,
+        onSelect: () => {
+          setRecentActions((a) => [`Shared: ${lm.label}`, ...a].slice(0, 3));
+        },
+      },
+    ];
+
+    if (!axisSettings.isEnabled) {
+      return queueArtistShare;
+    }
+
     const pinnedRow = resolvePinnedLandmark(contextTarget, landmarks);
     const isPinned = !!pinnedRow;
     const stablePinId = proposedPinId(contextTarget);
@@ -363,43 +420,10 @@ export function App() {
       });
     }
 
-    items.push({
-      key: "queue",
-      label: "Add to queue",
-      icon: <Icon name="plus" size={18} />,
-      onSelect: () => {
-        const t: Track =
-          contextTarget.queueTrack ?? {
-            id: `row-${lm.id}`,
-            title: lm.label,
-            artist: contextTarget.artistName ?? "Spotify",
-            durationSec: 200,
-          };
-        dispatch({ type: "ADD_TO_QUEUE", payload: t });
-      },
-    });
-
-    items.push({
-      key: "artist",
-      label: "Go to artist",
-      icon: <Icon name="search" size={18} />,
-      onSelect: () => {
-        const name = contextTarget.artistName ?? lm.label;
-        goToArtistFromContext(name);
-      },
-    });
-
-    items.push({
-      key: "share",
-      label: "Share",
-      icon: <Icon name="share" size={18} />,
-      onSelect: () => {
-        setRecentActions((a) => [`Shared: ${lm.label}`, ...a].slice(0, 3));
-      },
-    });
+    items.push(...queueArtistShare);
 
     return items;
-  }, [contextTarget, landmarks, dispatch, goToArtistFromContext]);
+  }, [contextTarget, landmarks, dispatch, goToArtistFromContext, axisSettings.isEnabled]);
 
   // ── Command handler (called from CommandPalette) ──────────────────────
 
@@ -484,30 +508,45 @@ export function App() {
                 setRepeat(next);
               }}
               onSeek={(t) => setCurrentTime(t)}
-              onCommandPalette={() => setCommandOpen(true)}
+              onCommandPalette={openCommandPalette}
               onPlayTrack={playTrack}
               onExecutePinned={executePinned}
               onOpenContext={openContext}
+              axisEnabled={axisEnabled}
             />
           ) : tab === "search" ? (
             <SearchScreen
-              onCommandPalette={() => setCommandOpen(true)}
+              onCommandPalette={openCommandPalette}
               onOpenContext={openContext}
               onPlayTrack={playTrack}
               landmarks={landmarks}
+              axisEnabled={axisEnabled}
+              onOpenProfile={() => setProfileMenuOpen(true)}
             />
           ) : tab === "library" ? (
             <LibraryScreen
-              onCommandPalette={() => setCommandOpen(true)}
+              onCommandPalette={openCommandPalette}
               landmarks={landmarks}
               onOpenContext={openContext}
               onExecutePinned={executePinned}
               pinnedFlashId={pinnedFlashId}
               onMovePinned={(id, direction) => dispatch({ type: "MOVE_PINNED", payload: { id, direction } })}
               onUnpinPinned={(id) => dispatch({ type: "UNPIN", payload: { id } })}
+              axisEnabled={axisEnabled}
+              onOpenProfile={() => setProfileMenuOpen(true)}
             />
           ) : (
-            <DiscoverScreen onCommandPalette={() => setCommandOpen(true)} onOpenContext={openContext} />
+            <DiscoverScreen
+              onCommandPalette={openCommandPalette}
+              onOpenContext={openContext}
+              onOpenProfile={() => setProfileMenuOpen(true)}
+              axisEnabled={axisEnabled}
+              showAxisEntryCard={!axisSettings.isEnabled && !axisSettings.hasDismissedCard}
+              onStartAxisTutorial={() => setAxisTutorialOpen(true)}
+              onDismissAxisCard={() =>
+                setAxisSettings((s) => ({ ...s, hasDismissedCard: true }))
+              }
+            />
           )}
         </main>
 
@@ -549,20 +588,35 @@ export function App() {
 
         <BottomNavBar currentTab={tab} onTabChange={onTabChange} />
 
-        <CommandPalette
-          open={commandOpen}
-          onClose={() => setCommandOpen(false)}
-          context={{ tab, track, isPlaying, trackLiked: likedTrackIds.includes(track.id) }}
-          landmarks={landmarks}
-          recentActions={recentActions}
-          pinnedFlashId={pinnedFlashId}
-          onPinnedLongPress={(lm) =>
-            openContext({ landmark: lm, menuVariant: "pinned-management" })
-          }
-          onOpenContext={openContext}
-          onCommand={handleCommand}
-          onExecutePinned={executePinned}
-          tts={{ enabled: ttsEnabled, rate: ttsRate }}
+        {axisEnabled ? (
+          <CommandPalette
+            open={commandOpen}
+            onClose={() => setCommandOpen(false)}
+            context={{ tab, track, isPlaying, trackLiked: likedTrackIds.includes(track.id) }}
+            landmarks={landmarks}
+            recentActions={recentActions}
+            pinnedFlashId={pinnedFlashId}
+            onPinnedLongPress={(lm) =>
+              openContext({ landmark: lm, menuVariant: "pinned-management" })
+            }
+            onOpenContext={openContext}
+            onCommand={handleCommand}
+            onExecutePinned={executePinned}
+            tts={{ enabled: ttsEnabled, rate: ttsRate }}
+          />
+        ) : null}
+
+        <ProfileMenu
+          isOpen={profileMenuOpen}
+          onClose={() => setProfileMenuOpen(false)}
+          axisEnabled={axisSettings.isEnabled}
+          onAxisEnabledChange={(enabled) => setAxisSettings((s) => ({ ...s, isEnabled: enabled }))}
+        />
+
+        <AxisTutorial
+          isOpen={axisTutorialOpen}
+          onClose={() => setAxisTutorialOpen(false)}
+          onEnable={() => setAxisSettings((s) => ({ ...s, isEnabled: true, hasSeenTutorial: true }))}
         />
 
         <WhereAmIToast open={whereAmIOpen} text={whereAmIText} />

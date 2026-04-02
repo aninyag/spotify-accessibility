@@ -27,7 +27,12 @@ export type IconName =
   | "heart"
   | "share"
   | "plus"
-  | "speaker";
+  | "speaker"
+  | "sparkles"
+  | "eye"
+  | "eyeOff"
+  | "zap"
+  | "command";
 
 type Props = {
   name: IconName;
@@ -240,6 +245,63 @@ function Paths({ name }: { name: IconName }) {
             strokeLinecap="round"
             fill="none"
           />
+        </>
+      );
+    case "sparkles":
+      return (
+        <>
+          <path d="M12 2l1.35 4.05L17 7l-3.65 1.95L12 13l-1.35-4.05L7 7l3.65-1.95L12 2z" fill="currentColor" />
+          <path
+            d="M19 14l.65 1.95L21 17l-1.35.45L19 19.5l-.65-1.95L17 17l1.35-.45L19 14z"
+            fill="currentColor"
+            opacity="0.9"
+          />
+          <path d="M5 15l.9 2.7 2.8 1-2.8 1L5 22.5 4.1 19.8l-2.8-1 2.8-1L5 15z" fill="currentColor" opacity="0.75" />
+        </>
+      );
+    case "eye":
+      return (
+        <path
+          d="M12 6c3.88 0 7.32 2.17 9 5.5-1.68 3.33-5.12 5.5-9 5.5S4.68 14.83 3 11.5C4.68 8.17 8.12 6 12 6zm0 9a3.5 3.5 0 100-7 3.5 3.5 0 000 7z"
+          fill="currentColor"
+        />
+      );
+    case "eyeOff":
+      return (
+        <>
+          <path
+            d="M3.71 4.29l16 16M6.6 6.6C4.93 7.93 3.62 9.62 2.84 11.5 4.52 14.83 7.96 17 12 17c1.46 0 2.83-.3 4.05-.84M16.9 13.39c.72-.55 1.35-1.2 1.88-1.89C21.32 14.83 18.88 17 12 17"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            fill="none"
+          />
+          <path
+            d="M9.88 9.88A3.44 3.44 0 0112 9c1.93 0 3.5 1.57 3.5 3.5 0 .39-.06.76-.18 1.11"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            fill="none"
+          />
+          <path
+            d="M12 6c3.88 0 7.32 2.17 9 5.5-.35.7-.79 1.36-1.3 1.97M12 6c-1.06 0-2.08.14-3.05.4"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            fill="none"
+            opacity="0.35"
+          />
+        </>
+      );
+    case "zap":
+      return <path d="M13 2L3 14h7l-1 8 11-12h-7l3-8z" fill="currentColor" />;
+    case "command":
+      return (
+        <>
+          <circle cx="7.5" cy="7.5" r="2.5" fill="currentColor" />
+          <circle cx="16.5" cy="7.5" r="2.5" fill="currentColor" />
+          <circle cx="7.5" cy="16.5" r="2.5" fill="currentColor" />
+          <circle cx="16.5" cy="16.5" r="2.5" fill="currentColor" />
         </>
       );
     default:

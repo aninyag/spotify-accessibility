@@ -3,15 +3,32 @@ import { Icon, type IconName } from "./Icon";
 
 export function HeaderBar(props: {
   title: string;
-  left?: { kind: "icon"; label: string; onPress: () => void; icon?: IconName } | { kind: "avatar"; label: string };
+  left?:
+    | { kind: "icon"; label: string; onPress: () => void; icon?: IconName }
+    | { kind: "avatar"; label: string; onPress?: () => void };
   rightIcons?: Array<{ icon: IconName; label: string; onPress: () => void }>;
   onCommandPalette: () => void;
+  /** When false, hides the mic / Axis control entry in the header. */
+  showAxisMic?: boolean;
 }) {
+  const showMic = props.showAxisMic !== false;
+
   return (
     <div className="header">
       {props.left ? (
         props.left.kind === "avatar" ? (
-          <div className="headerAvatar" aria-label={props.left.label} />
+          props.left.onPress ? (
+            <button
+              type="button"
+              className="headerAvatarBtn"
+              aria-label={props.left.label}
+              onClick={props.left.onPress}
+            >
+              <span className="headerAvatar" aria-hidden="true" />
+            </button>
+          ) : (
+            <div className="headerAvatar" aria-label={props.left.label} />
+          )
         ) : (
           <button className="iconBtn" type="button" aria-label={props.left.label} onClick={props.left.onPress}>
             <Icon name={props.left.icon ?? "ring"} size={22} />
@@ -29,17 +46,18 @@ export function HeaderBar(props: {
             <Icon name={it.icon} size={22} />
           </button>
         )) ?? null}
-        <button
-          type="button"
-          className="iconBtn"
-          aria-label="Open command palette"
-          onClick={props.onCommandPalette}
-          data-command-palette-trigger="true"
-        >
-          <Icon name="mic" size={22} />
-        </button>
+        {showMic ? (
+          <button
+            type="button"
+            className="iconBtn"
+            aria-label="Open command palette"
+            onClick={props.onCommandPalette}
+            data-command-palette-trigger="true"
+          >
+            <Icon name="mic" size={22} />
+          </button>
+        ) : null}
       </div>
     </div>
   );
 }
-

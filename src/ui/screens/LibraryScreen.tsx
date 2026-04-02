@@ -24,6 +24,8 @@ export function LibraryScreen(props: {
   pinnedFlashId: string | null;
   onMovePinned: (id: string, direction: "up" | "down") => void;
   onUnpinPinned: (id: string) => void;
+  axisEnabled: boolean;
+  onOpenProfile: () => void;
 }) {
   const [filter, setFilter] = React.useState<Filter>("Playlists");
   const [pinnedEditMode, setPinnedEditMode] = React.useState(false);
@@ -39,16 +41,17 @@ export function LibraryScreen(props: {
       <div className="headerPlain">
         <HeaderBar
           title="Your Library"
-          left={{ kind: "avatar", label: "Profile" }}
+          left={{ kind: "avatar", label: "Open profile", onPress: props.onOpenProfile }}
           rightIcons={[
             { icon: "search", label: "Search", onPress: () => {} },
             { icon: "plusCircle", label: "Create", onPress: () => {} },
           ]}
           onCommandPalette={props.onCommandPalette}
+          showAxisMic={props.axisEnabled}
         />
       </div>
       <div className="screenInner">
-        {props.landmarks.length > 0 ? (
+        {props.axisEnabled && props.landmarks.length > 0 ? (
           <section aria-label="Pinned">
             <div className="sectionHeader pinnedHeaderRow" style={{ marginTop: 0 }}>
               <span>Pinned</span>

@@ -23,7 +23,14 @@ const topSongs: Track[] = [
   { id: "s3", title: "Song title three", artist: "Artist C", durationSec: 225 },
 ];
 
-export function SearchScreen(props: { onCommandPalette: () => void; onOpenContext: (target: ContextTarget) => void; onPlayTrack: (t: Track) => void }) {
+export function SearchScreen(props: {
+  onCommandPalette: () => void;
+  onOpenContext: (target: ContextTarget) => void;
+  onPlayTrack: (t: Track) => void;
+  landmarks: Landmark[];
+  axisEnabled: boolean;
+  onOpenProfile: () => void;
+}) {
   const [query, setQuery] = React.useState("");
 
   return (
@@ -31,9 +38,10 @@ export function SearchScreen(props: { onCommandPalette: () => void; onOpenContex
       <div className="headerPlain">
         <HeaderBar
           title="Search"
-          left={{ kind: "avatar", label: "Profile" }}
+          left={{ kind: "avatar", label: "Open profile", onPress: props.onOpenProfile }}
           rightIcons={[{ icon: "camera", label: "Camera", onPress: () => {} }]}
           onCommandPalette={props.onCommandPalette}
+          showAxisMic={props.axisEnabled}
         />
         <div className="searchBarWrap searchBarWrapSpotify" style={{ marginTop: 10 }}>
           <div className="searchIcon" aria-hidden="true" style={{ display: "grid", placeItems: "center" }}>
@@ -100,7 +108,7 @@ export function SearchScreen(props: { onCommandPalette: () => void; onOpenContex
                   title={t.title}
                   subtitle={t.artist}
                   ariaLabel={trackAriaLabel(t)}
-                  pinnedShortcut={isContextPinned(ctx, props.landmarks)}
+                  pinnedShortcut={props.axisEnabled && isContextPinned(ctx, props.landmarks)}
                   onPress={() => props.onPlayTrack(t)}
                   onLongPress={() => props.onOpenContext(ctx)}
                 />
