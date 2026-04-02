@@ -9,7 +9,7 @@ function getSpeechRecognition(): RecognitionCtor | undefined {
 }
 
 /**
- * Browser speech-to-text for the Axis search field only (does not open command palette).
+ * Browser speech-to-text for search fields and the command palette (does not open this overlay).
  */
 export function useAxisSearchSpeech(onFinalText: (text: string) => void) {
   const [listening, setListening] = React.useState(false);

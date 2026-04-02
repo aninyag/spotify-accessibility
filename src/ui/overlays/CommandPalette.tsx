@@ -5,6 +5,7 @@ import { Icon } from "../components/Icon";
 import { useLongPress } from "../useLongPress";
 import type { PaletteSearchHit } from "../paletteSearch";
 import { filterPaletteSearch } from "../paletteSearch";
+import { useAxisSearchSpeech } from "../useAxisSearchSpeech";
 
 export type Command =
   | { kind: "nav"; tab: TabId; label: string }
@@ -141,19 +142,24 @@ export function CommandPalette(props: {
   pinnedFlashId: string | null;
   tts: { enabled: boolean; rate: number };
 }) {
-  const searchRef = React.useRef<HTMLInputElement | null>(null);
-  const [listening, setListening] = React.useState(false);
+  const saySomethingRef = React.useRef<HTMLButtonElement | null>(null);
   const [searchQuery, setSearchQuery] = React.useState("");
   /** Resets whenever the sheet opens so user testers always see the intro (not persisted). */
   const [hintDismissedThisOpen, setHintDismissedThisOpen] = React.useState(false);
   const sheetRef = React.useRef<HTMLDivElement | null>(null);
 
+  const applyVoiceTranscript = React.useCallback((text: string) => {
+    setSearchQuery(text);
+  }, []);
+
+  const { startListening, listening: speechListening, supported: speechSupported } =
+    useAxisSearchSpeech(applyVoiceTranscript);
+
   React.useEffect(() => {
     if (!props.open) return;
-    setListening(false);
     setSearchQuery("");
     setHintDismissedThisOpen(false);
-    const id = window.setTimeout(() => searchRef.current?.focus(), 0);
+    const id = window.setTimeout(() => saySomethingRef.current?.focus(), 0);
     return () => window.clearTimeout(id);
   }, [props.open]);
 
@@ -211,10 +217,17 @@ export function CommandPalette(props: {
 
   const dismissHint = () => setHintDismissedThisOpen(true);
 
-  const onVoiceTap = () => {
+  const onSaySomething = () => {
     if (showFirstHint) dismissHint();
-    setListening(true);
-    speak("Listening…", { enabled: props.tts.enabled, rate: props.tts.rate, priority: "interrupt" });
+    if (!speechSupported) {
+      speak("Voice is not supported in this browser.", {
+        enabled: props.tts.enabled,
+        rate: props.tts.rate,
+        priority: "interrupt",
+      });
+      return;
+    }
+    startListening();
   };
 
   return (
@@ -246,11 +259,8 @@ export function CommandPalette(props: {
 
         {showFirstHint ? (
           <div className="paletteFirstHint" role="region" aria-label="Getting started">
-            <div className="paletteFirstHintText">Try saying: play your liked songs</div>
+            <div className="paletteFirstHintText">Tap “Say something” and try: jazz, chill, or play your liked songs</div>
             <div className="paletteFirstHintActions">
-              <button type="button" className="paletteHintChip" onClick={() => setSearchQuery("jazz")}>
-                Try typing: jazz
-              </button>
               <button type="button" className="paletteHintChip paletteHintChipMuted" onClick={dismissHint}>
                 Got it
               </button>
@@ -258,23 +268,33 @@ export function CommandPalette(props: {
           </div>
         ) : null}
 
-        <label className="paletteSearchLabel" htmlFor="palette-search">
+        <label className="paletteSearchLabel" htmlFor="palette-say-something">
           Find music &amp; actions
         </label>
-        <input
-          ref={searchRef}
-          id="palette-search"
-          type="search"
-          className="paletteSearchInput"
-          placeholder="Play liked songs or type jazz…"
-          value={searchQuery}
-          onChange={(e) => {
-            setSearchQuery(e.target.value);
-            if (showFirstHint && e.target.value.length > 0) dismissHint();
-          }}
-          aria-label="Search in command palette"
-          autoComplete="off"
-        />
+        <button
+          ref={saySomethingRef}
+          id="palette-say-something"
+          type="button"
+          className={`paletteSaySomethingBtn${!speechSupported ? " paletteSaySomethingBtnUnsupported" : ""}`}
+          onClick={onSaySomething}
+          aria-label={
+            speechSupported
+              ? speechListening
+                ? "Listening…"
+                : "Say something to find music and actions"
+              : "Voice input is not supported in this browser"
+          }
+        >
+          <span className="paletteSaySomethingMic" aria-hidden="true">
+            <Icon name="mic" size={22} />
+          </span>
+          <span className="paletteSaySomethingText">
+            {speechListening ? "Listening…" : searchQuery ? `“${searchQuery}”` : "Say something…"}
+          </span>
+        </button>
+        <div className="srLive" aria-live="polite" aria-atomic="true">
+          {speechListening ? "Listening" : ""}
+        </div>
 
         {searchHits.length > 0 ? (
           <section aria-label="Results" style={{ marginTop: 12 }}>
@@ -380,18 +400,6 @@ export function CommandPalette(props: {
           </div>
         </section>
 
-        <button
-          type="button"
-          className="voicePrimary"
-          style={{ marginTop: 14 }}
-          aria-label="Voice input, tap to speak a command"
-          onClick={onVoiceTap}
-        >
-          <Icon name="mic" size={20} /> <span className="voicePlaceholder">Say something…</span>
-        </button>
-        <div className="srLive" aria-live="polite" aria-atomic="true">
-          {listening ? "Listening" : ""}
-        </div>
       </div>
     </div>
   );
