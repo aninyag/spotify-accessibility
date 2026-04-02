@@ -1,2 +1,2 @@
-/** Shortcuts shown in the command palette and stored under sa.landmarks. */
+/** Max shortcuts in the command palette / Library pinned list (session state). */
 export const MAX_PINNED_SHORTCUTS = 2;

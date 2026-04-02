@@ -9,7 +9,6 @@ import { SearchScreen } from "./screens/SearchScreen";
 import { LibraryScreen } from "./screens/LibraryScreen";
 import { DiscoverScreen } from "./screens/DiscoverScreen";
 import { ArtistScreen } from "./screens/ArtistScreen";
-import { useLocalStorageState } from "./useLocalStorageState";
 import { CommandPalette, type Command } from "./overlays/CommandPalette";
 import { WhereAmIToast } from "./overlays/WhereAmIToast";
 import { Icon } from "./components/Icon";
@@ -44,17 +43,14 @@ export function App() {
   const [likedTrackIds, setLikedTrackIds] = React.useState<string[]>([]);
   const [pinnedFlashId, setPinnedFlashId] = React.useState<string | null>(null);
 
-  const [settings] = useLocalStorageState<Settings>("sa.settings", {
+  const [settings] = React.useState<Settings>({
     voiceFeedback: true,
     voiceRate: "normal",
     announceSongChanges: true,
   });
 
-  const [landmarks, setLandmarks] = useLocalStorageState<Landmark[]>("sa.landmarks", []);
-  React.useEffect(() => {
-    setLandmarks((p) => (p.length > MAX_PINNED_SHORTCUTS ? p.slice(0, MAX_PINNED_SHORTCUTS) : p));
-  }, [setLandmarks]);
-  const [axisSettings, setAxisSettings] = useLocalStorageState<AxisSettings>("sa.axis", defaultAxisSettings);
+  const [landmarks, setLandmarks] = React.useState<Landmark[]>([]);
+  const [axisSettings, setAxisSettings] = React.useState<AxisSettings>(defaultAxisSettings);
   const [profileMenuOpen, setProfileMenuOpen] = React.useState(false);
   const [axisTutorialOpen, setAxisTutorialOpen] = React.useState(false);
   const [artistDetailName, setArtistDetailName] = React.useState<string | null>(null);
@@ -592,11 +588,7 @@ export function App() {
               onOpenContext={openContext}
               onOpenProfile={() => setProfileMenuOpen(true)}
               axisEnabled={axisEnabled}
-              showAxisEntryCard={!axisSettings.isEnabled && !axisSettings.hasDismissedCard}
               onStartAxisTutorial={() => setAxisTutorialOpen(true)}
-              onDismissAxisCard={() =>
-                setAxisSettings((s) => ({ ...s, hasDismissedCard: true }))
-              }
             />
           )}
         </main>

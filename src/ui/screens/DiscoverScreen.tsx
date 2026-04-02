@@ -31,9 +31,7 @@ export function DiscoverScreen(props: {
   onOpenContext: (target: ContextTarget) => void;
   onOpenProfile: () => void;
   axisEnabled: boolean;
-  showAxisEntryCard: boolean;
   onStartAxisTutorial: () => void;
-  onDismissAxisCard: () => void;
 }) {
   const [chip, setChip] = React.useState<(typeof chips)[number]>("All");
 
@@ -96,9 +94,7 @@ export function DiscoverScreen(props: {
           </div>
         </section>
 
-        {props.showAxisEntryCard ? (
-          <AxisEntryCard onStartTutorial={props.onStartAxisTutorial} onDismiss={props.onDismissAxisCard} />
-        ) : null}
+        <AxisEntryCard onStartTutorial={props.onStartAxisTutorial} />
 
         {props.axisEnabled ? (
           <section aria-label="Axis quick actions">
