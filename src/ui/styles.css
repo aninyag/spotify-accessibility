@@ -528,15 +528,13 @@ input:focus-visible {
   color: var(--text-secondary);
 }
 
-.pinErrorBanner {
-  margin: 0 16px 10px;
-  padding: 10px 12px;
-  border-radius: 8px;
-  background: rgba(220, 38, 38, 0.2);
-  border: 1px solid rgba(239, 68, 68, 0.35);
-  color: #fecaca;
-  font-size: 13px;
-  line-height: 18px;
+.rowPinnedBadge {
+  color: var(--spotify-green);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 22px;
+  align-self: center;
 }
 
 .paletteFirstHint {
@@ -921,6 +919,116 @@ input[type="range"]::-moz-range-thumb {
   transform: translateX(20px);
 }
 
+.toastContainer {
+  position: fixed;
+  bottom: 112px;
+  left: max(0px, calc(50vw - 196.5px + 16px));
+  width: min(361px, calc(100vw - 32px));
+  z-index: 2500;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.toast {
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: #282828;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.35;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+  animation: toastIn 0.25s ease-out;
+  border-left: 3px solid var(--text-secondary);
+  pointer-events: auto;
+}
+
+.toast-success {
+  border-left-color: var(--spotify-green);
+}
+
+.toast-error {
+  border-left-color: #ff4b4b;
+}
+
+.toast-info {
+  border-left-color: #3d91f4;
+}
+
+@keyframes toastIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.pinnedHeaderRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 0;
+}
+
+.pinnedEditBtn {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--spotify-green);
+  padding: 4px 8px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  min-height: 32px;
+}
+
+.pinnedEditControls {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-right: 4px;
+}
+
+.pinnedChevronBtn {
+  width: 36px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  color: var(--text-secondary);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.pinnedChevronBtn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.pinnedRowEdit {
+  display: flex;
+  align-items: stretch;
+  gap: 4px;
+}
+
+.pinnedRowEdit .row {
+  flex: 1;
+  min-width: 0;
+}
+
+.pinnedRemoveBtn {
+  width: 44px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  color: #ff4b4b;
+  align-self: center;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .iconBtn,
   .pill,
@@ -933,6 +1041,9 @@ input[type="range"]::-moz-range-thumb {
   .bottomSheet {
     animation: none !important;
     transform: none !important;
+  }
+  .toast {
+    animation: none !important;
   }
 }
 

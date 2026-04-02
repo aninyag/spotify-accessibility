@@ -20,6 +20,8 @@ export type IconName =
   | "ring"
   | "chevronRight"
   | "chevronLeft"
+  | "chevronUp"
+  | "chevronDown"
   | "close"
   | "overflow"
   | "heart"
@@ -102,11 +104,14 @@ function Paths({ name }: { name: IconName }) {
         </>
       );
     case "pin":
+      // Solid pushpin / thumbtack silhouette (not a map marker); rotated ~40° so needle aims bottom-left.
       return (
-        <path
-          d="M14.8 3.6l5.6 5.6-1.4 1.4-1.2-1.2-2 2V14l-2 2v5l-2-2-2 2v-5l-2-2v-2.6l-2-2-1.2 1.2-1.4-1.4 5.6-5.6 1.4 1.4-1.2 1.2 2 2h2.6l2-2-1.2-1.2 1.4-1.4z"
-          fill="currentColor"
-        />
+        <g transform="translate(12 12) rotate(-39) scale(0.9) translate(-12 -12)">
+          <path
+            fill="currentColor"
+            d="M12 3.35C14.75 3.35 16.8 5.45 16.8 7.9 16.8 9.05 16.35 10.1 15.5 10.85 16.98 11.18 17.95 12.18 17.95 13.47 17.95 14.15 17.28 14.83 15.92 15.27L13.32 15.86 12 21.4 10.68 15.86 8.08 15.27C6.72 14.83 6.05 14.15 6.05 13.47 6.05 12.18 7.02 11.18 8.5 10.85 7.65 10.1 7.2 9.05 7.2 7.9 7.2 5.45 9.25 3.35 12 3.35Z"
+          />
+        </g>
       );
     case "previous":
       return (
@@ -134,6 +139,10 @@ function Paths({ name }: { name: IconName }) {
       return <path d="M10 6l6 6-6 6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" fill="none" />;
     case "chevronLeft":
       return <path d="M14 6l-6 6 6 6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" fill="none" />;
+    case "chevronUp":
+      return <path d="M6 14l6-6 6 6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" fill="none" />;
+    case "chevronDown":
+      return <path d="M6 10l6 6 6-6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" fill="none" />;
     case "close":
       return (
         <path

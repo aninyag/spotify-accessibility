@@ -5,6 +5,7 @@ import { formatTime } from "../a11y";
 import { Icon } from "../components/Icon";
 import { ListRow, trackAriaLabel } from "../components/ListRow";
 import { LongPressable } from "../components/LongPressable";
+import { isContextPinned } from "../pinnedUtils";
 
 export function NowScreen(props: {
   track: Track;
@@ -207,27 +208,29 @@ export function NowScreen(props: {
           </div>
           {upcoming.length > 0 ? (
             <div style={{ marginTop: 10, display: "grid", gap: 2 }}>
-              {upcoming.map((t) => (
-                <ListRow
-                  key={t.id}
-                  title={t.title}
-                  subtitle={t.artist}
-                  ariaLabel={trackAriaLabel(t)}
-                  onPress={() => props.onPlayTrack(t)}
-                  onLongPress={() =>
-                    props.onOpenContext({
-                      landmark: {
-                        id: `lm-queue-${t.id}`,
-                        label: t.title,
-                        type: "album",
-                        payload: { kind: "stub", ref: t.id },
-                      },
-                      queueTrack: t,
-                      artistName: t.artist,
-                    })
-                  }
-                />
-              ))}
+              {upcoming.map((t) => {
+                const ctx: ContextTarget = {
+                  landmark: {
+                    id: `lm-queue-${t.id}`,
+                    label: t.title,
+                    type: "album",
+                    payload: { kind: "stub", ref: t.id },
+                  },
+                  queueTrack: t,
+                  artistName: t.artist,
+                };
+                return (
+                  <ListRow
+                    key={t.id}
+                    title={t.title}
+                    subtitle={t.artist}
+                    ariaLabel={trackAriaLabel(t)}
+                    pinnedShortcut={isContextPinned(ctx, props.landmarks)}
+                    onPress={() => props.onPlayTrack(t)}
+                    onLongPress={() => props.onOpenContext(ctx)}
+                  />
+                );
+              })}
             </div>
           ) : null}
         </section>

@@ -11,6 +11,8 @@ import { CommandPalette, type Command } from "./overlays/CommandPalette";
 import { WhereAmIToast } from "./overlays/WhereAmIToast";
 import { Icon } from "./components/Icon";
 import { ContextMenuSheet } from "./overlays/ContextMenuSheet";
+import { ToastContainer, type AppToast } from "./components/ToastContainer";
+import { pinningWouldDuplicate, proposedPinId, resolvePinnedLandmark } from "./pinnedUtils";
 
 type Settings = {
   voiceFeedback: boolean;
@@ -24,39 +26,6 @@ function rateToNumber(r: Settings["voiceRate"]) {
   return 1.05;
 }
 
-/** Stable id used when pinning this context (must match `isPinned` / unpin target). */
-function proposedPinId(target: ContextTarget): string {
-  if (target.queueTrack) return `pin-track-${target.queueTrack.id}`;
-  const lm = target.landmark;
-  // Library / Palette pass the stored shortcut row: id is already `pin-track-*` or `pin-lm-*`.
-  if (lm.payload.kind === "action" && lm.payload.action === "PLAY") {
-    return `pin-track-${lm.payload.target.id}`;
-  }
-  if (lm.id.startsWith("pin-")) return lm.id;
-  return `pin-${lm.id}`;
-}
-
-/** Stored shortcut row for this context (by stable id, or legacy PLAY same track). */
-function resolvePinnedLandmark(target: ContextTarget, list: Landmark[]): Landmark | undefined {
-  const wantId = proposedPinId(target);
-  const byId = list.find((x) => x.id === wantId);
-  if (byId) return byId;
-  const trackId =
-    target.queueTrack?.id ??
-    (target.landmark.payload.kind === "action" && target.landmark.payload.action === "PLAY"
-      ? target.landmark.payload.target.id
-      : undefined);
-  if (trackId) {
-    return list.find(
-      (x) =>
-        x.payload.kind === "action" &&
-        x.payload.action === "PLAY" &&
-        x.payload.target.id === trackId,
-    );
-  }
-  return undefined;
-}
-
 export function App() {
   const [tab, setTab] = React.useState<TabId>("home");
   const [nowPlayingOpen, setNowPlayingOpen] = React.useState(false);
@@ -64,7 +33,7 @@ export function App() {
   const [whereAmIOpen, setWhereAmIOpen] = React.useState(false);
   const [contextOpen, setContextOpen] = React.useState(false);
   const [contextTarget, setContextTarget] = React.useState<ContextTarget | null>(null);
-  const [pinError, setPinError] = React.useState(false);
+  const [toasts, setToasts] = React.useState<AppToast[]>([]);
   const [recentActions, setRecentActions] = React.useState<string[]>([]);
   const [queue, setQueue] = React.useState<Track[]>(() => mockQueue.map((t) => ({ ...t })));
   const [likedTrackIds, setLikedTrackIds] = React.useState<string[]>([]);
@@ -87,10 +56,15 @@ export function App() {
   const ttsEnabled = settings.voiceFeedback;
   const ttsRate = rateToNumber(settings.voiceRate);
 
+  const pushToast = React.useCallback((toast: Omit<AppToast, "id">) => {
+    const id = `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+    setToasts((prev) => [...prev, { ...toast, id }]);
+    window.setTimeout(() => {
+      setToasts((prev) => prev.filter((t) => t.id !== id));
+    }, 3200);
+  }, []);
+
   const openContext = React.useCallback((target: ContextTarget) => {
-    // #region agent log
-    fetch('http://127.0.0.1:7826/ingest/c3338a86-bb45-4dda-9c3f-85734d912ba1',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'e7b35d'},body:JSON.stringify({sessionId:'e7b35d',location:'App.tsx:openContext',message:'openContext called',data:{lmId:target.landmark.id,lmLabel:target.landmark.label,hasTrack:!!target.queueTrack},timestamp:Date.now(),hypothesisId:'I'})}).catch(()=>{});
-    // #endregion
     setContextTarget(target);
     setContextOpen(true);
   }, []);
@@ -104,11 +78,6 @@ export function App() {
 
   const dispatch = React.useCallback(
     (action: AppAction) => {
-      console.log("ACTION:", action);
-      // #region agent log
-      fetch('http://127.0.0.1:7826/ingest/c3338a86-bb45-4dda-9c3f-85734d912ba1',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'e7b35d'},body:JSON.stringify({sessionId:'e7b35d',location:'App.tsx:dispatch',message:'dispatch called',data:{type:action.type,payloadTitle:(action.payload as any)?.title||(action.payload as any)?.id||''},timestamp:Date.now(),hypothesisId:'C'})}).catch(()=>{});
-      // #endregion
-
       switch (action.type) {
         case "PLAY": {
           setTrack(action.payload);
@@ -121,36 +90,30 @@ export function App() {
           const instance: Track = { ...action.payload, id: `${action.payload.id}-q-${Date.now()}` };
           setQueue((q) => [...q, instance]);
           setRecentActions((a) => [`Added to queue: ${action.payload.title}`, ...a].slice(0, 3));
+          pushToast({ type: "success", message: `Added to queue: ${action.payload.title}` });
           break;
         }
         case "PIN": {
+          const lm = action.payload;
           setLandmarks((prev) => {
-            setPinError(false);
-            if (prev.some((x) => x.id === action.payload.id)) return prev;
-            if (
-              action.payload.payload.kind === "action" &&
-              action.payload.payload.action === "PLAY"
-            ) {
-              const tid = action.payload.payload.target.id;
-              if (
-                prev.some(
-                  (x) =>
-                    x.payload.kind === "action" &&
-                    x.payload.action === "PLAY" &&
-                    x.payload.target.id === tid,
-                )
-              ) {
-                return prev;
-              }
-            }
-            if (prev.length >= 6) {
-              setPinError(true);
+            if (pinningWouldDuplicate(prev, lm)) {
+              window.setTimeout(() => {
+                pushToast({ type: "info", message: `"${lm.label}" is already pinned` });
+              }, 0);
               return prev;
             }
-            const lm = action.payload;
+            if (prev.length >= 6) {
+              window.setTimeout(() => {
+                pushToast({ type: "error", message: "Maximum 6 pinned items. Remove one first." });
+              }, 0);
+              return prev;
+            }
             window.setTimeout(() => {
               setPinnedFlashId(lm.id);
               window.setTimeout(() => setPinnedFlashId(null), 1800);
+            }, 0);
+            window.setTimeout(() => {
+              pushToast({ type: "success", message: `Pinned: ${lm.label}` });
             }, 0);
             setRecentActions((a) => [`Pinned: ${lm.label}`, ...a].slice(0, 3));
             return [...prev, lm];
@@ -160,7 +123,12 @@ export function App() {
         case "UNPIN": {
           setLandmarks((prev) => {
             const removed = prev.find((x) => x.id === action.payload.id);
-            if (removed) setRecentActions((a) => [`Unpinned: ${removed.label}`, ...a].slice(0, 3));
+            if (removed) {
+              window.setTimeout(() => {
+                pushToast({ type: "success", message: `Removed: ${removed.label}` });
+              }, 0);
+              setRecentActions((a) => [`Unpinned: ${removed.label}`, ...a].slice(0, 3));
+            }
             return prev.filter((x) => x.id !== action.payload.id);
           });
           break;
@@ -172,12 +140,23 @@ export function App() {
           setRecentActions((a) => [`Renamed to: ${action.payload.label}`, ...a].slice(0, 3));
           break;
         }
+        case "MOVE_PINNED": {
+          const { id, direction } = action.payload;
+          setLandmarks((prev) => {
+            const i = prev.findIndex((x) => x.id === id);
+            if (i < 0) return prev;
+            const j = direction === "up" ? i - 1 : i + 1;
+            if (j < 0 || j >= prev.length) return prev;
+            const next = [...prev];
+            [next[i], next[j]] = [next[j], next[i]];
+            return next;
+          });
+          break;
+        }
       }
     },
-    [setLandmarks],
+    [setLandmarks, pushToast],
   );
-
-  console.log("STATE:", { track: track.title, isPlaying, queue: queue.length, pinned: landmarks.length });
 
   // ── Helpers that call dispatch ────────────────────────────────────────
 
@@ -195,12 +174,6 @@ export function App() {
     });
     setRecentActions((a) => [msg, ...a].slice(0, 3));
   }, []);
-
-  React.useEffect(() => {
-    if (!pinError) return;
-    const id = window.setTimeout(() => setPinError(false), 5000);
-    return () => window.clearTimeout(id);
-  }, [pinError]);
 
   React.useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -258,16 +231,13 @@ export function App() {
 
   const executePinned = React.useCallback(
     (lm: Landmark) => {
-      console.log("EXECUTE PINNED:", lm);
-      // #region agent log
-      fetch('http://127.0.0.1:7826/ingest/c3338a86-bb45-4dda-9c3f-85734d912ba1',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'e7b35d'},body:JSON.stringify({sessionId:'e7b35d',location:'App.tsx:executePinned',message:'executePinned called',data:{lmId:lm.id,lmLabel:lm.label,payloadKind:lm.payload.kind},timestamp:Date.now(),hypothesisId:'E'})}).catch(()=>{});
-      // #endregion
       if (lm.payload.kind === "action") {
         dispatch({ type: lm.payload.action, payload: lm.payload.target });
         return;
       }
       if (lm.payload.kind === "screen") {
-        onTabChange(lm.payload.tab);
+        setTab(lm.payload.tab);
+        setNowPlayingOpen(false);
         return;
       }
       if (lm.payload.kind === "search") {
@@ -275,7 +245,6 @@ export function App() {
         setNowPlayingOpen(false);
         return;
       }
-      // stub payloads — navigate to library as a fallback
       setTab("library");
       setNowPlayingOpen(false);
     },
@@ -311,21 +280,58 @@ export function App() {
   const contextMenuItems = React.useMemo(() => {
     if (!contextTarget) return [];
     const lm = contextTarget.landmark;
+    const variant = contextTarget.menuVariant ?? "default";
     const pinnedRow = resolvePinnedLandmark(contextTarget, landmarks);
     const isPinned = !!pinnedRow;
     const stablePinId = proposedPinId(contextTarget);
-    // #region agent log
-    fetch('http://127.0.0.1:7826/ingest/c3338a86-bb45-4dda-9c3f-85734d912ba1',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'e7b35d'},body:JSON.stringify({sessionId:'e7b35d',location:'App.tsx:contextMenuItems',message:'Building context menu',data:{lmId:lm.id,isPinned,stablePinId,resolvedPinnedId:pinnedRow?.id,pinnedIds:landmarks.map(x=>x.id),pinnedCount:landmarks.length,runId:'post-fix'},timestamp:Date.now(),hypothesisId:'F'})}).catch(()=>{});
-    // #endregion
+    const pinnedIndex =
+      pinnedRow !== undefined ? landmarks.findIndex((x) => x.id === pinnedRow.id) : -1;
 
     const items: Array<{ key: string; label: string; icon: React.ReactNode; onSelect: () => void }> = [];
+
+    if (variant === "pinned-management" && pinnedRow && pinnedIndex >= 0) {
+      if (pinnedIndex > 0) {
+        items.push({
+          key: "move-up",
+          label: "Move up",
+          icon: <Icon name="chevronUp" size={18} />,
+          onSelect: () => dispatch({ type: "MOVE_PINNED", payload: { id: pinnedRow.id, direction: "up" } }),
+        });
+      }
+      if (pinnedIndex < landmarks.length - 1) {
+        items.push({
+          key: "move-down",
+          label: "Move down",
+          icon: <Icon name="chevronDown" size={18} />,
+          onSelect: () => dispatch({ type: "MOVE_PINNED", payload: { id: pinnedRow.id, direction: "down" } }),
+        });
+      }
+      items.push({
+        key: "rename",
+        label: "Rename",
+        icon: <Icon name="plus" size={18} />,
+        onSelect: () => {
+          const newLabel = window.prompt("Rename shortcut", pinnedRow.label);
+          if (newLabel && newLabel.trim()) {
+            dispatch({ type: "RENAME_PINNED", payload: { id: pinnedRow.id, label: newLabel.trim() } });
+          }
+        },
+      });
+      items.push({
+        key: "remove",
+        label: "Remove from pinned",
+        icon: <Icon name="pin" size={18} />,
+        onSelect: () => dispatch({ type: "UNPIN", payload: { id: pinnedRow.id } }),
+      });
+      return items;
+    }
 
     if (isPinned && pinnedRow) {
       items.push({
         key: "unpin",
         label: "Unpin",
         icon: <Icon name="pin" size={18} />,
-        onSelect: () => { fetch('http://127.0.0.1:7826/ingest/c3338a86-bb45-4dda-9c3f-85734d912ba1',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'e7b35d'},body:JSON.stringify({sessionId:'e7b35d',location:'App.tsx:unpin',message:'Unpin clicked',data:{lmId:lm.id,unpinId:pinnedRow.id,runId:'post-fix'},timestamp:Date.now(),hypothesisId:'G'})}).catch(()=>{}); dispatch({ type: "UNPIN", payload: { id: pinnedRow.id } }); },
+        onSelect: () => dispatch({ type: "UNPIN", payload: { id: pinnedRow.id } }),
       });
       items.push({
         key: "rename",
@@ -353,12 +359,7 @@ export function App() {
         key: "save-shortcut",
         label: "Save as shortcut",
         icon: <Icon name="pin" size={18} />,
-        onSelect: () => {
-          // #region agent log
-          fetch('http://127.0.0.1:7826/ingest/c3338a86-bb45-4dda-9c3f-85734d912ba1',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'e7b35d'},body:JSON.stringify({sessionId:'e7b35d',location:'App.tsx:saveAsShortcut',message:'Save as shortcut clicked',data:{pinId:pinLandmark.id,pinLabel:pinLandmark.label},timestamp:Date.now(),hypothesisId:'G'})}).catch(()=>{});
-          // #endregion
-          dispatch({ type: "PIN", payload: pinLandmark });
-        },
+        onSelect: () => dispatch({ type: "PIN", payload: pinLandmark }),
       });
     }
 
@@ -404,9 +405,6 @@ export function App() {
 
   const handleCommand = React.useCallback(
     (cmd: Command) => {
-      // #region agent log
-      fetch('http://127.0.0.1:7826/ingest/c3338a86-bb45-4dda-9c3f-85734d912ba1',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'e7b35d'},body:JSON.stringify({sessionId:'e7b35d',location:'App.tsx:handleCommand',message:'handleCommand called',data:{cmdKind:cmd.kind},timestamp:Date.now(),hypothesisId:'C'})}).catch(()=>{});
-      // #endregion
       if (cmd.kind === "nav") onTabChange(cmd.tab);
       if (cmd.kind === "playPause") {
         setIsPlaying((p) => !p);
@@ -455,11 +453,6 @@ export function App() {
     <div className="appShell">
       <div className="app">
         <main className="screen" role="tabpanel" aria-label="Spotify content">
-          {pinError ? (
-            <div className="pinErrorBanner" role="alert">
-              Maximum 6 pinned items. Unpin one in the menu to add another.
-            </div>
-          ) : null}
           {nowPlayingOpen ? (
             <NowScreen
               track={track}
@@ -501,6 +494,7 @@ export function App() {
               onCommandPalette={() => setCommandOpen(true)}
               onOpenContext={openContext}
               onPlayTrack={playTrack}
+              landmarks={landmarks}
             />
           ) : tab === "library" ? (
             <LibraryScreen
@@ -509,6 +503,8 @@ export function App() {
               onOpenContext={openContext}
               onExecutePinned={executePinned}
               pinnedFlashId={pinnedFlashId}
+              onMovePinned={(id, direction) => dispatch({ type: "MOVE_PINNED", payload: { id, direction } })}
+              onUnpinPinned={(id) => dispatch({ type: "UNPIN", payload: { id } })}
             />
           ) : (
             <DiscoverScreen onCommandPalette={() => setCommandOpen(true)} onOpenContext={openContext} />
@@ -560,7 +556,9 @@ export function App() {
           landmarks={landmarks}
           recentActions={recentActions}
           pinnedFlashId={pinnedFlashId}
-          onPinnedLongPress={(lm) => openContext({ landmark: lm })}
+          onPinnedLongPress={(lm) =>
+            openContext({ landmark: lm, menuVariant: "pinned-management" })
+          }
           onOpenContext={openContext}
           onCommand={handleCommand}
           onExecutePinned={executePinned}
@@ -568,6 +566,8 @@ export function App() {
         />
 
         <WhereAmIToast open={whereAmIOpen} text={whereAmIText} />
+
+        <ToastContainer toasts={toasts} />
 
         <ContextMenuSheet
           open={contextOpen}

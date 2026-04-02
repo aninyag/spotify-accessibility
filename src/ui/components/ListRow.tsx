@@ -12,6 +12,8 @@ export function ListRow(props: {
   ariaLabel: string;
   thumbText?: string;
   highlight?: boolean;
+  /** Show a pin when this row already has a saved shortcut */
+  pinnedShortcut?: boolean;
 }) {
   const lp = useLongPress(props.onLongPress);
   return (
@@ -48,30 +50,37 @@ export function ListRow(props: {
       <div className="thumb" aria-hidden="true">
         {props.thumbText ?? "♪"}
       </div>
-      <div style={{ overflow: "hidden" }}>
-        <div className="rowPrimary">{props.title}</div>
-        {props.subtitle ? (
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 3 }}>
-            {props.explicit ? (
-              <div
-                aria-hidden="true"
-                style={{
-                  width: 16,
-                  height: 16,
-                  borderRadius: 999,
-                  background: "#57B65F",
-                  color: "black",
-                  fontSize: 10,
-                  display: "grid",
-                  placeItems: "center",
-                  fontWeight: 700,
-                }}
-              >
-                E
-              </div>
-            ) : null}
-            <div className="rowSecondary">{props.subtitle}</div>
-          </div>
+      <div style={{ overflow: "hidden", display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div className="rowPrimary">{props.title}</div>
+          {props.subtitle ? (
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 3 }}>
+              {props.explicit ? (
+                <div
+                  aria-hidden="true"
+                  style={{
+                    width: 16,
+                    height: 16,
+                    borderRadius: 999,
+                    background: "#57B65F",
+                    color: "black",
+                    fontSize: 10,
+                    display: "grid",
+                    placeItems: "center",
+                    fontWeight: 700,
+                  }}
+                >
+                  E
+                </div>
+              ) : null}
+              <div className="rowSecondary">{props.subtitle}</div>
+            </div>
+          ) : null}
+        </div>
+        {props.pinnedShortcut ? (
+          <span className="rowPinnedBadge" title="Pinned shortcut" aria-hidden="true">
+            <Icon name="pin" size={16} />
+          </span>
         ) : null}
       </div>
       {props.onLongPress ? (

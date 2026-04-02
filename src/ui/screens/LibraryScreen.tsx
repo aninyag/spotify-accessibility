@@ -22,10 +22,17 @@ export function LibraryScreen(props: {
   onOpenContext: (target: ContextTarget) => void;
   onExecutePinned: (lm: Landmark) => void;
   pinnedFlashId: string | null;
+  onMovePinned: (id: string, direction: "up" | "down") => void;
+  onUnpinPinned: (id: string) => void;
 }) {
   const [filter, setFilter] = React.useState<Filter>("Playlists");
+  const [pinnedEditMode, setPinnedEditMode] = React.useState(false);
 
   const items = React.useMemo(() => mockLibrary.filter((x) => x.type === filter), [filter]);
+
+  React.useEffect(() => {
+    if (props.landmarks.length === 0 && pinnedEditMode) setPinnedEditMode(false);
+  }, [props.landmarks.length, pinnedEditMode]);
 
   return (
     <>
@@ -43,21 +50,69 @@ export function LibraryScreen(props: {
       <div className="screenInner">
         {props.landmarks.length > 0 ? (
           <section aria-label="Pinned">
-            <div className="sectionHeader" style={{ marginTop: 0 }}>
-              Pinned
+            <div className="sectionHeader pinnedHeaderRow" style={{ marginTop: 0 }}>
+              <span>Pinned</span>
+              <button
+                type="button"
+                className="pinnedEditBtn"
+                onClick={() => setPinnedEditMode((e) => !e)}
+                aria-pressed={pinnedEditMode}
+              >
+                {pinnedEditMode ? "Done" : "Edit"}
+              </button>
             </div>
             <div style={{ display: "grid", gap: 2, marginTop: 8 }}>
-              {props.landmarks.map((lm, idx) => (
-                <ListRow
-                  key={lm.id}
-                  title={lm.label}
-                  subtitle={lm.type === "action" ? "Shortcut" : lm.type}
-                  ariaLabel={`Pinned ${idx + 1}: ${lm.label}. Tap to execute.`}
-                  onPress={() => props.onExecutePinned(lm)}
-                  onLongPress={() => props.onOpenContext({ landmark: lm })}
-                  highlight={props.pinnedFlashId === lm.id}
-                />
-              ))}
+              {props.landmarks.map((lm, idx) =>
+                pinnedEditMode ? (
+                  <div className="pinnedRowEdit" key={lm.id}>
+                    <div className="pinnedEditControls">
+                      <button
+                        type="button"
+                        className="pinnedChevronBtn"
+                        disabled={idx === 0}
+                        aria-label={`Move ${lm.label} up`}
+                        onClick={() => props.onMovePinned(lm.id, "up")}
+                      >
+                        <Icon name="chevronUp" size={18} />
+                      </button>
+                      <button
+                        type="button"
+                        className="pinnedChevronBtn"
+                        disabled={idx >= props.landmarks.length - 1}
+                        aria-label={`Move ${lm.label} down`}
+                        onClick={() => props.onMovePinned(lm.id, "down")}
+                      >
+                        <Icon name="chevronDown" size={18} />
+                      </button>
+                    </div>
+                    <ListRow
+                      title={lm.label}
+                      subtitle={lm.type === "action" ? "Shortcut" : lm.type}
+                      ariaLabel={`Pinned ${idx + 1}: ${lm.label}`}
+                      onPress={() => {}}
+                      highlight={props.pinnedFlashId === lm.id}
+                    />
+                    <button
+                      type="button"
+                      className="pinnedRemoveBtn"
+                      aria-label={`Remove ${lm.label} from pinned`}
+                      onClick={() => props.onUnpinPinned(lm.id)}
+                    >
+                      <Icon name="close" size={20} />
+                    </button>
+                  </div>
+                ) : (
+                  <ListRow
+                    key={lm.id}
+                    title={lm.label}
+                    subtitle={lm.type === "action" ? "Shortcut" : lm.type}
+                    ariaLabel={`Pinned ${idx + 1}: ${lm.label}. Tap to execute.`}
+                    onPress={() => props.onExecutePinned(lm)}
+                    onLongPress={() => props.onOpenContext({ landmark: lm })}
+                    highlight={props.pinnedFlashId === lm.id}
+                  />
+                ),
+              )}
             </div>
           </section>
         ) : null}

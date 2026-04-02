@@ -38,6 +38,8 @@ export type ContextTarget = {
   queueTrack?: Track;
   /** Shown / used for "Go to artist". */
   artistName?: string;
+  /** Command palette / manage flow: reorder + remove without cluttering with browse actions. */
+  menuVariant?: "default" | "pinned-management";
 };
 
 export type AppAction =
@@ -45,4 +47,5 @@ export type AppAction =
   | { type: "ADD_TO_QUEUE"; payload: Track }
   | { type: "PIN"; payload: Landmark }
   | { type: "UNPIN"; payload: { id: string } }
-  | { type: "RENAME_PINNED"; payload: { id: string; label: string } };
+  | { type: "RENAME_PINNED"; payload: { id: string; label: string } }
+  | { type: "MOVE_PINNED"; payload: { id: string; direction: "up" | "down" } };

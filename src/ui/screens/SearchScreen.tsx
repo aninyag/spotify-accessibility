@@ -1,6 +1,7 @@
 import * as React from "react";
 import { HeaderBar } from "../components/HeaderBar";
-import type { ContextTarget } from "../types";
+import type { ContextTarget, Landmark } from "../types";
+import { isContextPinned } from "../pinnedUtils";
 import { Icon } from "../components/Icon";
 import { ListRow, trackAriaLabel } from "../components/ListRow";
 import { LongPressable } from "../components/LongPressable";
@@ -82,27 +83,29 @@ export function SearchScreen(props: { onCommandPalette: () => void; onOpenContex
         <section aria-label="Songs you may know">
           <div className="sectionHeader">Songs</div>
           <div style={{ display: "grid", gap: 2, marginTop: 12 }}>
-            {topSongs.map((t) => (
-              <ListRow
-                key={t.id}
-                title={t.title}
-                subtitle={t.artist}
-                ariaLabel={trackAriaLabel(t)}
-                onPress={() => props.onPlayTrack(t)}
-                onLongPress={() =>
-                  props.onOpenContext({
-                    landmark: {
-                      id: `lm-search-${t.id}`,
-                      label: t.title,
-                      type: "album",
-                      payload: { kind: "stub", ref: t.id },
-                    },
-                    queueTrack: t,
-                    artistName: t.artist,
-                  })
-                }
-              />
-            ))}
+            {topSongs.map((t) => {
+              const ctx: ContextTarget = {
+                landmark: {
+                  id: `lm-search-${t.id}`,
+                  label: t.title,
+                  type: "album",
+                  payload: { kind: "stub", ref: t.id },
+                },
+                queueTrack: t,
+                artistName: t.artist,
+              };
+              return (
+                <ListRow
+                  key={t.id}
+                  title={t.title}
+                  subtitle={t.artist}
+                  ariaLabel={trackAriaLabel(t)}
+                  pinnedShortcut={isContextPinned(ctx, props.landmarks)}
+                  onPress={() => props.onPlayTrack(t)}
+                  onLongPress={() => props.onOpenContext(ctx)}
+                />
+              );
+            })}
           </div>
         </section>
 
