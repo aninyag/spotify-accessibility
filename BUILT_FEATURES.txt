@@ -1,0 +1,144 @@
+================================================================================
+SPOTIFY-ACCESSIBILITY — WHAT WE BUILT (FEATURE & FILE INVENTORY)
+================================================================================
+Plain overview of the demo app: navigation, Axis mode, voice inputs, command
+palette, pins, mock catalog, and supporting assets/scripts.
+
+--------------------------------------------------------------------------------
+1. APP SHELL & NAVIGATION
+--------------------------------------------------------------------------------
+• React + Vite + TypeScript SPA (src/main.tsx → src/ui/App.tsx).
+• Bottom tabs: Home (Discover), Search, Your Library.
+• Mini player strip; Now Playing sheet; Artist sheet; Command palette overlay.
+• Profile menu slide-over (Axis toggle, “Axis introduction”, premium-style rows).
+• Context menu sheet for landmarks / tracks (pin, play, etc.).
+• Toasts for pin feedback; optional TTS (speak helper in tts.ts).
+• Axis tutorial overlay; Axis settings persisted (axisSettings.ts).
+
+
+--------------------------------------------------------------------------------
+2. HOME — STANDARD MODE (Axis OFF)
+--------------------------------------------------------------------------------
+• Header: circular profile (your photo when asset exists), blue notify dot.
+• Category pills: All, Music, Podcasts, Audiobooks.
+• White search row: magnifying glass, text field, microphone = voice-to-text
+  only (Web Speech API via useAxisSearchSpeech — does NOT open command palette).
+• 2×4 grid of Spotify-style shortcuts (Daily Mix 1, On Repeat, Discover Weekly,
+  Release Radar, Liked Songs, Chill Hits, Deep Focus, Party Starters).
+  Thumbnails: public/home/tile-01.png … tile-08.png (picsum fallback if missing).
+• “Try Axis” promo card (AxisEntryCard) → opens Axis tutorial.
+• No top-row command-palette mic on this screen.
+
+File: src/ui/screens/DiscoverScreen.tsx
+
+
+--------------------------------------------------------------------------------
+3. HOME — AXIS MODE (Axis ON)
+--------------------------------------------------------------------------------
+• Same top pattern: profile, main tabs Songs | Artists | Albums | Playlists,
+  white search row, search mic = voice-to-text only.
+• NO microphone in the top-right (command palette removed from header); open
+  palette from scroll content instead.
+• Recently played: 2×2 category tiles (Songs, Artists, Albums, Playlist) with
+  colors + art (public/axis/axis-recent-*.png + fallbacks). Tap selects tab;
+  long-press opens context.
+• Axis controls card: “Commands & voice” → opens command palette.
+• Pinned section (2 landmarks from session).
+• Top Songs: sub-tabs All | Pop | Hip-hop; rows with play; ListRow + optional
+  thumbs; uses mockData.axisHomeTopSongRows.
+
+File: src/ui/screens/DiscoverScreen.tsx
+
+
+--------------------------------------------------------------------------------
+4. COMMAND PALETTE
+--------------------------------------------------------------------------------
+• Bottom sheet: Done, optional first-run hint, then primary voice control.
+• “Find music & actions”: NO text typing field.
+• Large green full-width button: “Say something” with microphone on the RIGHT.
+  Uses Web Speech API; transcript fills internal query and drives
+  filterPaletteSearch → Results list (play / long-press context).
+• Pinned rows; Quick actions (like, add to queue, play liked songs, etc.).
+• Escape closes; focus returns to [data-command-palette-trigger] opener.
+
+File: src/ui/overlays/CommandPalette.tsx
+
+
+--------------------------------------------------------------------------------
+5. VOICE / SPEECH
+--------------------------------------------------------------------------------
+• useAxisSearchSpeech.ts — SpeechRecognition / webkitSpeechRecognition, final
+  transcript callback, listening + supported state.
+• src/speech-recognition.d.ts — ambient TS types so `tsc` passes (e.g. Vercel).
+
+--------------------------------------------------------------------------------
+6. MEDIA & PROFILE URLs
+--------------------------------------------------------------------------------
+• axisMedia.ts: axisLocalPng(), homeLocalPng(), axisTileFallback(),
+  AXIS_PROFILE_PHOTO_URL (public/axis/avatar-profile.png),
+  ON_REPEAT_COVER_URL (public/home/tile-02.png).
+• ResilientImg: primary URL with fallback on error (Discover thumbnails/profile).
+
+--------------------------------------------------------------------------------
+7. LIBRARY / SEARCH HEADERS
+--------------------------------------------------------------------------------
+• SearchScreen & LibraryScreen HeaderBar: avatar uses AXIS_PROFILE_PHOTO_URL
+  when present.
+• Library mock list includes “On Repeat” with ON_REPEAT_COVER_URL thumb.
+
+Files: src/ui/screens/SearchScreen.tsx, LibraryScreen.tsx
+
+--------------------------------------------------------------------------------
+8. MOCK DATA & COMMAND CATALOG
+--------------------------------------------------------------------------------
+• mockData.ts: defaultAxisHomeLandmarks (Your Library + Chill Hits search),
+  browseStubTracks (realistic titles), mockNowPlaying / mockQueue,
+  axisHomeTopSongRows (Pop / Hip-hop filters), allKnownTracks().
+• paletteSearch.ts: PALETTE_SEARCH_CATALOG + filterPaletteSearch() for palette.
+
+--------------------------------------------------------------------------------
+9. PINS & CONTEXT
+--------------------------------------------------------------------------------
+• Pinned landmarks; execute from home, palette, library; reorder / remove;
+  flash feedback; context menu parity (pinned-management variant).
+• pinnedUtils.ts, stubResolve.ts for stub → track / search seeds.
+
+--------------------------------------------------------------------------------
+10. SHARED UI COMPONENTS (NOT EXHAUSTIVE)
+--------------------------------------------------------------------------------
+• HeaderBar, BottomNavBar, Icon, ListRow (incl. optional thumbSrc / play),
+  LongPressable, ToastContainer, AxisEntryCard, AxisTutorial, ProfileMenu,
+  ContextMenuSheet, WhereAmIToast.
+
+--------------------------------------------------------------------------------
+11. STYLING
+--------------------------------------------------------------------------------
+• styles.css: Spotify-like dark theme; axis home top/search; home tile grid;
+  browse tiles; palette (paletteSaySomethingBtn green bar); sheet animations;
+  profile menu avatar photo; pinned rows; tutorials; etc.
+
+--------------------------------------------------------------------------------
+12. ASSETS & SCRIPTS
+--------------------------------------------------------------------------------
+• public/axis/avatar-profile.png — profile photo (copy your headshot here).
+• public/home/tile-02.png — On Repeat cover (or sync script target).
+• scripts/sync-demo-assets.sh — copies from default Cursor assets path.
+• npm run sync-assets — runs that script (optional SPOTIFY_A11Y_ASSET_SRC env).
+
+--------------------------------------------------------------------------------
+13. KEY ENTRY FILES
+--------------------------------------------------------------------------------
+• src/ui/App.tsx — state, routing between screens, palette, landmarks, playback.
+• src/ui/screens/DiscoverScreen.tsx — both home modes (see sections 2–3).
+• src/ui/overlays/CommandPalette.tsx — voice-first find music (section 4).
+• index.html — Vite root.
+
+--------------------------------------------------------------------------------
+14. BUILD
+--------------------------------------------------------------------------------
+• npm run dev / npm run build / npm run preview
+• TypeScript: strict, includes src/ (see tsconfig.json / vite.config.ts)
+
+================================================================================
+END OF INVENTORY — generated for quick human-readable reference.
+================================================================================
