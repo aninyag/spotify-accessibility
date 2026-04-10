@@ -9,6 +9,45 @@ export function ContextMenuSheet(props: {
 }) {
   if (!props.open) return null;
 
+  const sheetRef = React.useRef<HTMLDivElement | null>(null);
+  const doneBtnRef = React.useRef<HTMLButtonElement | null>(null);
+
+  React.useEffect(() => {
+    if (!props.open) return;
+    const id = window.setTimeout(() => doneBtnRef.current?.focus(), 0);
+    return () => window.clearTimeout(id);
+  }, [props.open]);
+
+  React.useEffect(() => {
+    if (!props.open) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        props.onClose();
+        return;
+      }
+      if (e.key !== "Tab") return;
+      const root = sheetRef.current;
+      if (!root) return;
+      const focusables = Array.from(
+        root.querySelectorAll<HTMLElement>('button,[href],input,select,textarea,[tabindex]:not([tabindex="-1"])'),
+      ).filter((el) => !el.hasAttribute("disabled") && el.tabIndex !== -1);
+      if (focusables.length === 0) return;
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      const active = document.activeElement as HTMLElement | null;
+      if (!e.shiftKey && active === last) {
+        e.preventDefault();
+        first.focus();
+      } else if (e.shiftKey && active === first) {
+        e.preventDefault();
+        last.focus();
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [props.open, props.onClose]);
+
   return (
     <div
       className="bottomSheetBackdrop bottomSheetBackdropElevated"
@@ -23,6 +62,7 @@ export function ContextMenuSheet(props: {
       }}
     >
       <div
+        ref={sheetRef}
         className="bottomSheet bottomSheetCompact"
         role="document"
         onPointerDown={(e) => e.stopPropagation()}
@@ -30,7 +70,13 @@ export function ContextMenuSheet(props: {
       >
         <div className="paletteTopBar">
           <div className="bottomSheetHandle" aria-hidden="true" />
-          <button type="button" className="paletteDoneBtn" onClick={() => props.onClose()} aria-label="Close menu">
+          <button
+            ref={doneBtnRef}
+            type="button"
+            className="paletteDoneBtn"
+            onClick={() => props.onClose()}
+            aria-label="Close menu"
+          >
             Done
           </button>
         </div>
@@ -40,7 +86,6 @@ export function ContextMenuSheet(props: {
               key={it.key}
               type="button"
               className="spotifyRow"
-              role="button"
               aria-label={it.label}
               onClick={() => {
                 it.onSelect();

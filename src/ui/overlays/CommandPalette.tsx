@@ -29,7 +29,6 @@ function PinnedPaletteRow(props: {
     <button
       type="button"
       className={`spotifyRow${props.flash ? " paletteRowFlash" : ""}`}
-      role="button"
       aria-label={`${props.lm.label}, pinned`}
       onClick={(e) => {
         const consumed = lp.consumeLongPressClick();
@@ -86,7 +85,6 @@ function SearchHitRow(props: {
     <button
       type="button"
       className="spotifyRow"
-      role="button"
       aria-label={`${props.hit.title}. Tap to play. Long-press to pin.`}
       onClick={(e) => {
         if (lp.consumeLongPressClick()) {
@@ -268,9 +266,9 @@ export function CommandPalette(props: {
           </div>
         ) : null}
 
-        <label className="paletteSearchLabel" htmlFor="palette-say-something">
+        <div className="paletteSearchLabel" id="palette-find-label">
           Find music &amp; actions
-        </label>
+        </div>
         <button
           ref={saySomethingRef}
           id="palette-say-something"
@@ -278,6 +276,7 @@ export function CommandPalette(props: {
           className={`paletteSaySomethingBtn${!speechSupported ? " paletteSaySomethingBtnUnsupported" : ""}`}
           onClick={onSaySomething}
           title={!speechSupported ? "Voice input is not available in this browser" : undefined}
+          aria-labelledby="palette-find-label"
         >
           <span className="paletteSaySomethingText">
             {speechListening ? "Listening…" : searchQuery ? `“${searchQuery}”` : "Say something"}
@@ -339,7 +338,6 @@ export function CommandPalette(props: {
                 <button
                   type="button"
                   className="spotifyRow"
-                  role="button"
                   aria-label={likeLabel}
                   onClick={() => run({ kind: "like", label: likeLabel })}
                 >
@@ -353,7 +351,7 @@ export function CommandPalette(props: {
                     <Icon name="chevronRight" size={18} />
                   </div>
                 </button>
-                <button type="button" className="spotifyRow" role="button" aria-label="Add to queue" onClick={() => run({ kind: "addToQueue", label: "Add to queue" })}>
+                <button type="button" className="spotifyRow" aria-label="Add to queue" onClick={() => run({ kind: "addToQueue", label: "Add to queue" })}>
                   <div className="thumb" aria-hidden="true" style={{ display: "grid", placeItems: "center" }}>
                     <Icon name="plus" size={18} />
                   </div>
@@ -367,7 +365,7 @@ export function CommandPalette(props: {
               </>
             ) : (
               <>
-                <button type="button" className="spotifyRow" role="button" aria-label="Play liked songs" onClick={() => run({ kind: "playLikedSongs" })}>
+                <button type="button" className="spotifyRow" aria-label="Play liked songs" onClick={() => run({ kind: "playLikedSongs" })}>
                   <div className="thumb" aria-hidden="true" style={{ display: "grid", placeItems: "center" }}>
                     <Icon name="heart" size={18} />
                   </div>
@@ -378,7 +376,7 @@ export function CommandPalette(props: {
                     <Icon name="chevronRight" size={18} />
                   </div>
                 </button>
-                <button type="button" className="spotifyRow" role="button" aria-label="Open Now playing" onClick={() => run({ kind: "openNowPlaying" })}>
+                <button type="button" className="spotifyRow" aria-label="Open Now playing" onClick={() => run({ kind: "openNowPlaying" })}>
                   <div className="thumb" aria-hidden="true" style={{ display: "grid", placeItems: "center" }}>
                     <Icon name="play" size={18} />
                   </div>

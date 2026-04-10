@@ -36,10 +36,10 @@ const axisCategoryTiles: {
   art: string;
   seed: string;
 }[] = [
-  { tab: "Songs", label: "Songs", color: "#E85D32", art: "axis-recent-songs", seed: "axisRecentSongs" },
-  { tab: "Artists", label: "Artists", color: "#C23B3B", art: "axis-recent-artists", seed: "axisRecentArtists" },
+  { tab: "Songs", label: "Liked Songs", color: "#E85D32", art: "axis-recent-liked-songs", seed: "axisRecentLikedSongs" },
+  { tab: "Playlists", label: "On Repeat", color: "#C23B3B", art: "axis-recent-on-repeat", seed: "axisRecentOnRepeat" },
   { tab: "Albums", label: "Albums", color: "#A8D5BA", art: "axis-recent-albums", seed: "axisRecentAlbums" },
-  { tab: "Playlists", label: "Playlist", color: "#C9A227", art: "axis-recent-playlist", seed: "axisRecentPlaylist" },
+  { tab: "Playlists", label: "Playlists", color: "#C9A227", art: "axis-recent-playlists", seed: "axisRecentPlaylists" },
 ];
 
 function DiscoverTopChrome<T extends string>(props: {
@@ -55,9 +55,6 @@ function DiscoverTopChrome<T extends string>(props: {
   speechSupported: boolean;
   searchInputId: string;
   profileNotifyDot?: boolean;
-  /** When set with `showCommandPaletteTrigger`, restores header mic behavior (command palette), separate from search voice-to-text. */
-  onCommandPalette?: () => void;
-  showCommandPaletteTrigger?: boolean;
 }) {
   return (
     <div className="headerPlain axisHomeSimpleTop">
@@ -65,7 +62,7 @@ function DiscoverTopChrome<T extends string>(props: {
         <button type="button" className="axisHomeProfileBtn" onClick={props.onOpenProfile} aria-label="Open profile">
           <span className="axisHomeProfileBtnInner">
             <ResilientImg
-              primarySrc={axisLocalPng("avatar-profile")}
+              primarySrc={AXIS_PROFILE_PHOTO_URL}
               fallbackSrc={axisTileFallback("axisProfileAvatar", 128)}
               alt=""
               className="axisHomeProfilePhoto"
@@ -73,13 +70,12 @@ function DiscoverTopChrome<T extends string>(props: {
             {props.profileNotifyDot ? <span className="homeProfileNotifyDot" aria-hidden="true" /> : null}
           </span>
         </button>
-        <div className="axisHomeMainTabs" role="tablist" aria-label={props.tablistLabel}>
+        <div className="axisHomeMainTabs" role="group" aria-label={props.tablistLabel}>
           {props.tabs.map((t) => (
             <button
               key={t}
               type="button"
-              role="tab"
-              aria-selected={props.activeTab === t}
+              aria-pressed={props.activeTab === t}
               className={`axisHomeMainTab${props.activeTab === t ? " active" : ""}`}
               onClick={() => props.onTab(t)}
             >
@@ -87,17 +83,6 @@ function DiscoverTopChrome<T extends string>(props: {
             </button>
           ))}
         </div>
-        {props.showCommandPaletteTrigger && props.onCommandPalette ? (
-          <button
-            type="button"
-            className="iconBtn axisHomeHeaderCommandBtn"
-            aria-label="Open command palette"
-            onClick={props.onCommandPalette}
-            data-command-palette-trigger="true"
-          >
-            <Icon name="mic" size={22} />
-          </button>
-        ) : null}
       </div>
 
       <div className="axisHomeSearchShell">
@@ -293,14 +278,13 @@ export function DiscoverScreen(props: {
             <h2 id="axis-top-songs-heading" className="sectionHeader">
               Top Songs
             </h2>
-            <div className="axisHomeSubTabsRow" role="tablist" aria-label="Filter by genre">
+            <div className="axisHomeSubTabsRow" role="group" aria-label="Filter by genre">
               {axisTopSongChips.map((g) => (
                 <button
                   key={g}
                   type="button"
-                  role="tab"
                   className={`axisHomeSubTab${axisTopSongChip === g ? " active" : ""}`}
-                  aria-selected={axisTopSongChip === g}
+                  aria-pressed={axisTopSongChip === g}
                   onClick={() => setAxisTopSongChip(g)}
                 >
                   {g}

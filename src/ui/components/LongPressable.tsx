@@ -11,10 +11,11 @@ export function LongPressable(props: {
   ariaLabel?: string;
 }) {
   const lp = useLongPress(props.onLongPress);
+  const isInteractive = Boolean(props.onClick || props.onLongPress);
   return (
     <div
       role={props.role}
-      tabIndex={props.onClick || props.onLongPress ? 0 : undefined}
+      tabIndex={isInteractive ? 0 : undefined}
       className={props.className}
       style={{ touchAction: "manipulation", WebkitTapHighlightColor: "transparent", WebkitUserSelect: "none", userSelect: "none", WebkitTouchCallout: "none", ...props.style } as React.CSSProperties}
       aria-label={props.ariaLabel}
@@ -27,8 +28,12 @@ export function LongPressable(props: {
         props.onClick?.();
       }}
       onKeyDown={(e) => {
-        if (!props.onClick) return;
-        if (e.key === "Enter" || e.key === " ") props.onClick();
+        if (!isInteractive) return;
+        if (e.key !== "Enter" && e.key !== " ") return;
+        e.preventDefault();
+        // If there is no regular click action, treat keyboard activation as the primary action.
+        if (props.onClick) props.onClick();
+        else props.onLongPress?.();
       }}
       onTouchStart={lp.onTouchStart}
       onTouchMove={lp.onTouchMove}
