@@ -810,8 +810,9 @@ input:focus-visible {
   max-height: 92%;
   background: #121212;
   padding: 12px 16px 20px;
-  transform: translateY(100%);
-  animation: sheetUp 300ms ease-out forwards;
+  /* Visible by default; animation is progressive enhancement. */
+  transform: translateY(0);
+  animation: sheetUp 220ms ease-out;
 }
 
 .bottomSheetCompact {
@@ -822,10 +823,12 @@ input:focus-visible {
 
 @keyframes sheetUp {
   from {
-    transform: translateY(100%);
+    transform: translateY(18px);
+    opacity: 0.6;
   }
   to {
     transform: translateY(0);
+    opacity: 1;
   }
 }
 
