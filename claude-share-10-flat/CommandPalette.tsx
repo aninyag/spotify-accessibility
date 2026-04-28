@@ -5,7 +5,6 @@ import { Icon } from "../components/Icon";
 import { useLongPress } from "../useLongPress";
 import type { PaletteSearchHit } from "../paletteSearch";
 import { filterPaletteSearch } from "../paletteSearch";
-import { PALETTE_SEARCH_CATALOG } from "../paletteSearch";
 import { useAxisSearchSpeech } from "../useAxisSearchSpeech";
 
 export type Command =
@@ -143,27 +142,20 @@ export function CommandPalette(props: {
 }) {
   const saySomethingRef = React.useRef<HTMLButtonElement | null>(null);
   const [searchQuery, setSearchQuery] = React.useState("");
-  const [lastHeardText, setLastHeardText] = React.useState("");
   /** Resets whenever the sheet opens so user testers always see the intro (not persisted). */
   const [hintDismissedThisOpen, setHintDismissedThisOpen] = React.useState(false);
   const sheetRef = React.useRef<HTMLDivElement | null>(null);
 
   const applyVoiceTranscript = React.useCallback((text: string) => {
     setSearchQuery(text);
-    setLastHeardText(text);
   }, []);
 
-  const {
-    startListening,
-    listening: speechListening,
-    supported: speechSupported,
-    interimText: speechInterimText,
-  } = useAxisSearchSpeech(applyVoiceTranscript, { interim: true });
+  const { startListening, listening: speechListening, supported: speechSupported } =
+    useAxisSearchSpeech(applyVoiceTranscript);
 
   React.useEffect(() => {
     if (!props.open) return;
     setSearchQuery("");
-    setLastHeardText("");
     setHintDismissedThisOpen(false);
     const id = window.setTimeout(() => saySomethingRef.current?.focus(), 0);
     return () => window.clearTimeout(id);
@@ -220,8 +212,6 @@ export function CommandPalette(props: {
   const likeLabel = props.context.trackLiked ? "Remove like" : "Like this song";
   const searchHits = filterPaletteSearch(searchQuery);
   const showFirstHint = !hintDismissedThisOpen;
-  const showRepairCard =
-    !speechListening && !!lastHeardText.trim() && filterPaletteSearch(lastHeardText).length === 0;
 
   const dismissHint = () => setHintDismissedThisOpen(true);
 
@@ -237,11 +227,6 @@ export function CommandPalette(props: {
     }
     startListening();
   };
-
-  const repairSuggestions = React.useMemo(() => {
-    if (!showRepairCard) return [];
-    return PALETTE_SEARCH_CATALOG.slice(0, 3);
-  }, [showRepairCard]);
 
   return (
     <div
@@ -294,13 +279,7 @@ export function CommandPalette(props: {
           aria-labelledby="palette-find-label"
         >
           <span className="paletteSaySomethingText">
-            {speechListening
-              ? speechInterimText
-                ? `“${speechInterimText}”`
-                : "Listening…"
-              : searchQuery
-                ? `“${searchQuery}”`
-                : "Say something"}
+            {speechListening ? "Listening…" : searchQuery ? `“${searchQuery}”` : "Say something"}
           </span>
           <span className="paletteSaySomethingMic" aria-hidden="true">
             <Icon name="mic" size={24} />
@@ -309,73 +288,6 @@ export function CommandPalette(props: {
         <div className="srLive" aria-live="polite" aria-atomic="true">
           {speechListening ? "Listening" : ""}
         </div>
-
-        {showRepairCard ? (
-          <section aria-label="Did you mean" style={{ marginTop: 12 }}>
-            <div className="repairCard">
-              <div className="repairHeard">You said</div>
-              <div className="repairQuote">“{lastHeardText}”</div>
-              <div className="repairQuestion">I'm not sure which playlist or artist that is. Did you mean:</div>
-              <div className="repairSuggestions">
-                {repairSuggestions.map((hit) => (
-                  <button
-                    key={hit.id}
-                    type="button"
-                    className="repairSuggestion"
-                    onClick={() => run({ kind: "playPaletteResult", hit })}
-                    aria-label={`Play ${hit.title}`}
-                  >
-                    <span className="repairSuggestionIcon" aria-hidden="true">
-                      <Icon name="play" size={16} />
-                    </span>
-                    <span className="repairSuggestionText">
-                      {hit.title}
-                      <span className="repairSuggestionMeta">{hit.subtitle}</span>
-                    </span>
-                    <span aria-hidden="true" style={{ color: "#b3b3b3" }}>
-                      <Icon name="chevronRight" size={18} />
-                    </span>
-                  </button>
-                ))}
-                <button
-                  type="button"
-                  className="repairSuggestion repairSuggestionRetry"
-                  onClick={onSaySomething}
-                  aria-label="Try again"
-                >
-                  <span className="repairSuggestionIcon" aria-hidden="true">
-                    <Icon name="mic" size={16} />
-                  </span>
-                  <span className="repairSuggestionText">
-                    Try again
-                    <span className="repairSuggestionMeta">Tap and repeat your request</span>
-                  </span>
-                  <span aria-hidden="true" style={{ color: "#b3b3b3" }}>
-                    <Icon name="chevronRight" size={18} />
-                  </span>
-                </button>
-                <button
-                  type="button"
-                  className="repairRetryGhost"
-                  onClick={() =>
-                    run({
-                      kind: "landmark",
-                      label: `Search: ${lastHeardText}`,
-                      landmark: {
-                        id: `lm-palette-search-${lastHeardText}`,
-                        label: `Search “${lastHeardText}”`,
-                        type: "search",
-                        payload: { kind: "search", query: lastHeardText },
-                      },
-                    })
-                  }
-                >
-                  Search for “{lastHeardText}”
-                </button>
-              </div>
-            </div>
-          </section>
-        ) : null}
 
         {searchHits.length > 0 ? (
           <section aria-label="Results" style={{ marginTop: 12 }}>

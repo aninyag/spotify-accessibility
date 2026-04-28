@@ -55,8 +55,6 @@ export function App() {
   const [axisTutorialOpen, setAxisTutorialOpen] = React.useState(false);
   const [artistDetailName, setArtistDetailName] = React.useState<string | null>(null);
   const [searchSeed, setSearchSeed] = React.useState<string | undefined>(undefined);
-  const [axisLearnPlayCounts, setAxisLearnPlayCounts] = React.useState<Record<string, number>>({});
-  const [axisLearnDismissedKeys, setAxisLearnDismissedKeys] = React.useState<Record<string, true>>({});
 
   const [track, setTrack] = React.useState<Track>(mockNowPlaying);
   const [isPlaying, setIsPlaying] = React.useState(false);
@@ -67,27 +65,6 @@ export function App() {
   const ttsEnabled = settings.voiceFeedback;
   const ttsRate = rateToNumber(settings.voiceRate);
   const axisEnabled = axisSettings.isEnabled;
-
-  const chillHitsLandmark: Landmark = React.useMemo(
-    () => ({
-      id: "pin-stub-chill-hits",
-      label: "Chill Hits",
-      type: "playlist",
-      payload: { kind: "stub", ref: "chill-hits" },
-    }),
-    [],
-  );
-
-  const chillHitsAlreadyPinned = React.useMemo(() => {
-    // Use semantic duplicate detection so renames still match.
-    return pinningWouldDuplicate(landmarks, chillHitsLandmark);
-  }, [landmarks, chillHitsLandmark]);
-
-  const chillHitsLearnKey = "learn:chill-hits";
-  const chillHitsPlayCount = axisLearnPlayCounts[chillHitsLearnKey] ?? 0;
-  const chillHitsLearnDismissed = !!axisLearnDismissedKeys[chillHitsLearnKey];
-  const showChillHitsLearnBanner =
-    axisEnabled && chillHitsPlayCount >= 2 && !chillHitsAlreadyPinned && !chillHitsLearnDismissed;
 
   const openCommandPalette = React.useCallback(() => {
     if (axisSettings.isEnabled) setCommandOpen(true);
@@ -494,13 +471,6 @@ export function App() {
       if (cmd.kind === "playPaletteResult") {
         setArtistDetailName(null);
         dispatch({ type: "PLAY", payload: cmd.hit.playTrack });
-        // Feature: “Learn my shortcut” banner (session-only) — track repeated use of Chill Hits.
-        if (cmd.hit.id === "pl-chill") {
-          setAxisLearnPlayCounts((prev) => ({
-            ...prev,
-            [chillHitsLearnKey]: (prev[chillHitsLearnKey] ?? 0) + 1,
-          }));
-        }
       }
       if (cmd.kind === "playLikedSongs") {
         const catalog = allKnownTracks(queue);
@@ -528,7 +498,7 @@ export function App() {
         setIsPlaying(true);
       }
     },
-    [queue, track, likedTrackIds, dispatch, executePinned, toggleLike, pushToast, onTabChange, chillHitsLearnKey],
+    [queue, track, likedTrackIds, dispatch, executePinned, toggleLike, pushToast, onTabChange],
   );
 
   const artistTracks = React.useMemo(() => {
@@ -625,22 +595,6 @@ export function App() {
               pinnedFlashId={pinnedFlashId}
               onPlayTrack={playTrack}
               tts={{ enabled: ttsEnabled, rate: ttsRate }}
-              learnShortcutBanner={
-                showChillHitsLearnBanner
-                  ? {
-                      key: chillHitsLearnKey,
-                      label: "Axis noticed",
-                      title: "You've played Chill Hits twice this week.",
-                      description:
-                        'Want to pin it as a one-tap shortcut? You can play it anytime just by saying \"chill.\"',
-                      landmarkToPin: chillHitsLandmark,
-                    }
-                  : null
-              }
-              onPinSuggestedShortcut={(lm) => dispatch({ type: "PIN", payload: lm })}
-              onDismissSuggestedShortcut={(key) =>
-                setAxisLearnDismissedKeys((prev) => ({ ...prev, [key]: true }))
-              }
             />
           )}
         </main>

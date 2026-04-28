@@ -85,13 +85,6 @@ function DiscoverTopChrome<T extends string>(props: {
         </div>
       </div>
 
-      {props.speechListening ? (
-        <div className="axisVoiceIndicatorStrip" role="status" aria-live="polite" aria-label="Axis listening">
-          <span className="axisPulseDot" aria-hidden="true" />
-          <span>Axis is listening for your search</span>
-        </div>
-      ) : null}
-
       <div className="axisHomeSearchShell">
         <span className="axisHomeSearchIcon" aria-hidden="true">
           <Icon name="search" size={20} />
@@ -178,17 +171,6 @@ export function DiscoverScreen(props: {
   pinnedFlashId: string | null;
   onPlayTrack: (t: Track) => void;
   tts: { enabled: boolean; rate: number };
-  learnShortcutBanner:
-    | null
-    | {
-        key: string;
-        label: string;
-        title: string;
-        description: string;
-        landmarkToPin: Landmark;
-      };
-  onPinSuggestedShortcut: (lm: Landmark) => void;
-  onDismissSuggestedShortcut: (key: string) => void;
 }) {
   const [chip, setChip] = React.useState<(typeof chips)[number]>("All");
   const [axisMainTab, setAxisMainTab] = React.useState<(typeof axisMainTabs)[number]>("Songs");
@@ -199,12 +181,7 @@ export function DiscoverScreen(props: {
     setSearchQuery((prev) => (prev ? `${prev.trimEnd()} ${text}` : text));
   }, []);
 
-  const {
-    startListening,
-    listening: speechListening,
-    supported: speechSupported,
-    interimText: speechInterimText,
-  } = useAxisSearchSpeech(appendVoiceText, { interim: true });
+  const { startListening, listening: speechListening, supported: speechSupported } = useAxisSearchSpeech(appendVoiceText);
 
   if (props.axisEnabled) {
     return (
@@ -214,7 +191,7 @@ export function DiscoverScreen(props: {
           activeTab={axisMainTab}
           onTab={setAxisMainTab}
           tablistLabel="Browse"
-          searchQuery={speechListening && speechInterimText ? speechInterimText : searchQuery}
+          searchQuery={searchQuery}
           onSearchQueryChange={setSearchQuery}
           onOpenProfile={props.onOpenProfile}
           startListening={startListening}
@@ -262,44 +239,6 @@ export function DiscoverScreen(props: {
               ))}
             </div>
           </section>
-
-          {props.learnShortcutBanner ? (
-            <section aria-label="Axis suggestion">
-              {(() => {
-                const banner = props.learnShortcutBanner;
-                return (
-                  <div className="learnBanner" role="region" aria-label="Axis noticed">
-                <div className="learnBannerTop">
-                  <span className="learnBannerSparkle" aria-hidden="true">
-                    <Icon name="sparkles" size={18} />
-                  </span>
-                  <span className="learnBannerLabel">{banner.label}</span>
-                </div>
-                <div className="learnBannerTitle">{banner.title}</div>
-                <div className="learnBannerDesc">{banner.description}</div>
-                <div className="learnBannerActions">
-                  <button
-                    type="button"
-                    className="learnBannerPrimary"
-                    aria-label={`Pin shortcut: ${banner.landmarkToPin.label}`}
-                    onClick={() => props.onPinSuggestedShortcut(banner.landmarkToPin)}
-                  >
-                    Pin shortcut
-                  </button>
-                  <button
-                    type="button"
-                    className="learnBannerGhost"
-                    aria-label="Not now"
-                    onClick={() => props.onDismissSuggestedShortcut(banner.key)}
-                  >
-                    Not now
-                  </button>
-                </div>
-              </div>
-                );
-              })()}
-            </section>
-          ) : null}
 
           <section aria-label="Axis controls">
             <div className="sectionHeader">Axis controls</div>

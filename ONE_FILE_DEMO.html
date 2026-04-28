@@ -1,0 +1,1237 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Spotify Accessibility — One File Demo</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #111;
+        --panel: #121212;
+        --panel2: #181818;
+        --border: rgba(255, 255, 255, 0.12);
+        --text: #fff;
+        --muted: #b3b3b3;
+        --muted2: rgba(179, 179, 179, 0.75);
+        --green: #1db954;
+        --focus: #57b65f;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        height: 100%;
+      }
+
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family: -apple-system, BlinkMacSystemFont, system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        display: grid;
+        place-items: center;
+        padding: 0;
+      }
+
+      button,
+      input {
+        font: inherit;
+        color: inherit;
+      }
+
+      button {
+        border: none;
+        background: transparent;
+        padding: 0;
+        cursor: pointer;
+      }
+
+      button:focus-visible,
+      input:focus-visible {
+        outline: 3px solid var(--focus);
+        outline-offset: 2px;
+      }
+
+      .app {
+        width: min(393px, 100vw);
+        height: min(852px, 100dvh);
+        background: var(--bg);
+        position: relative;
+        overflow: hidden;
+        display: grid;
+        grid-template-rows: 1fr auto;
+      }
+
+      .screen {
+        overflow: auto;
+      }
+
+      .headerPlain {
+        padding: 10px 16px 12px;
+        background: radial-gradient(ellipse 90% 90% at 20% -15%, rgba(160, 84, 110, 0.45), rgba(18, 18, 18, 0.6)),
+          var(--panel);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      }
+
+      .screenInner {
+        padding: 0 16px 12px;
+        display: grid;
+        gap: 16px;
+      }
+
+      .row {
+        height: 56px;
+        width: calc(100% + 32px);
+        margin: 0 -16px;
+        padding: 0 16px;
+        display: grid;
+        grid-template-columns: 48px 1fr 48px;
+        align-items: center;
+        gap: 10px;
+        background: transparent;
+        text-align: left;
+        touch-action: manipulation;
+      }
+
+      .thumb {
+        width: 48px;
+        height: 48px;
+        background: #262626;
+        border-radius: 4px;
+        overflow: hidden;
+        display: grid;
+        place-items: center;
+        color: var(--muted);
+      }
+
+      .thumb img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+
+      .rowPrimary {
+        font-size: 16px;
+        line-height: 20px;
+      }
+
+      .rowSecondary {
+        font-size: 13px;
+        color: var(--muted);
+        margin-top: 3px;
+      }
+
+      .iconBtn {
+        width: 44px;
+        height: 44px;
+        border-radius: 999px;
+        display: grid;
+        place-items: center;
+      }
+
+      .pillRow {
+        display: flex;
+        gap: 10px;
+        overflow-x: auto;
+        padding-bottom: 4px;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+      }
+      .pillRow::-webkit-scrollbar {
+        display: none;
+      }
+      .pill {
+        padding: 0 16px;
+        height: 32px;
+        border-radius: 999px;
+        background: #2a2a2a;
+        color: #fff;
+        font-weight: 700;
+        white-space: nowrap;
+      }
+      .pill.active {
+        background: var(--green);
+        color: #111;
+      }
+
+      .topBar {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .avatarBtn {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        overflow: hidden;
+        background: #2a2a2a;
+        flex-shrink: 0;
+      }
+      .avatarBtn img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+
+      .searchShell {
+        margin-top: 12px;
+        width: 100%;
+        background: #fff;
+        color: #111;
+        border-radius: 999px;
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 14px;
+      }
+      .searchShell input {
+        border: none;
+        outline: none;
+        background: transparent;
+        font-size: 16px;
+        min-width: 0;
+        color: #111;
+      }
+      .searchShell input::placeholder {
+        color: rgba(0, 0, 0, 0.45);
+      }
+      .micBtn {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        color: #111;
+      }
+      .micBtn:disabled {
+        opacity: 0.35;
+        cursor: not-allowed;
+      }
+
+      .sectionHeader {
+        margin-top: 18px;
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      .browseGrid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+      }
+      .browseTile {
+        height: 84px;
+        border-radius: 14px;
+        padding: 14px;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        position: relative;
+        overflow: hidden;
+        font-size: 22px;
+        font-weight: 900;
+      }
+      .browseTile .art {
+        width: 46px;
+        height: 46px;
+        border-radius: 8px;
+        transform: rotate(18deg);
+        overflow: hidden;
+        background: rgba(0, 0, 0, 0.22);
+      }
+      .browseTile .art img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+
+      .controlsCard {
+        margin-top: 8px;
+        padding: 16px 18px;
+        border-radius: 12px;
+        background: #2a2a2a;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+      }
+      .controlsCard .glyph {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        background: linear-gradient(145deg, #1ed760 0%, #169c4c 100%);
+        color: #111;
+        display: grid;
+        place-items: center;
+        font-weight: 900;
+      }
+      .controlsCard .text {
+        flex: 1;
+        min-width: 0;
+      }
+      .controlsCard .title {
+        font-weight: 800;
+        font-size: 16px;
+      }
+      .controlsCard .sub {
+        font-size: 13px;
+        color: var(--muted);
+        margin-top: 4px;
+      }
+
+      .subTabs {
+        display: flex;
+        gap: 20px;
+        margin-top: 12px;
+        padding-bottom: 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+      }
+      .subTab {
+        padding: 10px 0;
+        border-bottom: 2px solid transparent;
+        color: var(--muted);
+        font-weight: 700;
+      }
+      .subTab.active {
+        color: #fff;
+        border-bottom-color: var(--green);
+      }
+
+      .playBtn {
+        width: 46px;
+        height: 46px;
+        border-radius: 999px;
+        background: #fff;
+        color: #000;
+        display: grid;
+        place-items: center;
+        font-weight: 900;
+      }
+
+      .bottomNav {
+        height: 70px;
+        background: rgba(0, 0, 0, 0.65);
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        align-items: center;
+        padding: 8px 10px;
+        gap: 6px;
+      }
+      .navBtn {
+        display: grid;
+        justify-items: center;
+        gap: 4px;
+        color: rgba(229, 229, 229, 0.72);
+        font-size: 11px;
+        font-weight: 700;
+      }
+      .navBtn.active {
+        color: #fff;
+      }
+
+      /* Overlays */
+      .backdrop {
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.45);
+        display: grid;
+        align-items: end;
+        z-index: 50;
+      }
+      .sheet {
+        height: 92%;
+        background: #121212;
+        padding: 12px 16px 20px;
+        border-top-left-radius: 16px;
+        border-top-right-radius: 16px;
+        border-top: 1px solid rgba(255, 255, 255, 0.12);
+      }
+      .sheetTop {
+        position: relative;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 32px;
+        margin-bottom: 8px;
+      }
+      .handle {
+        width: 36px;
+        height: 4px;
+        border-radius: 999px;
+        background: #ffffff26;
+      }
+      .done {
+        position: absolute;
+        right: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        font-weight: 800;
+        font-size: 15px;
+        padding: 10px 4px 10px 16px;
+      }
+
+      .paletteGreenBtn {
+        width: 100%;
+        min-height: 58px;
+        padding: 16px 20px;
+        border-radius: 12px;
+        background: var(--green);
+        color: #121212;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        font-size: 17px;
+        font-weight: 900;
+      }
+      .paletteGreenBtn.unsupported {
+        background: #3d3d3d;
+        color: #a7a7a7;
+        cursor: default;
+      }
+
+      .srLive {
+        position: absolute;
+        left: -10000px;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+      }
+
+      .toast {
+        position: absolute;
+        left: 50%;
+        bottom: 84px;
+        transform: translateX(-50%);
+        width: min(520px, calc(100% - 24px));
+        background: rgba(40, 40, 40, 0.96);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 16px;
+        padding: 14px;
+        box-shadow: 0 12px 48px rgba(0, 0, 0, 0.55);
+        z-index: 80;
+      }
+      .toastTitle {
+        font-weight: 900;
+        margin-bottom: 6px;
+      }
+      .toastBody {
+        color: #b3b3b3;
+      }
+
+      .profileMenu {
+        position: absolute;
+        inset: 0;
+        z-index: 70;
+        display: grid;
+        grid-template-columns: 1fr;
+      }
+      .profileBackdrop {
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.35);
+        z-index: 0;
+      }
+      .profilePanel {
+        position: absolute;
+        right: 0;
+        top: 0;
+        width: min(360px, 92vw);
+        height: 100%;
+        background: #121212;
+        border-left: 1px solid rgba(255, 255, 255, 0.12);
+        z-index: 1;
+      }
+      .profileHeader {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 20px 16px 16px;
+        border-bottom: 1px solid #282828;
+      }
+      .profileAvatar {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        overflow: hidden;
+        background: linear-gradient(135deg, #555, #222);
+      }
+      .profileAvatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+      .profileName {
+        font-weight: 900;
+      }
+      .profileItem {
+        width: 100%;
+        padding: 14px 16px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      }
+      .toggle {
+        width: 46px;
+        height: 28px;
+        border-radius: 999px;
+        background: #2a2a2a;
+        position: relative;
+      }
+      .toggle.on {
+        background: var(--green);
+      }
+      .toggle .dot {
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background: #fff;
+        position: absolute;
+        top: 3px;
+        left: 3px;
+        transition: transform 180ms ease;
+      }
+      .toggle.on .dot {
+        transform: translateX(18px);
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="app" id="app">
+      <main class="screen" id="screen" aria-label="Main content"></main>
+
+      <nav class="bottomNav" aria-label="Bottom navigation">
+        <button class="navBtn active" id="nav-home" type="button" aria-label="Home tab">
+          <span aria-hidden="true">⌂</span>
+          <span>Home</span>
+        </button>
+        <button class="navBtn" id="nav-search" type="button" aria-label="Search tab">
+          <span aria-hidden="true">⌕</span>
+          <span>Search</span>
+        </button>
+        <button class="navBtn" id="nav-library" type="button" aria-label="Your Library tab">
+          <span aria-hidden="true">≡</span>
+          <span>Your Library</span>
+        </button>
+      </nav>
+
+      <div class="toast" id="toast" hidden role="status" aria-live="polite">
+        <div class="toastTitle" id="toastTitle">Toast</div>
+        <div class="toastBody" id="toastBody"></div>
+      </div>
+
+      <!-- Profile Menu -->
+      <div class="profileMenu" id="profileMenu" hidden>
+        <button type="button" class="profileBackdrop" aria-label="Close profile menu" id="profileBackdrop"></button>
+        <aside class="profilePanel" role="dialog" aria-modal="true" aria-label="Profile menu">
+          <div class="profileHeader">
+            <div class="profileAvatar" aria-hidden="true"><img id="profileAvatarImg" alt="" /></div>
+            <div style="flex:1; min-width:0;">
+              <div class="profileName">Listener</div>
+              <div style="color:var(--muted); font-size:13px; margin-top:2px;">View profile</div>
+            </div>
+            <button type="button" class="iconBtn" id="profileCloseBtn" aria-label="Close profile menu">✕</button>
+          </div>
+
+          <div class="profileItem">
+            <div>
+              <div style="font-weight:900;">Axis</div>
+              <div style="color:var(--muted); font-size:13px; margin-top:2px;">Voice &amp; quick actions</div>
+            </div>
+            <button type="button" id="axisToggle" class="toggle" aria-label="Toggle Axis mode" aria-pressed="false">
+              <span class="dot" aria-hidden="true"></span>
+            </button>
+          </div>
+
+          <button type="button" class="profileItem" id="openPaletteFromMenu" aria-label="Open command palette">
+            <span style="font-weight:900;">Axis controls</span>
+            <span aria-hidden="true">›</span>
+          </button>
+        </aside>
+      </div>
+
+      <!-- Command Palette -->
+      <div class="backdrop" id="paletteBackdrop" hidden role="dialog" aria-modal="true" aria-label="Command palette">
+        <div class="sheet" id="paletteSheet" role="document">
+          <div class="sheetTop">
+            <div class="handle" aria-hidden="true"></div>
+            <button type="button" class="done" id="paletteDone" aria-label="Close command palette">Done</button>
+          </div>
+
+          <div style="font-size:12px; font-weight:900; letter-spacing:0.06em; text-transform:uppercase; color:var(--muted); margin:0 0 8px;">
+            Find music &amp; actions
+          </div>
+
+          <button type="button" id="saySomethingBtn" class="paletteGreenBtn" aria-label="Say something to find music and actions">
+            <span id="saySomethingText">Say something</span>
+            <span aria-hidden="true">🎙</span>
+          </button>
+          <div class="srLive" aria-live="polite" aria-atomic="true" id="paletteLive"></div>
+
+          <section aria-label="Results" style="margin-top:14px;" id="paletteResultsSection" hidden>
+            <div class="sectionHeader" style="margin-top:0;">Results</div>
+            <div id="paletteResults" style="display:grid; gap:2px; margin-top:8px;"></div>
+          </section>
+
+          <section aria-label="Pinned" style="margin-top:16px;">
+            <div class="sectionHeader" style="margin-top:0;">Pinned</div>
+            <div id="palettePinned" style="display:grid; gap:2px; margin-top:8px;"></div>
+          </section>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // ------------------------------------------------------------
+      // Minimal “one-file” version of the demo app
+      // ------------------------------------------------------------
+
+      const state = {
+        tab: "home", // home | search | library
+        axisEnabled: true,
+        homeChip: "All",
+        axisMainTab: "Songs",
+        axisTopSongChip: "All",
+        query: "",
+        paletteOpen: false,
+        paletteQuery: "",
+        listening: false,
+        toastTimer: null,
+        landmarks: [
+          { id: "pin-library", label: "Your Library", type: "screen" },
+          { id: "pin-chill", label: "Chill Hits", type: "search" },
+        ],
+      };
+
+      const demo = {
+        profileImg: "public/axis/avatar-profile.png", // keep paths consistent with your app
+        onRepeatImg: "public/home/tile-02.png",
+      };
+
+      // Palette catalog (small subset)
+      const PALETTE = [
+        { id: "pl-jazz", title: "Jazz Vibes", subtitle: "Playlist · Spotify", tokens: ["jazz", "vibes"] },
+        { id: "pl-chill", title: "Chill Hits", subtitle: "Playlist · Spotify", tokens: ["chill", "relax"] },
+        { id: "pl-workout", title: "Workout Mix", subtitle: "Playlist · Spotify", tokens: ["workout", "gym"] },
+      ];
+
+      const TOP_SONGS = [
+        { id: "ts1", title: "Don't Start Now", artist: "Dua Lipa", genre: "Pop" },
+        { id: "ts2", title: "Blinding Lights", artist: "The Weeknd", genre: "Pop" },
+        { id: "ts3", title: "HUMBLE.", artist: "Kendrick Lamar", genre: "Hip-hop" },
+      ];
+
+      const axisTiles = [
+        { label: "Liked Songs", tab: "Songs", color: "#E85D32" },
+        { label: "On Repeat", tab: "Playlists", color: "#C23B3B" },
+        { label: "Albums", tab: "Albums", color: "#A8D5BA" },
+        { label: "Playlists", tab: "Playlists", color: "#C9A227" },
+      ];
+
+      // Speech Recognition
+      function getSpeechRecognition() {
+        const w = window;
+        return w.SpeechRecognition || w.webkitSpeechRecognition || null;
+      }
+
+      function startSpeech(onFinalText) {
+        const Ctor = getSpeechRecognition();
+        if (!Ctor) return { supported: false, start: () => {} };
+        const start = () => {
+          try {
+            const rec = new Ctor();
+            rec.lang = "en-US";
+            rec.interimResults = false;
+            rec.continuous = false;
+            state.listening = true;
+            render();
+            rec.onend = () => {
+              state.listening = false;
+              render();
+            };
+            rec.onerror = () => {
+              state.listening = false;
+              render();
+            };
+            rec.onresult = (event) => {
+              const text = event.results && event.results[0] && event.results[0][0] ? String(event.results[0][0].transcript).trim() : "";
+              if (text) onFinalText(text);
+            };
+            rec.start();
+          } catch {
+            state.listening = false;
+            render();
+          }
+        };
+        return { supported: true, start };
+      }
+
+      // UI helpers
+      const screen = document.getElementById("screen");
+      const toast = document.getElementById("toast");
+      const toastTitle = document.getElementById("toastTitle");
+      const toastBody = document.getElementById("toastBody");
+
+      function showToast(title, body) {
+        toastTitle.textContent = title;
+        toastBody.textContent = body;
+        toast.hidden = false;
+        clearTimeout(state.toastTimer);
+        state.toastTimer = setTimeout(() => (toast.hidden = true), 1800);
+      }
+
+      function setActiveNav(id) {
+        for (const btn of document.querySelectorAll(".navBtn")) btn.classList.remove("active");
+        document.getElementById(id).classList.add("active");
+      }
+
+      // Profile menu
+      const profileMenu = document.getElementById("profileMenu");
+      const profileBackdrop = document.getElementById("profileBackdrop");
+      const profileCloseBtn = document.getElementById("profileCloseBtn");
+      const axisToggle = document.getElementById("axisToggle");
+      const profileAvatarImg = document.getElementById("profileAvatarImg");
+      const openPaletteFromMenu = document.getElementById("openPaletteFromMenu");
+
+      function openProfile() {
+        profileAvatarImg.src = demo.profileImg;
+        profileMenu.hidden = false;
+        profileCloseBtn.focus();
+        syncAxisToggle();
+      }
+      function closeProfile() {
+        profileMenu.hidden = true;
+      }
+      function syncAxisToggle() {
+        axisToggle.classList.toggle("on", state.axisEnabled);
+        axisToggle.setAttribute("aria-pressed", String(state.axisEnabled));
+      }
+
+      profileBackdrop.addEventListener("click", closeProfile);
+      profileCloseBtn.addEventListener("click", closeProfile);
+      axisToggle.addEventListener("click", () => {
+        state.axisEnabled = !state.axisEnabled;
+        syncAxisToggle();
+        showToast("Axis", state.axisEnabled ? "Enabled" : "Disabled");
+        render();
+      });
+      openPaletteFromMenu.addEventListener("click", () => {
+        closeProfile();
+        openPalette();
+      });
+
+      // Command palette
+      const paletteBackdrop = document.getElementById("paletteBackdrop");
+      const paletteDone = document.getElementById("paletteDone");
+      const sayBtn = document.getElementById("saySomethingBtn");
+      const sayText = document.getElementById("saySomethingText");
+      const paletteLive = document.getElementById("paletteLive");
+      const paletteResultsSection = document.getElementById("paletteResultsSection");
+      const paletteResults = document.getElementById("paletteResults");
+      const palettePinned = document.getElementById("palettePinned");
+
+      function openPalette() {
+        state.paletteOpen = true;
+        paletteBackdrop.hidden = false;
+        paletteDone.focus();
+        renderPalette();
+      }
+      function closePalette() {
+        state.paletteOpen = false;
+        paletteBackdrop.hidden = true;
+      }
+
+      paletteBackdrop.addEventListener("click", (e) => {
+        if (e.target === paletteBackdrop) closePalette();
+      });
+      paletteDone.addEventListener("click", closePalette);
+      window.addEventListener("keydown", (e) => {
+        if (!state.paletteOpen) return;
+        if (e.key === "Escape") {
+          e.preventDefault();
+          closePalette();
+        }
+      });
+
+      function filterPalette(q) {
+        const s = q.trim().toLowerCase();
+        if (!s) return [];
+        return PALETTE.filter((h) => h.title.toLowerCase().includes(s) || h.subtitle.toLowerCase().includes(s) || h.tokens.some((t) => t.includes(s)));
+      }
+
+      const paletteSpeech = startSpeech((text) => {
+        state.paletteQuery = text;
+        renderPalette();
+      });
+
+      sayBtn.addEventListener("click", () => {
+        if (!paletteSpeech.supported) {
+          showToast("Voice", "Not supported in this browser");
+          return;
+        }
+        paletteSpeech.start();
+      });
+
+      function renderPalette() {
+        // button label
+        const listening = state.listening;
+        sayText.textContent = listening ? "Listening…" : state.paletteQuery ? `“${state.paletteQuery}”` : "Say something";
+        paletteLive.textContent = listening ? "Listening" : "";
+
+        // supported state
+        sayBtn.classList.toggle("unsupported", !paletteSpeech.supported);
+        sayBtn.setAttribute("aria-disabled", String(!paletteSpeech.supported));
+
+        // pinned
+        palettePinned.innerHTML = "";
+        for (const lm of state.landmarks.slice(0, 2)) {
+          const b = document.createElement("button");
+          b.type = "button";
+          b.className = "row";
+          b.setAttribute("aria-label", `${lm.label}, pinned`);
+          b.innerHTML = `
+            <div class="thumb" aria-hidden="true">📌</div>
+            <div><div class="rowPrimary">${lm.label}</div></div>
+            <div aria-hidden="true" style="width:48px; display:grid; place-items:center; color: var(--muted);">›</div>
+          `;
+          b.addEventListener("click", () => {
+            closePalette();
+            if (lm.id === "pin-library") {
+              state.tab = "library";
+              setActiveNav("nav-library");
+            } else {
+              state.tab = "search";
+              setActiveNav("nav-search");
+              state.query = "chill";
+            }
+            render();
+          });
+          palettePinned.appendChild(b);
+        }
+
+        // results
+        const hits = filterPalette(state.paletteQuery);
+        paletteResults.innerHTML = "";
+        paletteResultsSection.hidden = hits.length === 0;
+        for (const hit of hits) {
+          const b = document.createElement("button");
+          b.type = "button";
+          b.className = "row";
+          b.setAttribute("aria-label", `${hit.title}. Tap to select.`);
+          b.innerHTML = `
+            <div class="thumb" aria-hidden="true"></div>
+            <div><div class="rowPrimary">${hit.title}</div><div class="rowSecondary">${hit.subtitle}</div></div>
+            <div aria-hidden="true" style="width:48px; display:grid; place-items:center; color: var(--muted);">›</div>
+          `;
+          b.addEventListener("click", () => {
+            closePalette();
+            showToast("Selected", hit.title);
+          });
+          paletteResults.appendChild(b);
+        }
+      }
+
+      // Navigation
+      document.getElementById("nav-home").addEventListener("click", () => {
+        state.tab = "home";
+        setActiveNav("nav-home");
+        render();
+      });
+      document.getElementById("nav-search").addEventListener("click", () => {
+        state.tab = "search";
+        setActiveNav("nav-search");
+        render();
+      });
+      document.getElementById("nav-library").addEventListener("click", () => {
+        state.tab = "library";
+        setActiveNav("nav-library");
+        render();
+      });
+
+      // Screen renderers
+      function renderHeader({ tabs, activeTab, onTab, showBlueDot }) {
+        const supported = Boolean(getSpeechRecognition());
+        const speech = startSpeech((text) => {
+          state.query = state.query ? (state.query.trimEnd() + " " + text) : text;
+          render();
+        });
+
+        const tabsHtml = tabs
+          .map((t) => {
+            const pressed = activeTab === t;
+            return `<button type="button" class="pill ${pressed ? "active" : ""}" aria-pressed="${pressed}" data-pill="${t}">${t}</button>`;
+          })
+          .join("");
+
+        const blueDot = showBlueDot
+          ? `<span aria-hidden="true" style="position:absolute; top:-1px; right:-1px; width:10px; height:10px; border-radius:50%; background:#3b82f6; border:2px solid #121212;"></span>`
+          : "";
+
+        return `
+          <div class="headerPlain">
+            <div class="topBar">
+              <button type="button" class="avatarBtn" aria-label="Open profile" id="openProfileBtn" style="position:relative;">
+                ${blueDot}
+                <img alt="" src="${demo.profileImg}" onerror="this.style.display='none'" />
+              </button>
+              <div class="pillRow" role="group" aria-label="Browse categories">${tabsHtml}</div>
+            </div>
+            <div class="searchShell">
+              <span aria-hidden="true">⌕</span>
+              <input id="q" type="search" placeholder="Search songs, artists, album" value="${escapeHtml(state.query)}" aria-label="Search" />
+              <button type="button" class="micBtn" id="searchMic" ${supported ? "" : "disabled"} aria-label="Voice to text">🎙</button>
+            </div>
+            <div class="srLive" aria-live="polite" aria-atomic="true">${state.listening ? "Listening" : ""}</div>
+          </div>
+        `;
+      }
+
+      function renderHome() {
+        if (state.axisEnabled) {
+          const header = renderHeader({
+            tabs: ["Songs", "Artists", "Albums", "Playlists"],
+            activeTab: state.axisMainTab,
+            onTab: (t) => (state.axisMainTab = t),
+            showBlueDot: false,
+          });
+
+          const tiles = axisTiles
+            .map(
+              (t, idx) => `
+              <button type="button" class="browseTile" style="background:${t.color}" aria-label="${t.label}" data-axis-tile="${idx}">
+                <span>${t.label}</span>
+                <span class="art" aria-hidden="true">
+                  <img alt="" src="" onerror="this.style.display='none'"/>
+                </span>
+              </button>`,
+            )
+            .join("");
+
+          const chip = state.axisTopSongChip;
+          const chips = ["All", "Pop", "Hip-hop"]
+            .map((c) => `<button type="button" class="subTab ${chip === c ? "active" : ""}" aria-pressed="${chip === c}" data-topchip="${c}">${c}</button>`)
+            .join("");
+
+          const songs = TOP_SONGS.filter((s) => chip === "All" || s.genre === chip)
+            .map(
+              (s) => `
+              <div class="row" role="button" tabindex="0" aria-label="${s.title} by ${s.artist}. Tap to play.">
+                <div class="thumb" aria-hidden="true"></div>
+                <div>
+                  <div class="rowPrimary">${s.title}</div>
+                  <div class="rowSecondary">${s.artist} · ${s.genre}</div>
+                </div>
+                <button type="button" class="playBtn" aria-label="Play ${s.title}" data-play="${s.id}">▶</button>
+              </div>`,
+            )
+            .join("");
+
+          const pinned = state.landmarks
+            .slice(0, 2)
+            .map(
+              (lm) => `
+              <button type="button" class="row" aria-label="${lm.label}" data-pin="${lm.id}">
+                <div class="thumb" aria-hidden="true">📌</div>
+                <div><div class="rowPrimary">${lm.label}</div></div>
+                <div aria-hidden="true" style="width:48px; display:grid; place-items:center; color: var(--muted);">›</div>
+              </button>`,
+            )
+            .join("");
+
+          return `
+            ${header}
+            <div class="screenInner">
+              <section aria-label="Recently played categories">
+                <div class="sectionHeader" style="margin-top:0;">Recently played</div>
+                <div class="browseGrid" style="margin-top:12px;">${tiles}</div>
+              </section>
+
+              <section aria-label="Axis controls">
+                <div class="sectionHeader" style="margin-top:0;">Axis controls</div>
+                <button type="button" class="controlsCard" id="openPalette" aria-label="Open command palette">
+                  <div class="glyph" aria-hidden="true">⌘</div>
+                  <div class="text">
+                    <div class="title">Commands &amp; voice</div>
+                    <div class="sub">Open the command palette</div>
+                  </div>
+                  <div aria-hidden="true" style="color:var(--muted); font-size:20px;">›</div>
+                </button>
+              </section>
+
+              <section aria-label="Pinned shortcuts">
+                <div class="sectionHeader" style="margin-top:0;">Pinned</div>
+                <div style="display:grid; gap:2px; margin-top:8px;">${pinned}</div>
+              </section>
+
+              <section aria-label="Top Songs">
+                <div class="sectionHeader" style="margin-top:0;">Top Songs</div>
+                <div class="subTabs" role="group" aria-label="Filter by genre">${chips}</div>
+                <div style="display:grid; gap:2px; margin-top:12px;">${songs}</div>
+              </section>
+            </div>
+          `;
+        }
+
+        const header = renderHeader({
+          tabs: ["All", "Music", "Podcasts", "Audiobooks"],
+          activeTab: state.homeChip,
+          onTab: (t) => (state.homeChip = t),
+          showBlueDot: true,
+        });
+
+        // 2×4 grid
+        const tiles = [
+          "Daily Mix 1",
+          "On Repeat",
+          "Discover Weekly",
+          "Release Radar",
+          "Liked Songs",
+          "Chill Hits",
+          "Deep Focus",
+          "Party Starters",
+        ]
+          .map((t, i) => {
+            const img = t === "On Repeat" ? demo.onRepeatImg : "";
+            return `
+              <button type="button" class="row" style="background:#282828; border-radius:12px; grid-template-columns:56px 1fr 24px; padding-right:10px; overflow:hidden; margin:0;" aria-label="${t}">
+                <div class="thumb" aria-hidden="true" style="width:56px; height:56px; border-radius:12px 0 0 12px;">
+                  ${img ? `<img alt="" src="${img}" onerror="this.style.display='none'">` : ""}
+                </div>
+                <div><div class="rowPrimary" style="font-weight:800; font-size:13px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${t}</div></div>
+                <div aria-hidden="true" style="color:var(--green); display:grid; place-items:center;">⋯</div>
+              </button>`;
+          })
+          .join("");
+
+        return `
+          ${header}
+          <div class="screenInner">
+            <section aria-label="Shortcuts">
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:0;">${tiles}</div>
+            </section>
+
+            <section aria-label="Try Axis">
+              <div style="border-radius:12px; padding:18px; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #1a1a1a 100%); border: 1px solid rgba(255,255,255,0.08);">
+                <div style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
+                  <div>
+                    <div style="font-size:12px; font-weight:900; color:var(--green); letter-spacing:0.08em; text-transform:uppercase;">New</div>
+                    <div style="font-size:18px; font-weight:900; margin-top:6px;">Introducing Axis</div>
+                    <div style="color:var(--muted); margin-top:6px; font-size:13px; line-height:1.4;">Voice commands, quick actions, and streamlined navigation.</div>
+                  </div>
+                  <button type="button" class="pill active" id="tryAxisBtn" aria-label="Try Axis">Try it out</button>
+                </div>
+              </div>
+            </section>
+          </div>
+        `;
+      }
+
+      function renderSearch() {
+        const header = `
+          <div class="headerPlain">
+            <div class="topBar">
+              <button type="button" class="avatarBtn" aria-label="Open profile" id="openProfileBtn">
+                <img alt="" src="${demo.profileImg}" onerror="this.style.display='none'" />
+              </button>
+              <div style="flex:1; font-size:22px; font-weight:900;">Search</div>
+              <button type="button" class="iconBtn" aria-label="Camera">📷</button>
+              <button type="button" class="iconBtn" aria-label="Open command palette" id="openPalette" data-command-palette-trigger="true">🎙</button>
+            </div>
+            <div class="searchShell" style="margin-top:10px;">
+              <span aria-hidden="true">⌕</span>
+              <input type="search" placeholder="What do you want to listen to?" aria-label="Search" />
+              <span aria-hidden="true" style="width:36px;"></span>
+            </div>
+          </div>
+        `;
+
+        return `
+          ${header}
+          <div class="screenInner">
+            <section aria-label="Start browsing">
+              <div class="sectionHeader" style="margin-top:0;">Start browsing</div>
+              <div class="browseGrid" style="margin-top:12px;">
+                <button type="button" class="browseTile" style="background:#E9147B" aria-label="Music">Music <span class="art" aria-hidden="true"></span></button>
+                <button type="button" class="browseTile" style="background:#0A7C6D" aria-label="Podcasts">Podcasts <span class="art" aria-hidden="true"></span></button>
+                <button type="button" class="browseTile" style="background:#2D46B9" aria-label="Audiobooks">Audiobooks <span class="art" aria-hidden="true"></span></button>
+                <button type="button" class="browseTile" style="background:#7C2AE8" aria-label="Live Events">Live Events <span class="art" aria-hidden="true"></span></button>
+              </div>
+            </section>
+          </div>
+        `;
+      }
+
+      function renderLibrary() {
+        const header = `
+          <div class="headerPlain">
+            <div class="topBar">
+              <button type="button" class="avatarBtn" aria-label="Open profile" id="openProfileBtn">
+                <img alt="" src="${demo.profileImg}" onerror="this.style.display='none'" />
+              </button>
+              <div style="flex:1; font-size:22px; font-weight:900;">Your Library</div>
+              <button type="button" class="iconBtn" aria-label="Search">⌕</button>
+              <button type="button" class="iconBtn" aria-label="Create">＋</button>
+              <button type="button" class="iconBtn" aria-label="Open command palette" id="openPalette" data-command-palette-trigger="true">🎙</button>
+            </div>
+          </div>
+        `;
+
+        const list = [
+          { title: "Liked Songs", sub: "324 songs" },
+          { title: "On Repeat", sub: "Songs you love · By Spotify", thumb: demo.onRepeatImg },
+          { title: "Chill Vibes", sub: "47 songs · By you" },
+          { title: "Workout Mix", sub: "89 songs · By Spotify" },
+        ]
+          .map(
+            (it) => `
+            <div class="row" role="button" tabindex="0" aria-label="${it.title}. ${it.sub}. Tap to open.">
+              <div class="thumb" aria-hidden="true">${it.thumb ? `<img alt="" src="${it.thumb}" onerror="this.style.display='none'">` : ""}</div>
+              <div>
+                <div class="rowPrimary">${it.title}</div>
+                <div class="rowSecondary">${it.sub}</div>
+              </div>
+              <div aria-hidden="true" style="width:48px; display:grid; place-items:center; color: var(--muted);">›</div>
+            </div>`,
+          )
+          .join("");
+
+        return `
+          ${header}
+          <div class="screenInner">
+            <section aria-label="Library list">
+              <div style="display:grid; gap:2px; margin-top:6px;">${list}</div>
+            </section>
+          </div>
+        `;
+      }
+
+      function escapeHtml(s) {
+        return String(s)
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;");
+      }
+
+      function wireCommon() {
+        const openProfileBtn = document.getElementById("openProfileBtn");
+        if (openProfileBtn) openProfileBtn.addEventListener("click", openProfile);
+
+        const openPaletteBtn = document.getElementById("openPalette");
+        if (openPaletteBtn) openPaletteBtn.addEventListener("click", openPalette);
+
+        const tryAxis = document.getElementById("tryAxisBtn");
+        if (tryAxis)
+          tryAxis.addEventListener("click", () => {
+            state.axisEnabled = true;
+            syncAxisToggle();
+            showToast("Axis", "Enabled");
+            render();
+          });
+
+        // pills in header
+        for (const pill of document.querySelectorAll("[data-pill]")) {
+          pill.addEventListener("click", () => {
+            const v = pill.getAttribute("data-pill");
+            if (!v) return;
+            if (state.axisEnabled) state.axisMainTab = v;
+            else state.homeChip = v;
+            render();
+          });
+        }
+
+        // search input
+        const q = document.getElementById("q");
+        if (q) {
+          q.addEventListener("input", (e) => {
+            state.query = e.target.value;
+          });
+        }
+
+        // voice mic for search field
+        const mic = document.getElementById("searchMic");
+        if (mic) {
+          const speech = startSpeech((text) => {
+            state.query = state.query ? (state.query.trimEnd() + " " + text) : text;
+            render();
+          });
+          mic.disabled = !speech.supported;
+          mic.addEventListener("click", () => {
+            if (!speech.supported) return;
+            speech.start();
+          });
+        }
+
+        // axis tiles
+        for (const t of document.querySelectorAll("[data-axis-tile]")) {
+          t.addEventListener("click", () => {
+            const idx = Number(t.getAttribute("data-axis-tile"));
+            const next = axisTiles[idx];
+            if (next) state.axisMainTab = next.tab;
+            showToast("Browse", next ? next.label : "Updated");
+            render();
+          });
+        }
+
+        // top-song chip filters
+        for (const b of document.querySelectorAll("[data-topchip]")) {
+          b.addEventListener("click", () => {
+            state.axisTopSongChip = b.getAttribute("data-topchip");
+            render();
+          });
+        }
+
+        // play buttons
+        for (const b of document.querySelectorAll("[data-play]")) {
+          b.addEventListener("click", (e) => {
+            e.stopPropagation();
+            showToast("Now playing", "Levitating");
+          });
+        }
+
+        // pinned actions
+        for (const p of document.querySelectorAll("[data-pin]")) {
+          p.addEventListener("click", () => {
+            const id = p.getAttribute("data-pin");
+            if (id === "pin-library") {
+              state.tab = "library";
+              setActiveNav("nav-library");
+            } else {
+              state.tab = "search";
+              setActiveNav("nav-search");
+              state.query = "chill";
+            }
+            render();
+          });
+        }
+      }
+
+      function render() {
+        if (state.tab === "home") screen.innerHTML = renderHome();
+        else if (state.tab === "search") screen.innerHTML = renderSearch();
+        else screen.innerHTML = renderLibrary();
+        wireCommon();
+        renderPalette();
+      }
+
+      // Initial render
+      render();
+    </script>
+  </body>
+</html>
+
