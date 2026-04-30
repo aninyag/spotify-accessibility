@@ -53,3 +53,5 @@ export function LongPressable(props: {
     </div>
   );
 }
+
+LongPressable.displayName = "LongPressable";

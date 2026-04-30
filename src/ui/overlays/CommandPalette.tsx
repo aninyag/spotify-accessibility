@@ -466,3 +466,7 @@ export function CommandPalette(props: {
     </div>
   );
 }
+
+PinnedPaletteRow.displayName = "PinnedPaletteRow";
+SearchHitRow.displayName = "SearchHitRow";
+CommandPalette.displayName = "CommandPalette";
