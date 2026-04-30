@@ -86,8 +86,23 @@ export function App() {
   const chillHitsLearnKey = "learn:chill-hits";
   const chillHitsPlayCount = axisLearnPlayCounts[chillHitsLearnKey] ?? 0;
   const chillHitsLearnDismissed = !!axisLearnDismissedKeys[chillHitsLearnKey];
+  const forceLearnBanner = React.useMemo(() => {
+    if (typeof window === "undefined") return false;
+    try {
+      return new URLSearchParams(window.location.search).get("demoLearn") === "1";
+    } catch {
+      return false;
+    }
+  }, []);
   const showChillHitsLearnBanner =
-    axisEnabled && chillHitsPlayCount >= 2 && !chillHitsAlreadyPinned && !chillHitsLearnDismissed;
+    axisEnabled &&
+    (forceLearnBanner || chillHitsPlayCount >= 2) &&
+    !chillHitsAlreadyPinned &&
+    !chillHitsLearnDismissed;
+
+  const bumpLearnCount = React.useCallback((key: string) => {
+    setAxisLearnPlayCounts((prev) => ({ ...prev, [key]: (prev[key] ?? 0) + 1 }));
+  }, []);
 
   const openCommandPalette = React.useCallback(() => {
     if (axisSettings.isEnabled) setCommandOpen(true);
@@ -286,6 +301,11 @@ export function App() {
       }
       if (lm.payload.kind === "search") {
         setArtistDetailName(null);
+        // Treat repeated use of the Chill Hits pinned shortcut as "played twice" for demo purposes.
+        // This is much easier to trigger than voice-only palette search.
+        if (axisSettings.isEnabled && lm.label.toLowerCase().includes("chill")) {
+          bumpLearnCount(chillHitsLearnKey);
+        }
         setSearchSeed(lm.payload.query);
         setTab("search");
         setNowPlayingOpen(false);
@@ -496,10 +516,7 @@ export function App() {
         dispatch({ type: "PLAY", payload: cmd.hit.playTrack });
         // Feature: “Learn my shortcut” banner (session-only) — track repeated use of Chill Hits.
         if (cmd.hit.id === "pl-chill") {
-          setAxisLearnPlayCounts((prev) => ({
-            ...prev,
-            [chillHitsLearnKey]: (prev[chillHitsLearnKey] ?? 0) + 1,
-          }));
+          bumpLearnCount(chillHitsLearnKey);
         }
       }
       if (cmd.kind === "playLikedSongs") {
@@ -528,7 +545,7 @@ export function App() {
         setIsPlaying(true);
       }
     },
-    [queue, track, likedTrackIds, dispatch, executePinned, toggleLike, pushToast, onTabChange, chillHitsLearnKey],
+    [queue, track, likedTrackIds, dispatch, executePinned, toggleLike, pushToast, onTabChange, bumpLearnCount, chillHitsLearnKey],
   );
 
   const artistTracks = React.useMemo(() => {
