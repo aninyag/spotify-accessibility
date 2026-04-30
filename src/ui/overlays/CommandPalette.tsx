@@ -235,14 +235,14 @@ export function CommandPalette(props: {
         ) : null}
 
         <div className="paletteSearchLabel">Search</div>
-        <div className="searchBarWrap searchBarWrapSpotify" style={{ marginBottom: 8 }}>
-          <span className="searchIcon" aria-hidden="true">
+        <div className="paletteSearchBar">
+          <span className="paletteSearchBarIcon" aria-hidden="true">
             <Icon name="search" size={18} />
           </span>
           <input
             ref={searchRef}
             type="search"
-            className="searchText"
+            className="paletteSearchBarInput"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search music & actions"
@@ -251,7 +251,7 @@ export function CommandPalette(props: {
           />
           <button
             type="button"
-            className="searchMic"
+            className="paletteSearchBarMic"
             onClick={onMic}
             disabled={!speechSupported}
             aria-label={speechListening ? "Listening…" : "Voice to text"}

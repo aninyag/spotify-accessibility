@@ -792,7 +792,8 @@ input:focus-visible {
 }
 
 .bottomSheetBackdrop {
-  position: fixed;
+  /* Constrain overlays to the in-app "phone" container. */
+  position: absolute;
   inset: 0;
   display: grid;
   align-items: end;
@@ -900,6 +901,53 @@ input:focus-visible {
   width: 1px;
   height: 1px;
   overflow: hidden;
+}
+
+.paletteSearchBar {
+  height: 44px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 0 10px 0 12px;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.paletteSearchBarIcon {
+  color: rgba(255, 255, 255, 0.8);
+  display: grid;
+  place-items: center;
+}
+
+.paletteSearchBarInput {
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.paletteSearchBarInput::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.paletteSearchBarMic {
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.paletteSearchBarMic:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
 }
 
 .sectionHeader {
