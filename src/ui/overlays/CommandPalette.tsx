@@ -175,29 +175,9 @@ export function CommandPalette(props: {
     startListening();
   };
 
-  // Inline styles ensure the sheet is visible even if a stale CSS bundle is deployed.
-  // (We keep classes for normal styling; these are only the critical layout/visibility bits.)
-  const backdropStyle: React.CSSProperties = {
-    position: "fixed",
-    inset: 0,
-    display: "grid",
-    alignItems: "end",
-    justifyItems: "stretch",
-    background: "rgba(0, 0, 0, 0.45)",
-    zIndex: 50,
-  };
-  const sheetStyle: React.CSSProperties = {
-    transform: "translateY(0)",
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    borderTop: "1px solid rgba(255, 255, 255, 0.12)",
-    boxShadow: "0 -18px 60px rgba(0, 0, 0, 0.55)",
-  };
-
   return (
     <div
       className="bottomSheetBackdrop"
-      style={backdropStyle}
       role="dialog"
       aria-modal="true"
       aria-label="Command palette"
@@ -211,7 +191,6 @@ export function CommandPalette(props: {
       <div
         ref={sheetRef}
         className="bottomSheet"
-        style={sheetStyle}
         role="document"
         onPointerDown={(e) => e.stopPropagation()}
         onMouseDown={(e) => e.stopPropagation()}
