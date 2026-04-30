@@ -706,7 +706,7 @@ export function App() {
 
         {axisEnabled ? (
           <ErrorBoundary
-            fallback={() => (
+            fallback={(err) => (
               <div
                 className="bottomSheetBackdrop"
                 style={{
@@ -744,9 +744,25 @@ export function App() {
                     </button>
                   </div>
                   <div style={{ marginTop: 10, color: "#b3b3b3", fontSize: 13, lineHeight: 1.4 }}>
-                    Please reopen the palette. If it keeps happening, open your browser console and you’ll see a “UI
-                    crashed” error with details.
+                    This is a real runtime error inside the command palette. The details are below.
                   </div>
+                  <pre
+                    style={{
+                      marginTop: 12,
+                      padding: 12,
+                      borderRadius: 12,
+                      background: "rgba(255,255,255,0.06)",
+                      border: "1px solid rgba(255,255,255,0.10)",
+                      color: "#fff",
+                      fontSize: 12,
+                      overflow: "auto",
+                      maxHeight: 240,
+                      whiteSpace: "pre-wrap",
+                      wordBreak: "break-word",
+                    }}
+                  >
+                    {err instanceof Error ? (err.stack || err.message) : String(err)}
+                  </pre>
                 </div>
               </div>
             )}
