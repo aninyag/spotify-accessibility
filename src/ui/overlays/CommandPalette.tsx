@@ -17,6 +17,53 @@ export type Command =
   | { kind: "playLikedSongs" }
   | { kind: "openNowPlaying" };
 
+function PaletteRow(props: {
+  className?: string;
+  ariaLabel: string;
+  onActivate: () => void;
+  onOverflow: () => void;
+  leading: React.ReactNode;
+  title: React.ReactNode;
+}) {
+  return (
+    <div
+      role="button"
+      tabIndex={0}
+      className={props.className ?? "spotifyRow"}
+      aria-label={props.ariaLabel}
+      onClick={() => props.onActivate()}
+      onKeyDown={(e) => {
+        if (e.key !== "Enter" && e.key !== " ") return;
+        e.preventDefault();
+        props.onActivate();
+      }}
+      onContextMenu={(e) => {
+        e.preventDefault();
+        props.onOverflow();
+      }}
+      style={{ cursor: "pointer" }}
+    >
+      {props.leading}
+      <div>
+        <div className="rowPrimary">{props.title}</div>
+      </div>
+      <button
+        type="button"
+        className="moreBtn"
+        aria-label="More options"
+        onMouseDown={(e) => e.stopPropagation()}
+        onTouchStart={(e) => e.stopPropagation()}
+        onClick={(e) => {
+          e.stopPropagation();
+          props.onOverflow();
+        }}
+      >
+        <Icon name="overflow" size={20} />
+      </button>
+    </div>
+  );
+}
+
 function PinnedPaletteRow(props: {
   lm: Landmark;
   flash: boolean;
@@ -24,26 +71,14 @@ function PinnedPaletteRow(props: {
   onLongPress: () => void;
 }) {
   return (
-    <button
-      type="button"
+    <PaletteRow
       className={`spotifyRow${props.flash ? " paletteRowFlash" : ""}`}
-      aria-label={`${props.lm.label}, pinned. Tap to open. Long-press for options.`}
-      onClick={props.onActivate}
-      onContextMenu={(e) => {
-        e.preventDefault();
-        props.onLongPress();
-      }}
-    >
-      <div className="thumb" aria-hidden="true" style={{ display: "grid", placeItems: "center" }}>
-        <Icon name="pin" size={16} />
-      </div>
-      <div>
-        <div className="rowPrimary">{props.lm.label}</div>
-      </div>
-      <div aria-hidden="true" style={{ width: 48, display: "grid", placeItems: "center", color: "#b3b3b3" }}>
-        <Icon name="chevronRight" size={18} />
-      </div>
-    </button>
+      ariaLabel={`${props.lm.label}, pinned. Tap to open. More options available.`}
+      onActivate={props.onActivate}
+      onOverflow={props.onLongPress}
+      leading={<div className="thumb" aria-hidden="true" />}
+      title={props.lm.label}
+    />
   );
 }
 
@@ -53,24 +88,13 @@ function SearchHitRow(props: {
   onLongPress: () => void;
 }) {
   return (
-    <button
-      type="button"
-      className="spotifyRow"
-      aria-label={`${props.hit.title}. Tap to play. Long-press for options.`}
-      onClick={props.onPlay}
-      onContextMenu={(e) => {
-        e.preventDefault();
-        props.onLongPress();
-      }}
-    >
-      <div className="thumb" aria-hidden="true" style={{ background: "#1e3264" }} />
-      <div>
-        <div className="rowPrimary">{props.hit.title}</div>
-      </div>
-      <div aria-hidden="true" style={{ width: 48, display: "grid", placeItems: "center", color: "#b3b3b3" }}>
-        <Icon name="chevronRight" size={18} />
-      </div>
-    </button>
+    <PaletteRow
+      ariaLabel={`${props.hit.title}. Tap to play. More options available.`}
+      onActivate={props.onPlay}
+      onOverflow={props.onLongPress}
+      leading={<div className="thumb" aria-hidden="true" style={{ background: "#1e3264" }} />}
+      title={props.hit.title}
+    />
   );
 }
 
@@ -86,7 +110,7 @@ export function CommandPalette(props: {
   pinnedFlashId: string | null;
   tts: { enabled: boolean; rate: number };
 }) {
-  const searchRef = React.useRef<HTMLInputElement | null>(null);
+  const saySomethingRef = React.useRef<HTMLButtonElement | null>(null);
   const [searchQuery, setSearchQuery] = React.useState("");
   /** Resets whenever the sheet opens so user testers always see the intro (not persisted). */
   const [hintDismissedThisOpen, setHintDismissedThisOpen] = React.useState(false);
@@ -98,13 +122,14 @@ export function CommandPalette(props: {
     startListening,
     listening: speechListening,
     supported: speechSupported,
-  } = useAxisSearchSpeech(applyVoiceTranscript);
+    interimText: speechInterimText,
+  } = useAxisSearchSpeech(applyVoiceTranscript, { interim: true });
 
   React.useEffect(() => {
     if (!props.open) return;
     setSearchQuery("");
     setHintDismissedThisOpen(false);
-    const id = window.setTimeout(() => searchRef.current?.focus(), 0);
+    const id = window.setTimeout(() => saySomethingRef.current?.focus(), 0);
     return () => window.clearTimeout(id);
   }, [props.open]);
 
@@ -162,7 +187,7 @@ export function CommandPalette(props: {
 
   const dismissHint = () => setHintDismissedThisOpen(true);
 
-  const onMic = () => {
+  const onSaySomething = () => {
     if (showFirstHint) dismissHint();
     if (!speechSupported) {
       speak("Voice is not supported in this browser.", {
@@ -204,7 +229,7 @@ export function CommandPalette(props: {
 
         {showFirstHint ? (
           <div className="paletteFirstHint" role="region" aria-label="Getting started">
-            <div className="paletteFirstHintText">Type to search, or tap the mic and say: jazz, chill, or play my liked songs</div>
+            <div className="paletteFirstHintText">Tap “Say something” and try: jazz, chill, or play your liked songs</div>
             <div className="paletteFirstHintActions">
               <button type="button" className="paletteHintChip paletteHintChipMuted" onClick={dismissHint}>
                 Got it
@@ -213,32 +238,30 @@ export function CommandPalette(props: {
           </div>
         ) : null}
 
-        <div className="paletteSearchLabel">Search</div>
-        <div className="paletteSearchBar">
-          <span className="paletteSearchBarIcon" aria-hidden="true">
-            <Icon name="search" size={18} />
-          </span>
-          <input
-            ref={searchRef}
-            type="search"
-            className="paletteSearchBarInput"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search music & actions"
-            aria-label="Search music and actions"
-            autoComplete="off"
-          />
-          <button
-            type="button"
-            className="paletteSearchBarMic"
-            onClick={onMic}
-            disabled={!speechSupported}
-            aria-label={speechListening ? "Listening…" : "Voice to text"}
-            title={!speechSupported ? "Voice input is not available in this browser" : undefined}
-          >
-            <Icon name="mic" size={18} />
-          </button>
+        <div className="paletteSearchLabel" id="palette-find-label">
+          Find music &amp; actions
         </div>
+        <button
+          ref={saySomethingRef}
+          type="button"
+          className={`paletteSaySomethingBtn${!speechSupported ? " paletteSaySomethingBtnUnsupported" : ""}`}
+          onClick={onSaySomething}
+          title={!speechSupported ? "Voice input is not available in this browser" : undefined}
+          aria-labelledby="palette-find-label"
+        >
+          <span className="paletteSaySomethingText">
+            {speechListening
+              ? speechInterimText
+                ? `“${speechInterimText}”`
+                : "Listening…"
+              : searchQuery
+                ? `“${searchQuery}”`
+                : "Say something"}
+          </span>
+          <span className="paletteSaySomethingMic" aria-hidden="true">
+            <Icon name="mic" size={24} />
+          </span>
+        </button>
         <div className="srLive" aria-live="polite" aria-atomic="true">
           {speechListening ? "Listening" : ""}
         </div>
