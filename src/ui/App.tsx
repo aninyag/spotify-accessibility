@@ -18,6 +18,7 @@ import { pinningWouldDuplicate, proposedPinId, resolvePinnedLandmark } from "./p
 import { defaultAxisSettings, type AxisSettings } from "./axisSettings";
 import { AxisTutorial } from "./overlays/AxisTutorial";
 import { ProfileMenu } from "./components/ProfileMenu";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 
 type Settings = {
   voiceFeedback: boolean;
@@ -704,20 +705,65 @@ export function App() {
         <BottomNavBar currentTab={tab} onTabChange={onTabChange} />
 
         {axisEnabled ? (
-          <CommandPalette
-            open={commandOpen}
-            onClose={() => setCommandOpen(false)}
-            context={{ tab, track, isPlaying, trackLiked: likedTrackIds.includes(track.id) }}
-            landmarks={landmarks}
-            pinnedFlashId={pinnedFlashId}
-            onPinnedLongPress={(lm) =>
-              openContext({ landmark: lm, menuVariant: "pinned-management" })
-            }
-            onOpenContext={openContext}
-            onCommand={handleCommand}
-            onExecutePinned={executePinned}
-            tts={{ enabled: ttsEnabled, rate: ttsRate }}
-          />
+          <ErrorBoundary
+            fallback={() => (
+              <div
+                className="bottomSheetBackdrop"
+                style={{
+                  position: "fixed",
+                  inset: 0,
+                  display: "grid",
+                  alignItems: "end",
+                  justifyItems: "stretch",
+                  background: "rgba(0, 0, 0, 0.45)",
+                  zIndex: 50,
+                }}
+                role="dialog"
+                aria-modal="true"
+                aria-label="Command palette error"
+                onPointerDown={() => setCommandOpen(false)}
+              >
+                <div
+                  className="bottomSheet"
+                  style={{
+                    transform: "translateY(0)",
+                    borderTopLeftRadius: 20,
+                    borderTopRightRadius: 20,
+                    borderTop: "1px solid rgba(255, 255, 255, 0.12)",
+                    boxShadow: "0 -18px 60px rgba(0, 0, 0, 0.55)",
+                    background: "#121212",
+                    padding: "16px",
+                    color: "#fff",
+                  }}
+                  onPointerDown={(e) => e.stopPropagation()}
+                >
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
+                    <div style={{ fontWeight: 800 }}>Command palette crashed</div>
+                    <button type="button" className="paletteDoneBtn" onClick={() => setCommandOpen(false)}>
+                      Done
+                    </button>
+                  </div>
+                  <div style={{ marginTop: 10, color: "#b3b3b3", fontSize: 13, lineHeight: 1.4 }}>
+                    Please reopen the palette. If it keeps happening, open your browser console and you’ll see a “UI
+                    crashed” error with details.
+                  </div>
+                </div>
+              </div>
+            )}
+          >
+            <CommandPalette
+              open={commandOpen}
+              onClose={() => setCommandOpen(false)}
+              context={{ tab, track, isPlaying, trackLiked: likedTrackIds.includes(track.id) }}
+              landmarks={landmarks}
+              pinnedFlashId={pinnedFlashId}
+              onPinnedLongPress={(lm) => openContext({ landmark: lm, menuVariant: "pinned-management" })}
+              onOpenContext={openContext}
+              onCommand={handleCommand}
+              onExecutePinned={executePinned}
+              tts={{ enabled: ttsEnabled, rate: ttsRate }}
+            />
+          </ErrorBoundary>
         ) : null}
 
         <ProfileMenu
