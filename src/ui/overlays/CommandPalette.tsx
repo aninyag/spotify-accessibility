@@ -2,7 +2,7 @@ import * as React from "react";
 import type { ContextTarget, Landmark, TabId, Track } from "../types";
 import { speak } from "../tts";
 import { Icon } from "../components/Icon";
-import { useLongPress } from "../useLongPress";
+import { LongPressable } from "../components/LongPressable";
 import type { PaletteSearchHit } from "../paletteSearch";
 import { filterPaletteSearch } from "../paletteSearch";
 import { PALETTE_SEARCH_CATALOG } from "../paletteSearch";
@@ -25,33 +25,13 @@ function PinnedPaletteRow(props: {
   onActivate: () => void;
   onLongPress: () => void;
 }) {
-  const lp = useLongPress(props.onLongPress);
   return (
-    <button
-      type="button"
+    <LongPressable
       className={`spotifyRow${props.flash ? " paletteRowFlash" : ""}`}
-      aria-label={`${props.lm.label}, pinned`}
-      onClick={(e) => {
-        const consumed = lp.consumeLongPressClick();
-        if (consumed) {
-          e.preventDefault();
-          e.stopPropagation();
-          return;
-        }
-        props.onActivate();
-      }}
-      onTouchStart={lp.onTouchStart}
-      onTouchMove={lp.onTouchMove}
-      onTouchEnd={lp.onTouchEnd}
-      onTouchCancel={lp.onTouchCancel}
-      onMouseDown={lp.onMouseDown}
-      onMouseMove={lp.onMouseMove}
-      onMouseUp={lp.onMouseUp}
-      onMouseLeave={lp.onMouseLeave}
-      onContextMenu={(e) => {
-        e.preventDefault();
-        props.onLongPress();
-      }}
+      role="button"
+      ariaLabel={`${props.lm.label}, pinned`}
+      onClick={props.onActivate}
+      onLongPress={props.onLongPress}
     >
       <div className="thumb" aria-hidden="true" style={{ display: "grid", placeItems: "center" }}>
         <Icon name="pin" size={16} />
@@ -72,7 +52,7 @@ function PinnedPaletteRow(props: {
       >
         <Icon name="overflow" size={20} />
       </button>
-    </button>
+    </LongPressable>
   );
 }
 
@@ -81,32 +61,13 @@ function SearchHitRow(props: {
   onPlay: () => void;
   onLongPress: () => void;
 }) {
-  const lp = useLongPress(props.onLongPress);
   return (
-    <button
-      type="button"
+    <LongPressable
+      role="button"
       className="spotifyRow"
-      aria-label={`${props.hit.title}. Tap to play. Long-press to pin.`}
-      onClick={(e) => {
-        if (lp.consumeLongPressClick()) {
-          e.preventDefault();
-          e.stopPropagation();
-          return;
-        }
-        props.onPlay();
-      }}
-      onTouchStart={lp.onTouchStart}
-      onTouchMove={lp.onTouchMove}
-      onTouchEnd={lp.onTouchEnd}
-      onTouchCancel={lp.onTouchCancel}
-      onMouseDown={lp.onMouseDown}
-      onMouseMove={lp.onMouseMove}
-      onMouseUp={lp.onMouseUp}
-      onMouseLeave={lp.onMouseLeave}
-      onContextMenu={(e) => {
-        e.preventDefault();
-        props.onLongPress();
-      }}
+      ariaLabel={`${props.hit.title}. Tap to play. Long-press to pin.`}
+      onClick={props.onPlay}
+      onLongPress={props.onLongPress}
     >
       <div className="thumb" aria-hidden="true" style={{ background: "#1e3264" }} />
       <div>
@@ -125,7 +86,7 @@ function SearchHitRow(props: {
       >
         <Icon name="overflow" size={20} />
       </button>
-    </button>
+    </LongPressable>
   );
 }
 
