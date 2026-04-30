@@ -706,7 +706,7 @@ export function App() {
 
         {axisEnabled ? (
           <ErrorBoundary
-            fallback={(err) => (
+            fallback={(err, componentStack) => (
               <div
                 className="bottomSheetBackdrop"
                 style={{
@@ -763,6 +763,25 @@ export function App() {
                   >
                     {err instanceof Error ? (err.stack || err.message) : String(err)}
                   </pre>
+                  {componentStack ? (
+                    <pre
+                      style={{
+                        marginTop: 12,
+                        padding: 12,
+                        borderRadius: 12,
+                        background: "rgba(29,185,84,0.10)",
+                        border: "1px solid rgba(29,185,84,0.25)",
+                        color: "#e5e5e5",
+                        fontSize: 12,
+                        overflow: "auto",
+                        maxHeight: 220,
+                        whiteSpace: "pre-wrap",
+                        wordBreak: "break-word",
+                      }}
+                    >
+                      {componentStack.trim()}
+                    </pre>
+                  ) : null}
                 </div>
               </div>
             )}
